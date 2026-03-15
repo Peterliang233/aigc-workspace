@@ -9,16 +9,11 @@ import (
 )
 
 type ImageProviderConfig struct {
-	BaseURL       string
-	APIKey        string
-	DefaultModel  string
-	Models        []string
-	ModelEndpoint map[string]string // for async APIs where model => endpoint path
+	BaseURL string
+	APIKey  string
 }
 
 type Config struct {
-	Provider       string
-	VideoModel     string
 	VideoStartEP   string
 	VideoStatusEP  string
 	Port           string
@@ -26,15 +21,15 @@ type Config struct {
 
 	ImageProviders map[string]ImageProviderConfig
 
-	// Settings are stored in MySQL (required).
+	// MySQL is required (history/assets persistence).
 	MySQLDSN string
 
 	// Asset storage (MinIO/S3 compatible). Optional but recommended for history.
-	MinIOEndpoint      string
-	MinIOAccessKey     string
-	MinIOSecretKey     string
-	MinIOBucket        string
-	MinIOUseSSL        bool
+	MinIOEndpoint  string
+	MinIOAccessKey string
+	MinIOSecretKey string
+	MinIOBucket    string
+	MinIOUseSSL    bool
 }
 
 func LoadFromEnv() Config {
@@ -57,62 +52,39 @@ func LoadFromEnv() Config {
 		allowed = []string{"http://localhost:5173"}
 	}
 
-	provider := strings.TrimSpace(os.Getenv("AIGC_PROVIDER"))
-	if provider == "" {
-		provider = "mock"
-	}
-
 	// Backward-compatible shared envs (single-provider mode).
 	sharedBase := strings.TrimSpace(os.Getenv("AIGC_BASE_URL"))
 	sharedKey := strings.TrimSpace(os.Getenv("AIGC_API_KEY"))
-	sharedModel := strings.TrimSpace(os.Getenv("AIGC_IMAGE_MODEL"))
 
 	openaiBase := firstNonEmpty(strings.TrimSpace(os.Getenv("OPENAI_COMPAT_BASE_URL")), sharedBase)
 	openaiKey := firstNonEmpty(strings.TrimSpace(os.Getenv("OPENAI_COMPAT_API_KEY")), sharedKey)
-	openaiModel := firstNonEmpty(strings.TrimSpace(os.Getenv("OPENAI_COMPAT_IMAGE_MODEL")), sharedModel)
-	openaiModels := parseCSV(os.Getenv("OPENAI_COMPAT_IMAGE_MODELS"))
 
 	sfBase := firstNonEmpty(strings.TrimSpace(os.Getenv("SILICONFLOW_BASE_URL")), sharedBase)
 	sfKey := firstNonEmpty(strings.TrimSpace(os.Getenv("SILICONFLOW_API_KEY")), sharedKey)
-	sfModel := firstNonEmpty(strings.TrimSpace(os.Getenv("SILICONFLOW_IMAGE_MODEL")), sharedModel)
-	sfModels := parseCSV(os.Getenv("SILICONFLOW_IMAGE_MODELS"))
 
 	wyBase := strings.TrimSpace(os.Getenv("WUYIN_BASE_URL"))
 	wyKey := strings.TrimSpace(os.Getenv("WUYIN_API_KEY"))
-	wyModels := parseCSV(os.Getenv("WUYIN_IMAGE_MODELS"))
-	wyEndpoints := parseKVCSV(os.Getenv("WUYIN_IMAGE_ENDPOINTS"))
 
 	imageProviders := map[string]ImageProviderConfig{
 		"mock": {
-			BaseURL:      "",
-			APIKey:       "",
-			DefaultModel: "",
-			Models:       nil,
+			BaseURL: "",
+			APIKey:  "",
 		},
 		"openai_compatible": {
-			BaseURL:      openaiBase,
-			APIKey:       openaiKey,
-			DefaultModel: openaiModel,
-			Models:       openaiModels,
+			BaseURL: openaiBase,
+			APIKey:  openaiKey,
 		},
 		"siliconflow": {
-			BaseURL:      sfBase,
-			APIKey:       sfKey,
-			DefaultModel: sfModel,
-			Models:       sfModels,
+			BaseURL: sfBase,
+			APIKey:  sfKey,
 		},
 		"wuyinkeji": {
-			BaseURL:       wyBase,
-			APIKey:        wyKey,
-			DefaultModel:  "",
-			Models:        wyModels,
-			ModelEndpoint: wyEndpoints,
+			BaseURL: wyBase,
+			APIKey:  wyKey,
 		},
 	}
 
 	return Config{
-		Provider:       provider,
-		VideoModel:     strings.TrimSpace(os.Getenv("AIGC_VIDEO_MODEL")),
 		VideoStartEP:   strings.TrimSpace(os.Getenv("AIGC_VIDEO_START_ENDPOINT")),
 		VideoStatusEP:  strings.TrimSpace(os.Getenv("AIGC_VIDEO_STATUS_ENDPOINT")),
 		Port:           port,

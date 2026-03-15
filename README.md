@@ -46,12 +46,12 @@ npm run dev
 
 前端默认 `http://localhost:5173`，已在 `vite.config.ts` 里把 `/api` 代理到后端。
 
-## 网页配置（推荐）
+## 模型与表单配置（JSON）
 
-前端侧边栏新增了「配置」模块，用于管理不同平台的“模型列表”（新增/删除）。
+不同平台的不同模型，可能需要不同的必填表单（例如 I2V 模型需要参考图）。本项目将「平台/模型列表 + 表单要求」统一存储在 `backend/models.json` 中，由后端在启动时加载，并通过 `GET /api/meta/images`、`GET /api/meta/videos` 下发给前端驱动 UI。
 
-- Base URL / API Key / 默认模型：通过部署环境配置（env）
-- 模型列表：仅存到 MySQL（需要配置 `MYSQL_DSN`；已支持新增/删除）
+- 平台 Base URL / API Key：只通过 `.env` 配置（不进库）
+- 模型列表 + 表单映射：只通过 `backend/models.json` 配置（不进库、不可在网页编辑）
 
 ## Docker Compose
 
@@ -92,14 +92,9 @@ MySQL 默认会映射到宿主机 `3307`（避免和本机已有的 MySQL `3306`
 
 后端用 Provider 抽象封装了“图片生成”和“视频生成(异步任务)”两类能力：
 
-- 没配 Key 时，默认走 `mock` provider：图片会生成一个可访问的 SVG 占位图（用于前后端联调）。
-- 配置了 `AIGC_PROVIDER=openai_compatible` 且提供 `AIGC_API_KEY` 时，会走 OpenAI 兼容图片接口：
-  - `POST {AIGC_BASE_URL}/v1/images/generations`
-  - 当前实现优先使用 `b64_json`，后端会落盘到 `backend/var/generated/` 并通过 `/static/` 暴露
-- 配置了 `AIGC_PROVIDER=siliconflow` 时，会调用 SiliconFlow 图片接口并将返回的临时 URL 下载落盘：
-  - `POST https://api.siliconflow.cn/v1/images/generations`
-  - SiliconFlow 返回的图片 URL 通常是临时有效（约 1 小时），后端会立即下载到 `backend/var/generated/` 并返回本站 `/static/generated/...`，保证网页可稳定展示
-- 支持多平台并存：前端会调用 `GET /api/meta/images` 获取可选的平台与模型，并在 `POST /api/images/generate` 时携带 `provider/model`，后端按请求动态路由到对应平台。
+- 没配 Key 时，可以先用 `mock` provider：图片会生成一个可访问的 SVG 占位图（用于前后端联调）。
+- 图片：前端通过 `GET /api/meta/images` 获取可选的平台与模型，并在 `POST /api/images/generate` 时携带 `provider/model`，后端按请求动态路由到对应平台。
+- 视频：前端通过 `GET /api/meta/videos` 获取可选的平台与模型。若模型配置为 `requires_image=true`（在 `backend/models.json`），前后端都会强制要求提供参考图片。
 
 视频接口因为不同厂商差异很大，默认实现为“可用的异步任务链路 + 可配置的 start/status endpoint”。你可以先跑通 UI，再按目标厂商的 API 协议补齐 Provider 的字段映射。
 
@@ -110,4 +105,4 @@ MySQL 默认会映射到宿主机 `3307`（避免和本机已有的 MySQL `3306`
 - `POST /api/async/{model}?key=你的密钥`
 - 例如 `model=image_nanoBanana_pro`
 
-因此在网页「配置」页里填写的模型列表，建议直接使用 `image_nanoBanana_pro` 这类模型名（而不是完整 URL）。
+因此在 `backend/models.json` 里配置模型列表时，建议直接使用 `image_nanoBanana_pro` 这类模型名（而不是完整 URL）。

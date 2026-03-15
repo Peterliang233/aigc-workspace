@@ -8,8 +8,9 @@ export function InitImagePicker(props: {
   imageBase64: string;
   onImageBase64: (v: string) => void;
   disabled?: boolean;
+  required?: boolean;
 }) {
-  const { imageUrl, onImageUrl, imageBase64, onImageBase64, disabled } = props;
+  const { imageUrl, onImageUrl, imageBase64, onImageBase64, disabled, required } = props;
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [fileName, setFileName] = useState("");
@@ -53,7 +54,10 @@ export function InitImagePicker(props: {
 
   return (
     <div className="label">
-      <div>参考图片 (可选，I2V 模型需要)</div>
+      <div>
+        参考图片{" "}
+        {required ? <span className="pill" style={{ marginLeft: 8 }}>必填</span> : <span className="muted">(可选)</span>}
+      </div>
 
       <div className="filepick">
         <input

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ImageStudio } from "./components/ImageStudio";
 import { VideoStudio } from "./components/VideoStudio";
-import { ConfigStudio } from "./components/ConfigStudio";
 import { HistoryStudio } from "./components/HistoryStudio";
 import { ToolboxStudio } from "./components/ToolboxStudio";
 
@@ -43,8 +42,6 @@ export function App() {
             <ImageStudio />
           ) : tab === "video" ? (
             <VideoStudio />
-          ) : tab === "config" ? (
-            <ConfigStudio />
           ) : tab === "toolbox" ? (
             <ToolboxStudio />
           ) : (

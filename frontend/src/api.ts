@@ -40,27 +40,12 @@ export type VideoJobGetResponse = {
 
 export type VideoMetaResponse = {
   default_provider: string;
-  providers: { id: string; label: string; configured: boolean; models: string[] }[];
-};
-
-export type SettingsGetResponse = {
-  image_providers: Record<
-    string,
-    {
-      label: string;
-      base_url?: string;
-      api_key_set: boolean;
-      default_model?: string;
-      models?: string[];
-    }
-  >;
-};
-
-export type ProviderSettingsPatch = {
-  base_url?: string;
-  api_key?: string;
-  default_model?: string;
-  models?: string[];
+  providers: {
+    id: string;
+    label: string;
+    configured: boolean;
+    models: { id: string; label?: string; requires_image?: boolean }[];
+  }[];
 };
 
 async function httpJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -87,31 +72,6 @@ export const api = {
     }>("/api/meta/images", { method: "GET" }),
 
   getVideoMeta: () => httpJSON<VideoMetaResponse>("/api/meta/videos", { method: "GET" }),
-
-  getSettings: () => httpJSON<SettingsGetResponse>("/api/settings", { method: "GET" }),
-
-  updateSettings: (patch: { image_providers: Record<string, ProviderSettingsPatch> }) =>
-    httpJSON<{ ok: boolean }>("/api/settings", {
-      method: "PUT",
-      body: JSON.stringify(patch)
-    }),
-
-  addImageModel: (providerId: string, model: string) =>
-    httpJSON<{ ok: boolean }>(`/api/settings/image-providers/${encodeURIComponent(providerId)}/models`, {
-      method: "POST",
-      body: JSON.stringify({ model })
-    }),
-
-  deleteImageModel: (providerId: string, model: string) =>
-    httpJSON<{ ok: boolean }>(
-      `/api/settings/image-providers/${encodeURIComponent(providerId)}/models?model=${encodeURIComponent(model)}`,
-      { method: "DELETE" }
-    ),
-
-  resetImageProvider: (providerId: string) =>
-    httpJSON<{ ok: boolean }>(`/api/settings/image-providers/${encodeURIComponent(providerId)}`, {
-      method: "DELETE"
-    }),
 
   getHistory: (params?: { capability?: string; limit?: number; offset?: number }) => {
     const q = new URLSearchParams();

@@ -27,7 +27,12 @@ func (h *Handler) videosJobs(w http.ResponseWriter, r *http.Request) {
 
 	providerID := strings.ToLower(strings.TrimSpace(req.Provider))
 	if providerID == "" {
-		providerID = h.defaultVideoProviderID()
+		if h.models != nil {
+			providerID = strings.ToLower(strings.TrimSpace(h.models.DefaultProvider("video")))
+		}
+		if providerID == "" {
+			providerID = h.defaultVideoProviderID()
+		}
 	}
 	vp, ok := h.getVideoProvider(providerID)
 	if !ok || vp == nil {
@@ -38,8 +43,20 @@ func (h *Handler) videosJobs(w http.ResponseWriter, r *http.Request) {
 
 	model := strings.TrimSpace(req.Model)
 	if model == "" {
-		model = strings.TrimSpace(h.effectiveCfg().VideoModel)
-		req.Model = model
+		if h.models != nil {
+			model = strings.TrimSpace(h.models.DefaultModel(providerID, "video"))
+			req.Model = model
+		}
+	}
+	if strings.TrimSpace(model) == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "缺少 model"})
+		return
+	}
+
+	// Enforce per-model required fields (driven by models.json).
+	if h.modelRequiresInitImage(providerID, model) && strings.TrimSpace(req.Image) == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "该模型需要提供 init image"})
+		return
 	}
 
 	slog.Default().Info("videos_create", "provider", providerID, "provider_impl", vp.ProviderName(), "model", model)

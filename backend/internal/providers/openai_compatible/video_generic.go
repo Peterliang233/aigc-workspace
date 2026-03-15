@@ -59,8 +59,16 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 		return "", errors.New("prompt is required")
 	}
 
+	model := strings.TrimSpace(req.Model)
+	if model == "" {
+		model = p.videoModel
+	}
+	if model == "" {
+		return "", errors.New("missing model")
+	}
+
 	payload := map[string]any{
-		"model":            p.videoModel,
+		"model":            model,
 		"prompt":           prompt,
 		"duration_seconds": req.DurationSeconds,
 		"aspect_ratio":     req.AspectRatio,
@@ -69,7 +77,7 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 
 	u := p.baseURL + p.startEP
 	logging.DownstreamRequest("provider_video_start", p.ProviderName(), http.MethodPost, u, map[string]any{
-		"model":            p.videoModel,
+		"model":            model,
 		"duration_seconds": req.DurationSeconds,
 		"aspect_ratio":     req.AspectRatio,
 		"prompt":           logging.DownstreamPrompt(prompt),

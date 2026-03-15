@@ -1,35 +1,27 @@
-import React, { useState } from "react";
-import { api } from "../api";
+import React, { useMemo, useState } from "react";
 import { useImageMeta } from "../hooks/useImageMeta";
+import { useGeneration } from "../state/generation";
 
 export function ImageStudio() {
   const [prompt, setPrompt] = useState("一只在雨夜霓虹街头散步的柴犬，电影感，高对比，35mm");
   const [size, setSize] = useState("1024x1024");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [url, setUrl] = useState<string | null>(null);
 
   const { metaLoading, providers, provider, setProvider, model, setModel, customModel, setCustomModel, modelList, useCustom } =
     useImageMeta();
 
-  async function onGenerate() {
-    setBusy(true);
-    setError(null);
-    try {
-      const pickedModel = useCustom ? customModel.trim() : model;
-      const res = await api.generateImage({
-        provider,
-        model: pickedModel || undefined,
-        prompt,
-        size
-      });
-      const next = (res.image_urls || [])[0] || null;
-      setUrl(next);
-    } catch (e: any) {
-      setError(e?.message || String(e));
-    } finally {
-      setBusy(false);
-    }
+  const { state, startImage } = useGeneration();
+  const latest = useMemo(() => state.images[0] || null, [state.images]);
+  const busy = state.images.some((t) => t.status === "running");
+  const url = latest?.image_url || null;
+
+  function onGenerate() {
+    const pickedModel = useCustom ? customModel.trim() : model;
+    startImage({
+      provider,
+      model: pickedModel || undefined,
+      prompt,
+      size
+    });
   }
 
   return (
@@ -114,7 +106,7 @@ export function ImageStudio() {
           </div>
         </div>
 
-        {error && <div className="alert alert--err">Error: {error}</div>}
+        {latest?.status === "failed" && <div className="alert alert--err">Error: {latest.error || "failed"}</div>}
       </section>
 
       <section className="card resultsCard">
@@ -141,8 +133,10 @@ export function ImageStudio() {
           </a>
         ) : (
           <div className="placeholder">
-            <div className="placeholder__title">结果会显示在这里</div>
-            <div className="placeholder__sub">点击 Generate 生成图片。</div>
+            <div className="placeholder__title">{busy ? "生成中..." : "结果会显示在这里"}</div>
+            <div className="placeholder__sub">
+              {busy ? "切换 tab 不会中断；完成后会自动显示。" : "点击 Generate 生成图片。"}
+            </div>
           </div>
         )}
       </section>

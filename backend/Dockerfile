@@ -12,6 +12,7 @@ RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 COPY --from=build /out/server /app/server
+COPY --from=build /src/models.json /app/models.json
 
 # Persisted via docker-compose named volume in /app/var
 RUN mkdir -p /app/var/generated

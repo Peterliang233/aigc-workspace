@@ -6,18 +6,15 @@ import (
 
 	"aigc-backend/internal/assets"
 	"aigc-backend/internal/config"
-	"aigc-backend/internal/settings"
+	"aigc-backend/internal/modelcfg"
 	"aigc-backend/internal/store"
 	"aigc-backend/internal/types"
 )
 
 type Handler struct {
-	baseCfg config.Config
-	st      settings.Store
-	assets  *assets.Service
-
-	cfgMu sync.RWMutex
-	cfg   config.Config
+	cfg    config.Config
+	models *modelcfg.Config
+	assets *assets.Service
 
 	provMu         sync.Mutex
 	imageProviders map[string]imageProvider

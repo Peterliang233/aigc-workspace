@@ -3,7 +3,6 @@ import React from "react";
 export type IconName =
   | "image"
   | "video"
-  | "settings"
   | "upload"
   | "toolbox"
   | "history"
@@ -42,19 +41,6 @@ export function Icon({ name }: { name: IconName }) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-      </svg>
-    );
-  }
-  if (name === "settings") {
-    return (
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path
-          d="M8.2 3.4h3.6l.4 2.1a6.3 6.3 0 0 1 1.4.8l2-.8 1.8 3.1-1.6 1.4c.1.3.1.7.1 1.1s0 .8-.1 1.1l1.6 1.4-1.8 3.1-2-.8c-.4.3-.9.6-1.4.8l-.4 2.1H8.2l-.4-2.1a6.3 6.3 0 0 1-1.4-.8l-2 .8-1.8-3.1 1.6-1.4A4.8 4.8 0 0 1 4.8 10c0-.4 0-.8.1-1.1L3.3 7.5 5.1 4.4l2 .8c.4-.3.9-.6 1.4-.8l.4-2.1Z"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-        />
-        <path d="M10 12.6a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z" stroke="currentColor" strokeWidth="1.2" />
       </svg>
     );
   }

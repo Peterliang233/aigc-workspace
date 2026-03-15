@@ -1,7 +1,6 @@
 package httpapi
 
 import (
-	"sort"
 	"strings"
 
 	"aigc-backend/internal/providers/mock"
@@ -12,7 +11,13 @@ import (
 
 func (h *Handler) rebuildProvidersLocked() {
 	// Callers must hold h.provMu.
-	cfg := h.effectiveCfg()
+	cfg := h.cfg
+	defImageModel := func(providerID string) string {
+		if h.models == nil {
+			return ""
+		}
+		return h.models.DefaultModel(providerID, "image")
+	}
 
 	ensure := func(id string, key string, build func() imageProvider) {
 		if prev, ok := h.provKeys[id]; ok && prev == key && h.imageProviders[id] != nil {
@@ -26,27 +31,23 @@ func (h *Handler) rebuildProvidersLocked() {
 	ensure("mock", "mock", func() imageProvider { return mock.New(h.staticRoot) })
 
 	if pc, ok := cfg.ImageProviders["openai_compatible"]; ok {
-		key := "openai|" + pc.BaseURL + "|" + pc.APIKey + "|" + pc.DefaultModel + "|" + strings.Join(pc.Models, ",")
+		dm := defImageModel("openai_compatible")
+		key := "openai|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
 		ensure("openai_compatible", key, func() imageProvider {
-			return openai_compatible.New(pc.BaseURL, pc.APIKey, pc.DefaultModel, h.staticRoot)
+			return openai_compatible.New(pc.BaseURL, pc.APIKey, dm, h.staticRoot)
 		})
 	}
 	if pc, ok := cfg.ImageProviders["siliconflow"]; ok {
-		key := "sf|" + pc.BaseURL + "|" + pc.APIKey + "|" + pc.DefaultModel + "|" + strings.Join(pc.Models, ",")
+		dm := defImageModel("siliconflow")
+		key := "sf|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
 		ensure("siliconflow", key, func() imageProvider {
-			return siliconflow.New(pc.BaseURL, pc.APIKey, pc.DefaultModel, h.staticRoot)
+			return siliconflow.New(pc.BaseURL, pc.APIKey, dm, h.staticRoot)
 		})
 	}
 	if pc, ok := cfg.ImageProviders["wuyinkeji"]; ok {
-		// if legacy mapping is used, include it in the cache key
-		var kv []string
-		for k, v := range pc.ModelEndpoint {
-			kv = append(kv, k+"="+v)
-		}
-		sort.Strings(kv)
-		key := "wy|" + pc.BaseURL + "|" + pc.APIKey + "|" + strings.Join(pc.Models, ",") + "|" + strings.Join(kv, ",")
+		key := "wy|" + pc.BaseURL + "|" + pc.APIKey
 		ensure("wuyinkeji", key, func() imageProvider {
-			return wuyinkeji.New(pc.BaseURL, pc.APIKey, h.staticRoot, pc.Models, pc.ModelEndpoint)
+			return wuyinkeji.New(pc.BaseURL, pc.APIKey, h.staticRoot, nil, nil)
 		})
 	}
 
@@ -76,9 +77,13 @@ func (h *Handler) rebuildProvidersLocked() {
 	if cfg.VideoStartEP != "" && cfg.VideoStatusEP != "" {
 		pc := cfg.ImageProviders["openai_compatible"]
 		if strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
-			key := "ov|" + pc.BaseURL + "|" + pc.APIKey + "|" + cfg.VideoModel + "|" + cfg.VideoStartEP + "|" + cfg.VideoStatusEP
+			dm := ""
+			if h.models != nil {
+				dm = h.models.DefaultModel("openai_compatible", "video")
+			}
+			key := "ov|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm + "|" + cfg.VideoStartEP + "|" + cfg.VideoStatusEP
 			ensureV("openai_compatible", key, func() videoProvider {
-				return openai_compatible.NewVideoGeneric(pc.BaseURL, pc.APIKey, cfg.VideoModel, cfg.VideoStartEP, cfg.VideoStatusEP)
+				return openai_compatible.NewVideoGeneric(pc.BaseURL, pc.APIKey, dm, cfg.VideoStartEP, cfg.VideoStatusEP)
 			})
 		}
 	}

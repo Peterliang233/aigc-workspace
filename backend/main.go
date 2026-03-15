@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"aigc-backend/internal/config"
 	"aigc-backend/internal/httpapi"
 	"aigc-backend/internal/logging"
-	"aigc-backend/internal/settings"
+	"aigc-backend/internal/modelcfg"
 )
 
 func main() {
@@ -23,18 +24,25 @@ func main() {
 
 	logging.InitFromEnv()
 
-	var st settings.Store
 	if strings.TrimSpace(cfg.MySQLDSN) == "" {
-		slog.Default().Error("settings_store_mysql_missing_dsn")
+		slog.Default().Error("mysql_missing_dsn")
 		os.Exit(1)
 	}
-	mysqlStore, err := settings.NewMySQLStore(cfg.MySQLDSN)
+
+	modelsPath := strings.TrimSpace(os.Getenv("MODELS_CONFIG_PATH"))
+	if modelsPath == "" {
+		modelsPath = "models.json"
+	}
+	models, err := modelcfg.Load(modelsPath)
 	if err != nil {
-		slog.Default().Error("settings_store_mysql_init_failed", "err", err.Error())
+		// Give a more actionable path hint for common layouts.
+		slog.Default().Error("models_config_load_failed",
+			"path", modelsPath,
+			"cwd_hint", filepath.Base(mustGetwd()),
+			"err", err.Error(),
+		)
 		os.Exit(1)
 	}
-	st = mysqlStore
-	defer st.Close()
 
 	assetStore, err := assets.NewMySQLStore(cfg.MySQLDSN)
 	if err != nil {
@@ -67,7 +75,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewHandler(cfg, st, assetSvc),
+		Handler:           httpapi.NewHandler(cfg, models, assetSvc),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      5 * time.Minute,
@@ -76,12 +84,20 @@ func main() {
 
 	slog.Default().Info("server_start",
 		"addr", srv.Addr,
-		"provider", cfg.Provider,
 		"mysql", cfg.MySQLDSN != "",
 		"minio", minioStore != nil,
+		"models_version", models.Version,
 	)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		slog.Default().Error("server_error", "err", err.Error())
 		os.Exit(1)
 	}
+}
+
+func mustGetwd() string {
+	wd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	return wd
 }

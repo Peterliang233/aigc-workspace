@@ -5,7 +5,7 @@ import (
 )
 
 func (h *Handler) defaultVideoProviderID() string {
-	cfg := h.effectiveCfg()
+	cfg := h.cfg
 	if pc, ok := cfg.ImageProviders["siliconflow"]; ok && strings.TrimSpace(pc.APIKey) != "" {
 		return "siliconflow"
 	}

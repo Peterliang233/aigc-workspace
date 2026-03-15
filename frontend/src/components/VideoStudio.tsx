@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { api, VideoJobGetResponse } from "../api";
+import React, { useMemo, useState } from "react";
 import { useVideoMeta } from "../hooks/useVideoMeta";
+import { useGeneration } from "../state/generation";
 import { InitImagePicker } from "./video/InitImagePicker";
 import { VIDEO_SIZES } from "./video/sizes";
 import { VideoResults } from "./video/VideoResults";
-
-type JobRow = VideoJobGetResponse & { created_at: number };
 
 export function VideoStudio() {
   const [prompt, setPrompt] = useState("一段俯拍镜头：城市清晨云海缓慢流动，镜头平滑推进，电影感");
@@ -17,12 +15,36 @@ export function VideoStudio() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [jobs, setJobs] = useState<JobRow[]>([]);
 
-  const { metaLoading, providers, provider, setProvider, model, setModel, customModel, setCustomModel, modelList, useCustom } =
-    useVideoMeta();
+  const {
+    metaLoading,
+    providers,
+    provider,
+    setProvider,
+    model,
+    setModel,
+    customModel,
+    setCustomModel,
+    models,
+    modelList,
+    selectedModelMeta,
+    useCustom
+  } = useVideoMeta();
 
-  const latest = useMemo(() => jobs[0], [jobs]);
+  const { state, createVideoJob } = useGeneration();
+  const jobs = state.videos;
+  const latest = useMemo(() => jobs[0] || null, [jobs]);
+
+  const requiresInitImage = useMemo(() => {
+    if (useCustom) {
+      const m = customModel.trim();
+      return /I2V|IMG2VID|IMAGE2VIDEO/i.test(m);
+    }
+    return !!selectedModelMeta?.requires_image;
+  }, [useCustom, customModel, selectedModelMeta]);
+
+  const hasInitImage = !!imageBase64 || !!imageUrl.trim();
+  const canSubmit = !!prompt.trim() && (!requiresInitImage || hasInitImage);
 
   async function onCreateJob() {
     setBusy(true);
@@ -39,35 +61,13 @@ export function VideoStudio() {
         image: imageBase64 ? imageBase64 : imageUrl.trim() ? imageUrl.trim() : undefined,
         seed: Number.isFinite(seedNum as any) ? (seedNum as number) : undefined
       };
-      const res = await api.createVideoJob(req);
-      setJobs((prev) => [{ job_id: res.job_id, status: res.status, provider: res.provider, created_at: Date.now() }, ...prev]);
+      await createVideoJob(req);
     } catch (e: any) {
       setError(e?.message || String(e));
     } finally {
       setBusy(false);
     }
   }
-
-  useEffect(() => {
-    let t: number | null = null;
-    async function tick() {
-      if (!latest?.job_id) return;
-      if (latest.status === "succeeded" || latest.status === "failed") return;
-      try {
-        const res = await api.getVideoJob(latest.job_id);
-        setJobs((prev) => prev.map((j) => (j.job_id === res.job_id ? { ...j, ...res } : j)));
-      } catch {
-        // ignore polling errors; user can refresh
-      } finally {
-        t = window.setTimeout(tick, 1800);
-      }
-    }
-    t = window.setTimeout(tick, 600);
-    return () => {
-      if (t) window.clearTimeout(t);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [latest?.job_id, latest?.status]);
 
   return (
     <div className="workspace">
@@ -99,9 +99,9 @@ export function VideoStudio() {
               模型
               {modelList.length > 0 ? (
                 <select className="input" value={model} onChange={(e) => setModel(e.target.value)}>
-                  {modelList.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
+                  {(models || []).map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.label ? `${m.label} (${m.id})` : m.id}
                     </option>
                   ))}
                   <option value="__custom__">自定义...</option>
@@ -174,14 +174,19 @@ export function VideoStudio() {
             imageBase64={imageBase64}
             onImageBase64={setImageBase64}
             disabled={busy}
+            required={requiresInitImage}
           />
 
-          <button className="btn" disabled={busy || !prompt.trim()} onClick={onCreateJob}>
+          <button className="btn" disabled={busy || !canSubmit} onClick={onCreateJob}>
             {busy ? "Submitting..." : "Submit"}
           </button>
         </div>
 
         {error && <div className="alert alert--err">Error: {error}</div>}
+        {requiresInitImage && !hasInitImage ? <div className="alert">当前模型需要参考图片，请先上传或填写 URL。</div> : null}
+        {latest && latest.status !== "succeeded" && latest.status !== "failed" ? (
+          <div className="alert">最新任务正在生成中，切换 tab 不会中断。</div>
+        ) : null}
       </section>
 
       <VideoResults jobs={jobs} />

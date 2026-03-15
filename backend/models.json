@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "defaults": {
+    "image_provider": "siliconflow",
+    "video_provider": "siliconflow"
+  },
+  "providers": [
+    {
+      "id": "mock",
+      "label": "Mock(联调)",
+      "image": { "default_model": "", "models": [] },
+      "video": { "default_model": "", "models": [] }
+    },
+    {
+      "id": "siliconflow",
+      "label": "SiliconFlow",
+      "image": {
+        "default_model": "black-forest-labs/FLUX.1-schnell",
+        "models": [
+          { "id": "black-forest-labs/FLUX.1-schnell" },
+          { "id": "black-forest-labs/FLUX.1-dev" }
+        ]
+      },
+      "video": {
+        "default_model": "Wan-AI/Wan2.2-T2V-A14B",
+        "models": [
+          { "id": "Wan-AI/Wan2.2-T2V-A14B", "label": "Wan 2.2 T2V", "form": { "requires_image": false } },
+          { "id": "Wan-AI/Wan2.2-I2V-A14B", "label": "Wan 2.2 I2V", "form": { "requires_image": true } }
+        ]
+      }
+    },
+    {
+      "id": "wuyinkeji",
+      "label": "无印科技(速创API)",
+      "image": {
+        "default_model": "image_nanoBanana_pro",
+        "models": [
+          { "id": "image_nanoBanana_pro" }
+        ]
+      }
+    },
+    {
+      "id": "openai_compatible",
+      "label": "OpenAI Compatible",
+      "image": {
+        "default_model": "gpt-image-1",
+        "models": [
+          { "id": "gpt-image-1" }
+        ]
+      },
+      "video": {
+        "default_model": "",
+        "models": []
+      }
+    }
+  ]
+}
+

@@ -19,62 +19,56 @@ func (h *Handler) metaImages(w http.ResponseWriter, r *http.Request) {
 		Models     []string `json:"models"`
 	}
 
-	labels := map[string]string{
-		"mock":              "Mock(联调)",
-		"openai_compatible": "OpenAI Compatible",
-		"siliconflow":       "SiliconFlow",
-		"wuyinkeji":         "无印科技(速创API)",
-	}
-
 	var list []prov
-	cfg := h.effectiveCfg()
-	for id, pc := range cfg.ImageProviders {
-		if _, ok := labels[id]; !ok {
-			continue
-		}
-
-		models := pc.Models
-		if id == "wuyinkeji" {
-			if provImpl, ok := h.getImageProvider("wuyinkeji"); ok {
-				// Avoid depending on the concrete provider type: only call Models() when available.
-				if ml, ok := provImpl.(interface{ Models() []string }); ok {
-					models = ml.Models()
+	cfg := h.cfg
+	if h.models != nil {
+		for _, p := range h.models.Providers {
+			if p.Image == nil {
+				continue
+			}
+			id := strings.ToLower(strings.TrimSpace(p.ID))
+			if id == "" {
+				continue
+			}
+			configured := true
+			if id != "mock" {
+				pc := cfg.ImageProviders[id]
+				if strings.TrimSpace(pc.APIKey) == "" {
+					configured = false
+				}
+				// Some providers also require a base URL.
+				if id == "openai_compatible" && strings.TrimSpace(pc.BaseURL) == "" {
+					configured = false
 				}
 			}
+			var models []string
+			for _, m := range p.Image.Models {
+				mid := strings.TrimSpace(m.ID)
+				if mid != "" {
+					models = append(models, mid)
+				}
+			}
+			list = append(list, prov{ID: id, Label: p.Label, Configured: configured, Models: models})
 		}
-
-		configured := true
-		if id != "mock" && strings.TrimSpace(pc.APIKey) == "" {
-			configured = false
-		}
-
-		list = append(list, prov{
-			ID:         id,
-			Label:      labels[id],
-			Configured: configured,
-			Models:     models,
-		})
+	} else {
+		// Minimal fallback so UI still renders.
+		list = append(list, prov{ID: "mock", Label: "Mock(联调)", Configured: true})
 	}
 
-	// Ensure mock exists even if cfg.ImageProviders was nil/unset.
-	foundMock := false
-	for _, p := range list {
-		if p.ID == "mock" {
-			foundMock = true
-			break
-		}
+	def := ""
+	if h.models != nil {
+		def = strings.ToLower(strings.TrimSpace(h.models.DefaultProvider("image")))
 	}
-	if !foundMock {
-		list = append(list, prov{ID: "mock", Label: labels["mock"], Configured: true})
+	if def == "" {
+		def = "mock"
 	}
-
 	writeJSON(w, http.StatusOK, map[string]any{
-		"default_provider": strings.ToLower(strings.TrimSpace(cfg.Provider)),
+		"default_provider": def,
 		"providers":        list,
 	})
 
 	slog.Default().Debug("meta_images",
-		"default_provider", strings.ToLower(strings.TrimSpace(cfg.Provider)),
+		"default_provider", def,
 		"providers", len(list),
 	)
 }

@@ -30,10 +30,11 @@ func (h *Handler) imagesGenerate(w http.ResponseWriter, r *http.Request) {
 	// Current UI + some providers only support a single output.
 	req.N = 1
 
-	cfg := h.effectiveCfg()
 	providerID := strings.ToLower(strings.TrimSpace(req.Provider))
 	if providerID == "" {
-		providerID = strings.ToLower(strings.TrimSpace(cfg.Provider))
+		if h.models != nil {
+			providerID = strings.ToLower(strings.TrimSpace(h.models.DefaultProvider("image")))
+		}
 	}
 	if providerID == "" {
 		providerID = "mock"
@@ -43,6 +44,11 @@ func (h *Handler) imagesGenerate(w http.ResponseWriter, r *http.Request) {
 		slog.Default().Warn("images_generate_unknown_provider", "provider", providerID)
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "unknown provider: " + providerID})
 		return
+	}
+
+	// Apply per-provider default model from models.json when request doesn't specify one.
+	if strings.TrimSpace(req.Model) == "" && h.models != nil {
+		req.Model = h.models.DefaultModel(providerID, "image")
 	}
 
 	slog.Default().Info("images_generate",

@@ -12,44 +12,72 @@ func (h *Handler) metaVideos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type model struct {
+		ID            string `json:"id"`
+		Label         string `json:"label,omitempty"`
+		RequiresImage bool   `json:"requires_image,omitempty"`
+	}
 	type prov struct {
-		ID         string   `json:"id"`
-		Label      string   `json:"label"`
-		Configured bool     `json:"configured"`
-		Models     []string `json:"models"`
+		ID         string  `json:"id"`
+		Label      string  `json:"label"`
+		Configured bool    `json:"configured"`
+		Models     []model `json:"models"`
 	}
 
-	labels := map[string]string{
-		"siliconflow":       "SiliconFlow",
-		"openai_compatible": "OpenAI Compatible",
-	}
-
-	// Minimal built-in model lists for SiliconFlow video. Users can also type a custom model in UI.
-	sfModels := []string{
-		"Wan-AI/Wan2.2-T2V-A14B",
-		"Wan-AI/Wan2.2-I2V-A14B",
-	}
-
-	cfg := h.effectiveCfg()
+	cfg := h.cfg
 	var list []prov
 
-	// Only advertise providers that are configured and/or available.
-	if pc, ok := cfg.ImageProviders["siliconflow"]; ok {
-		configured := strings.TrimSpace(pc.APIKey) != ""
-		list = append(list, prov{ID: "siliconflow", Label: labels["siliconflow"], Configured: configured, Models: sfModels})
-	}
-	if cfg.VideoStartEP != "" && cfg.VideoStatusEP != "" {
-		pc := cfg.ImageProviders["openai_compatible"]
-		configured := strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" && strings.TrimSpace(cfg.VideoModel) != ""
-		models := []string{}
-		if strings.TrimSpace(cfg.VideoModel) != "" {
-			models = append(models, strings.TrimSpace(cfg.VideoModel))
+	if h.models != nil {
+		for _, p := range h.models.Providers {
+			if p.Video == nil {
+				continue
+			}
+			id := strings.ToLower(strings.TrimSpace(p.ID))
+			if id == "" {
+				continue
+			}
+
+			configured := true
+			if id != "mock" {
+				pc := cfg.ImageProviders[id]
+				if strings.TrimSpace(pc.APIKey) == "" {
+					configured = false
+				}
+				if id == "openai_compatible" && strings.TrimSpace(pc.BaseURL) == "" {
+					configured = false
+				}
+			}
+			// openai_compatible videos need extra env endpoints.
+			if id == "openai_compatible" && (cfg.VideoStartEP == "" || cfg.VideoStatusEP == "") {
+				configured = false
+			}
+
+			var ms []model
+			for _, m := range p.Video.Models {
+				mid := strings.TrimSpace(m.ID)
+				if mid == "" {
+					continue
+				}
+				reqImg := false
+				if m.Form != nil {
+					reqImg = m.Form.RequiresImage
+				}
+				ms = append(ms, model{ID: mid, Label: strings.TrimSpace(m.Label), RequiresImage: reqImg})
+			}
+			list = append(list, prov{ID: id, Label: p.Label, Configured: configured, Models: ms})
 		}
-		list = append(list, prov{ID: "openai_compatible", Label: labels["openai_compatible"], Configured: configured, Models: models})
+	} else {
+		list = append(list, prov{ID: "siliconflow", Label: "SiliconFlow", Configured: false, Models: nil})
 	}
 
 	sort.Slice(list, func(i, j int) bool { return list[i].ID < list[j].ID })
-	def := h.defaultVideoProviderID()
+	def := ""
+	if h.models != nil {
+		def = strings.ToLower(strings.TrimSpace(h.models.DefaultProvider("video")))
+	}
+	if def == "" {
+		def = h.defaultVideoProviderID()
+	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"default_provider": def,

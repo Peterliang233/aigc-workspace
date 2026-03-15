@@ -5,35 +5,34 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"aigc-backend/internal/assets"
 	"aigc-backend/internal/config"
-	"aigc-backend/internal/runtimecfg"
-	"aigc-backend/internal/settings"
+	"aigc-backend/internal/modelcfg"
 	"aigc-backend/internal/store"
 
 	"github.com/gin-gonic/gin"
 )
 
-func NewHandler(cfg config.Config, st settings.Store, assetsSvc *assets.Service) http.Handler {
+func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Service) http.Handler {
 	staticRoot := filepath.Join("var")
 	_ = os.MkdirAll(filepath.Join(staticRoot, "generated"), 0o755)
 
-	s, _ := st.Get()
-	effective := runtimecfg.Merge(cfg, s)
-
 	slog.Default().Info("handler_init",
 		"static_root", staticRoot,
-		"default_provider", strings.ToLower(strings.TrimSpace(effective.Provider)),
+		"models_version", func() int {
+			if models != nil {
+				return models.Version
+			}
+			return 0
+		}(),
 		"allowed_origins", len(cfg.AllowedOrigins),
 	)
 
 	h := &Handler{
-		baseCfg:        cfg,
-		st:             st,
+		cfg:            cfg,
+		models:         models,
 		assets:         assetsSvc,
-		cfg:            effective,
 		jobs:           store.NewJobStore(),
 		staticRoot:     staticRoot,
 		imageProviders: map[string]imageProvider{},
@@ -55,11 +54,6 @@ func NewHandler(cfg config.Config, st settings.Store, assetsSvc *assets.Service)
 
 	r.GET("/api/meta/images", gin.WrapF(h.metaImages))
 	r.GET("/api/meta/videos", gin.WrapF(h.metaVideos))
-
-	r.GET("/api/settings", gin.WrapF(h.settings))
-	r.PUT("/api/settings", gin.WrapF(h.settings))
-	r.POST("/api/settings/image-providers/*path", gin.WrapF(h.settingsImageProviders))
-	r.DELETE("/api/settings/image-providers/*path", gin.WrapF(h.settingsImageProviders))
 
 	r.POST("/api/images/generate", gin.WrapF(h.imagesGenerate))
 

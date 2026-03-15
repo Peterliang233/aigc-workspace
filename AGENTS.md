@@ -4,13 +4,13 @@
 
 - `backend/`: Go API server (Gin) + MySQL persistence (GORM).
   - `backend/main.go`: server entry.
+  - `backend/models.json`: provider/model list + per-model form requirements (no secrets).
   - `backend/internal/httpapi/`: HTTP routing, handlers, middleware.
   - `backend/internal/assets/`: generation history (MySQL) + asset ingestion (fetch vendor URL -> store in MinIO).
   - `backend/internal/blobstore/`: MinIO client wrapper.
   - `backend/internal/providers/`: vendor integrations (e.g. `siliconflow/`, `wuyinkeji/`, `openai_compatible/`).
-  - `backend/internal/settings/`: MySQL-backed runtime settings (models list).
 - `frontend/`: React + Vite web app.
-  - `frontend/src/components/`: `ImageStudio`, `VideoStudio`, `ConfigStudio`, `HistoryStudio`.
+  - `frontend/src/components/`: `ImageStudio`, `VideoStudio`, `HistoryStudio`, `ToolboxStudio`.
 - Root: `docker-compose*.yml`, `.env.example`, `Makefile`.
 
 ## Build, Test, and Development Commands
