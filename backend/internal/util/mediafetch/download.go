@@ -63,30 +63,17 @@ func (d *Downloader) DownloadToDirAutoExt(ctx context.Context, rawURL, dir, name
 
 func (d *Downloader) download(ctx context.Context, rawURL, dstPath string, maxBytes int64, returnBytes bool) (string, []byte, error) {
 	if d.HTTP == nil {
-		d.HTTP = &http.Client{Timeout: 2 * time.Minute}
+		d.HTTP = &http.Client{Timeout: 10 * time.Minute}
 	}
 	if maxBytes <= 0 {
 		maxBytes = 25 << 20
 	}
 
-	pu, err := url.Parse(rawURL)
-	if err != nil {
+	if err := validateURL(rawURL); err != nil {
 		return "", nil, err
 	}
-	if pu.Scheme != "https" && pu.Scheme != "http" {
-		return "", nil, errors.New("refusing to download non-http(s) url")
-	}
-	host := strings.ToLower(pu.Hostname())
-	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
-		return "", nil, errors.New("refusing to download from localhost")
-	}
-	if ip := net.ParseIP(host); ip != nil {
-		if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsMulticast() || ip.IsUnspecified() {
-			return "", nil, errors.New("refusing to download from local/private ip")
-		}
-	}
 
-	dlCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	dlCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 
 	slog.Default().Debug("download_start",
@@ -137,6 +124,54 @@ func (d *Downloader) download(ctx context.Context, rawURL, dstPath string, maxBy
 		return resp.Header.Get("Content-Type"), b, nil
 	}
 	return resp.Header.Get("Content-Type"), nil, nil
+}
+
+// Open issues a GET request for a remote URL after applying basic SSRF protections.
+// Caller must close resp.Body.
+func (d *Downloader) Open(ctx context.Context, rawURL string) (*http.Response, error) {
+	if d.HTTP == nil {
+		d.HTTP = &http.Client{Timeout: 10 * time.Minute}
+	}
+	if err := validateURL(rawURL); err != nil {
+		return nil, err
+	}
+
+	slog.Default().Debug("download_open",
+		"url", logging.RedactURL(rawURL),
+	)
+
+	hreq, _ := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	resp, err := d.HTTP.Do(hreq)
+	if err != nil {
+		slog.Default().Warn("download_open_failed", "url", logging.RedactURL(rawURL), "err", err.Error())
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
+		_ = resp.Body.Close()
+		return nil, fmt.Errorf("download error: status=%d body=%s", resp.StatusCode, string(b))
+	}
+	return resp, nil
+}
+
+func validateURL(rawURL string) error {
+	pu, err := url.Parse(rawURL)
+	if err != nil {
+		return err
+	}
+	if pu.Scheme != "https" && pu.Scheme != "http" {
+		return errors.New("refusing to download non-http(s) url")
+	}
+	host := strings.ToLower(pu.Hostname())
+	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
+		return errors.New("refusing to download from localhost")
+	}
+	if ip := net.ParseIP(host); ip != nil {
+		if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsMulticast() || ip.IsUnspecified() {
+			return errors.New("refusing to download from local/private ip")
+		}
+	}
+	return nil
 }
 
 func GuessExt(contentType, rawURL string) string {

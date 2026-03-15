@@ -6,12 +6,15 @@ import (
 )
 
 type VideoJob struct {
-	ID        string
-	Status    string // queued|running|succeeded|failed
-	VideoURL  string
-	Error     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID              string
+	Status          string // queued|running|succeeded|failed
+	VideoURL        string
+	Error           string
+	Prompt          string
+	DurationSeconds int
+	AspectRatio     string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type JobStore struct {

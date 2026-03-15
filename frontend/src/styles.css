@@ -41,7 +41,7 @@ body {
   display: flex;
   gap: 16px;
   padding: 18px 18px 18px 0;
-  align-items: stretch;
+  align-items: flex-start;
   justify-content: flex-start;
   position: relative;
 }
@@ -74,6 +74,11 @@ body {
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
+  position: sticky;
+  top: 18px;
+  height: calc(100vh - 36px);
+  overflow: auto;
+  align-self: start;
 }
 
 .side__top {
@@ -175,18 +180,20 @@ body {
 /* sidebar footer removed (avoid leaking backend/provider details in UI) */
 
 .main {
-  width: 100%;
   max-width: none;
   display: flex;
   justify-content: stretch;
   flex-direction: column;
   gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .workspace {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 440px;
+  /* Keep the editor (left) reasonably compact and let results (right) take more space. */
+  grid-template-columns: minmax(360px, 520px) minmax(420px, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -211,6 +218,8 @@ body {
   display: block;
   width: 100%;
   height: auto;
+  max-height: 72vh;
+  object-fit: contain;
 }
 
 .thumbs {
@@ -412,6 +421,10 @@ body {
   align-items: end;
 }
 
+.row--image {
+  grid-template-columns: 1fr 160px;
+}
+
 .row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -503,6 +516,12 @@ body {
   color: rgba(255, 255, 255, 0.86);
   cursor: pointer;
   transition: transform 0.08s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.chip--ghost {
+  background: rgba(0, 0, 0, 0.16);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .chip:hover {
@@ -617,6 +636,63 @@ body {
   border-radius: 12px;
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.03);
+}
+
+.hrow {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.08s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.hrow:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.hrow--active {
+  border-color: rgba(14, 165, 233, 0.45);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+
+.hrow__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.hrow__mid {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.hrow__bot {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.hrow__prompt {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hrow__time {
+  opacity: 0.55;
 }
 
 .pill {
@@ -735,6 +811,9 @@ body {
 
   .row {
     grid-template-columns: 1fr 1fr;
+  }
+  .row--image {
+    grid-template-columns: 1fr;
   }
   .row2 {
     grid-template-columns: 1fr;

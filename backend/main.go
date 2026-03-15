@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"aigc-backend/internal/assets"
+	"aigc-backend/internal/blobstore"
 	"aigc-backend/internal/config"
 	"aigc-backend/internal/httpapi"
 	"aigc-backend/internal/logging"
@@ -34,9 +36,38 @@ func main() {
 	st = mysqlStore
 	defer st.Close()
 
+	assetStore, err := assets.NewMySQLStore(cfg.MySQLDSN)
+	if err != nil {
+		slog.Default().Error("assets_store_mysql_init_failed", "err", err.Error())
+		os.Exit(1)
+	}
+	defer assetStore.Close()
+
+	var minioStore *blobstore.MinIO
+	if strings.TrimSpace(cfg.MinIOEndpoint) != "" {
+		minioStore, err = blobstore.NewMinIO(blobstore.MinIOConfig{
+			Endpoint:  cfg.MinIOEndpoint,
+			AccessKey: cfg.MinIOAccessKey,
+			SecretKey: cfg.MinIOSecretKey,
+			Bucket:    cfg.MinIOBucket,
+			UseSSL:    cfg.MinIOUseSSL,
+		})
+		if err != nil {
+			slog.Default().Error("minio_init_failed", "err", err.Error())
+			os.Exit(1)
+		}
+	} else {
+		slog.Default().Warn("minio_disabled", "reason", "MINIO_ENDPOINT is empty")
+	}
+
+	assetSvc := &assets.Service{
+		Store: assetStore,
+		MinIO: minioStore,
+	}
+
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.NewHandler(cfg, st),
+		Handler:           httpapi.NewHandler(cfg, st, assetSvc),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      5 * time.Minute,
@@ -47,6 +78,7 @@ func main() {
 		"addr", srv.Addr,
 		"provider", cfg.Provider,
 		"mysql", cfg.MySQLDSN != "",
+		"minio", minioStore != nil,
 	)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		slog.Default().Error("server_error", "err", err.Error())

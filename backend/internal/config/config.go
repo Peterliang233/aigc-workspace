@@ -28,6 +28,13 @@ type Config struct {
 
 	// Settings are stored in MySQL (required).
 	MySQLDSN string
+
+	// Asset storage (MinIO/S3 compatible). Optional but recommended for history.
+	MinIOEndpoint      string
+	MinIOAccessKey     string
+	MinIOSecretKey     string
+	MinIOBucket        string
+	MinIOUseSSL        bool
 }
 
 func LoadFromEnv() Config {
@@ -112,6 +119,11 @@ func LoadFromEnv() Config {
 		AllowedOrigins: allowed,
 		ImageProviders: imageProviders,
 		MySQLDSN:       pickMySQLDSN(),
+		MinIOEndpoint:  pickMinIOEndpoint(),
+		MinIOAccessKey: firstNonEmpty(strings.TrimSpace(os.Getenv("MINIO_ACCESS_KEY")), strings.TrimSpace(os.Getenv("MINIO_ROOT_USER"))),
+		MinIOSecretKey: firstNonEmpty(strings.TrimSpace(os.Getenv("MINIO_SECRET_KEY")), strings.TrimSpace(os.Getenv("MINIO_ROOT_PASSWORD"))),
+		MinIOBucket:    strings.TrimSpace(os.Getenv("MINIO_BUCKET")),
+		MinIOUseSSL:    strings.TrimSpace(os.Getenv("MINIO_USE_SSL")) == "true",
 	}
 }
 
@@ -137,6 +149,30 @@ func pickMySQLDSN() string {
 		return local
 	}
 	return dsn
+}
+
+func pickMinIOEndpoint() string {
+	// In docker compose we typically use minio:9000.
+	// When running `go run` on the host, that hostname won't resolve, so we
+	// allow a separate MINIO_ENDPOINT_LOCAL (e.g. 127.0.0.1:9000).
+	ep := strings.TrimSpace(os.Getenv("MINIO_ENDPOINT"))
+	local := strings.TrimSpace(os.Getenv("MINIO_ENDPOINT_LOCAL"))
+	if local == "" {
+		return ep
+	}
+	if ep == "" {
+		return local
+	}
+	if !strings.HasPrefix(strings.ToLower(ep), "minio:") && !strings.Contains(ep, "minio:") {
+		return ep
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 150*time.Millisecond)
+	defer cancel()
+	if _, err := net.DefaultResolver.LookupHost(ctx, "minio"); err != nil {
+		return local
+	}
+	return ep
 }
 
 func parseCSV(s string) []string {

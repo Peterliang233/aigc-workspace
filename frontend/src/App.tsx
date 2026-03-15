@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { ImageStudio } from "./components/ImageStudio";
 import { VideoStudio } from "./components/VideoStudio";
 import { ConfigStudio } from "./components/ConfigStudio";
+import { HistoryStudio } from "./components/HistoryStudio";
 
-type Tab = "image" | "video" | "config";
+type Tab = "image" | "video" | "config" | "history";
 
-function Icon({ name }: { name: "image" | "video" | "settings" | "menu" | "collapse" | "expand" }) {
+function Icon({ name }: { name: "image" | "video" | "settings" | "history" | "menu" | "collapse" | "expand" }) {
   if (name === "menu") {
     return (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -57,6 +58,32 @@ function Icon({ name }: { name: "image" | "video" | "settings" | "menu" | "colla
           d="M10 12.6a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z"
           stroke="currentColor"
           strokeWidth="1.2"
+        />
+      </svg>
+    );
+  }
+  if (name === "history") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path
+          d="M10 4.2a5.8 5.8 0 1 1-5.2 3.2"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M4.2 4.6v3.2h3.2"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M10 7v3.4l2.2 1.3"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     );
@@ -182,6 +209,16 @@ export function App() {
               </span>
               <span className="navitem__label">配置</span>
             </button>
+            <button
+              className={tab === "history" ? "navitem navitem--active" : "navitem"}
+              onClick={() => onSelect("history")}
+              title="历史"
+            >
+              <span className="navitem__icon">
+                <Icon name="history" />
+              </span>
+              <span className="navitem__label">历史</span>
+            </button>
           </nav>
         </aside>
 
@@ -191,11 +228,19 @@ export function App() {
               <Icon name="menu" />
             </button>
             <div className="mobilebar__title">
-              {tab === "image" ? "图片生成" : tab === "video" ? "视频生成" : "配置"}
+              {tab === "image" ? "图片生成" : tab === "video" ? "视频生成" : tab === "config" ? "配置" : "历史"}
             </div>
           </div>
 
-          {tab === "image" ? <ImageStudio /> : tab === "video" ? <VideoStudio /> : <ConfigStudio />}
+          {tab === "image" ? (
+            <ImageStudio />
+          ) : tab === "video" ? (
+            <VideoStudio />
+          ) : tab === "config" ? (
+            <ConfigStudio />
+          ) : (
+            <HistoryStudio />
+          )}
         </main>
       </div>
     </div>

@@ -100,6 +100,29 @@ export const api = {
       method: "DELETE"
     }),
 
+  getHistory: (params?: { capability?: string; limit?: number; offset?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.capability) q.set("capability", params.capability);
+    if (typeof params?.limit === "number") q.set("limit", String(params.limit));
+    if (typeof params?.offset === "number") q.set("offset", String(params.offset));
+    const qs = q.toString();
+    return httpJSON<{
+      items: {
+        id: number;
+        capability: "image" | "video";
+        provider: string;
+        model?: string;
+        status: string;
+        error?: string;
+        prompt_preview?: string;
+        content_type: string;
+        bytes: number;
+        url: string;
+        created_at: string;
+      }[];
+    }>(`/api/history${qs ? `?${qs}` : ""}`, { method: "GET" });
+  },
+
   generateImage: (req: ImageGenerateRequest) =>
     httpJSON<ImageGenerateResponse>("/api/images/generate", {
       method: "POST",

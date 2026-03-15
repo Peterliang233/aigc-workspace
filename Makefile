@@ -3,6 +3,7 @@
 	frontend-install frontend-dev frontend-build frontend-preview \
 	env-init \
 	mysql-up mysql-down mysql-logs mysql-reset \
+	minio-up minio-down minio-logs minio-reset \
 	compose-up compose-down compose-logs \
 	compose-dev-up compose-dev-down compose-dev-logs
 
@@ -23,6 +24,10 @@ help:
 	@printf "  mysql-logs          docker compose (dev) logs mysql\\n"
 	@printf "  mysql-down          docker compose (dev) stop mysql\\n"
 	@printf "  mysql-reset         docker compose (dev) down -v (DELETES dev data)\\n"
+	@printf "  minio-up            docker compose (dev) up -d minio (+ init bucket)\\n"
+	@printf "  minio-logs          docker compose (dev) logs minio\\n"
+	@printf "  minio-down          docker compose (dev) stop minio\\n"
+	@printf "  minio-reset         docker compose (dev) down -v (DELETES dev data)\\n"
 	@printf "  compose-up          docker compose (prod) up -d\\n"
 	@printf "  compose-dev-up      docker compose (dev) up -d\\n"
 
@@ -48,7 +53,7 @@ backend-test:
 	cd backend && env GOCACHE="$(GOCACHE)" go test ./...
 
 backend-fmt:
-	cd backend && gofmt -w ./cmd ./internal
+	cd backend && gofmt -w ./internal ./main.go
 
 frontend-install:
 	cd frontend && npm install
@@ -73,6 +78,21 @@ mysql-down:
 
 mysql-reset:
 	# WARNING: this deletes the dev mysql volume (data) and re-initializes it.
+	@$(MAKE) env-init
+	docker compose -f docker-compose.dev.yml down -v
+
+minio-up:
+	@$(MAKE) env-init
+	docker compose -f docker-compose.dev.yml up -d minio minio-init
+
+minio-logs:
+	docker compose -f docker-compose.dev.yml logs --tail=200 -f minio
+
+minio-down:
+	docker compose -f docker-compose.dev.yml stop minio
+
+minio-reset:
+	# WARNING: this deletes the dev minio volume (data) and re-initializes it.
 	@$(MAKE) env-init
 	docker compose -f docker-compose.dev.yml down -v
 

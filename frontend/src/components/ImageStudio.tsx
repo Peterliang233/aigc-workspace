@@ -4,11 +4,9 @@ import { api } from "../api";
 export function ImageStudio() {
   const [prompt, setPrompt] = useState("一只在雨夜霓虹街头散步的柴犬，电影感，高对比，35mm");
   const [size, setSize] = useState("1024x1024");
-  const [n, setN] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [urls, setUrls] = useState<string[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [url, setUrl] = useState<string | null>(null);
 
   const [metaLoading, setMetaLoading] = useState(false);
   const [providers, setProviders] = useState<
@@ -100,12 +98,10 @@ export function ImageStudio() {
         provider,
         model: pickedModel || undefined,
         prompt,
-        size,
-        n
+        size
       });
-      const next = res.image_urls || [];
-      setUrls(next);
-      setSelected(next[0] || null);
+      const next = (res.image_urls || [])[0] || null;
+      setUrl(next);
     } catch (e: any) {
       setError(e?.message || String(e));
     } finally {
@@ -184,21 +180,10 @@ export function ImageStudio() {
             />
           </label>
 
-          <div className="row">
+          <div className="row row--image">
             <label className="label">
               Size
               <input className="input" value={size} onChange={(e) => setSize(e.target.value)} />
-            </label>
-            <label className="label">
-              N
-              <input
-                className="input"
-                type="number"
-                min={1}
-                max={4}
-                value={n}
-                onChange={(e) => setN(Number(e.target.value))}
-              />
             </label>
             <button className="btn" disabled={busy} onClick={onGenerate}>
               {busy ? "Generating..." : "Generate"}
@@ -212,32 +197,18 @@ export function ImageStudio() {
       <section className="card resultsCard">
         <div className="card__head">
           <h2 className="card__title">生成结果</h2>
-          <div className="badge">{urls.length} images</div>
         </div>
 
-        {selected ? (
-          <a className="preview" href={selected} target="_blank" rel="noreferrer">
-            <img className="preview__img" src={selected} alt={prompt} />
+        {url ? (
+          <a className="preview" href={url} target="_blank" rel="noreferrer" title="Open original">
+            <img className="preview__img" src={url} alt={prompt} />
           </a>
         ) : (
           <div className="placeholder">
             <div className="placeholder__title">结果会显示在这里</div>
-            <div className="placeholder__sub">点击 Generate 生成图片；生成后可点击缩略图切换预览。</div>
+            <div className="placeholder__sub">点击 Generate 生成图片。</div>
           </div>
         )}
-
-        <div className="thumbs">
-          {urls.map((u) => (
-            <button
-              className={u === selected ? "thumb thumb--active" : "thumb"}
-              key={u}
-              onClick={() => setSelected(u)}
-              title="Select"
-            >
-              <img className="thumb__img" src={u} alt={prompt} />
-            </button>
-          ))}
-        </div>
       </section>
     </div>
   );
