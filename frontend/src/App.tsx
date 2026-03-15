@@ -3,6 +3,7 @@ import { ImageStudio } from "./components/ImageStudio";
 import { VideoStudio } from "./components/VideoStudio";
 import { ConfigStudio } from "./components/ConfigStudio";
 import { HistoryStudio } from "./components/HistoryStudio";
+import { ToolboxStudio } from "./components/ToolboxStudio";
 
 import { Sidebar } from "./layout/Sidebar";
 import { MobileBar } from "./layout/MobileBar";
@@ -44,6 +45,8 @@ export function App() {
             <VideoStudio />
           ) : tab === "config" ? (
             <ConfigStudio />
+          ) : tab === "toolbox" ? (
+            <ToolboxStudio />
           ) : (
             <HistoryStudio />
           )}

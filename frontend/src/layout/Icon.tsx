@@ -1,6 +1,15 @@
 import React from "react";
 
-export type IconName = "image" | "video" | "settings" | "history" | "menu" | "collapse" | "expand";
+export type IconName =
+  | "image"
+  | "video"
+  | "settings"
+  | "upload"
+  | "toolbox"
+  | "history"
+  | "menu"
+  | "collapse"
+  | "expand";
 
 export function Icon({ name }: { name: IconName }) {
   if (name === "menu") {
@@ -70,6 +79,51 @@ export function Icon({ name }: { name: IconName }) {
       </svg>
     );
   }
+  if (name === "toolbox") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path
+          d="M6.2 7.2V6.4c0-1.05.85-1.9 1.9-1.9h3.8c1.05 0 1.9.85 1.9 1.9v.8"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M4.8 7.2h10.4c.66 0 1.2.54 1.2 1.2v6.8c0 .66-.54 1.2-1.2 1.2H4.8c-.66 0-1.2-.54-1.2-1.2V8.4c0-.66.54-1.2 1.2-1.2Z"
+          stroke="currentColor"
+          strokeWidth="1.4"
+        />
+        <path d="M8 11h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (name === "upload") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path
+          d="M10 12.8V4.8"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M7.2 7.6 10 4.8l2.8 2.8"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4.6 12.6v2.2c0 .72.58 1.3 1.3 1.3h8.2c.72 0 1.3-.58 1.3-1.3v-2.2"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
   if (name === "image") {
     return (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -106,4 +160,3 @@ export function Icon({ name }: { name: IconName }) {
     </svg>
   );
 }
-

@@ -74,6 +74,16 @@ export function Sidebar(props: {
           <span className="navitem__label">配置</span>
         </button>
         <button
+          className={tab === "toolbox" ? "navitem navitem--active" : "navitem"}
+          onClick={() => onSelect("toolbox")}
+          title="工具箱"
+        >
+          <span className="navitem__icon">
+            <Icon name="toolbox" />
+          </span>
+          <span className="navitem__label">工具箱</span>
+        </button>
+        <button
           className={tab === "history" ? "navitem navitem--active" : "navitem"}
           onClick={() => onSelect("history")}
           title="历史"
@@ -87,4 +97,3 @@ export function Sidebar(props: {
     </aside>
   );
 }
-

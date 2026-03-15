@@ -28,7 +28,7 @@
   width: 100%;
   display: grid;
   /* Keep the editor (left) reasonably compact and let results (right) take more space. */
-  grid-template-columns: minmax(360px, 520px) minmax(420px, 1fr);
+  grid-template-columns: minmax(340px, 460px) minmax(520px, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -66,4 +66,3 @@
   font-weight: 780;
   letter-spacing: 0.3px;
 }
-
