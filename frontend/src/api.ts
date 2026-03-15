@@ -1,4 +1,6 @@
 export type ImageGenerateRequest = {
+  provider?: string;
+  model?: string;
   prompt: string;
   size?: string;
   n?: number;
@@ -7,6 +9,7 @@ export type ImageGenerateRequest = {
 export type ImageGenerateResponse = {
   image_urls: string[];
   provider: string;
+  model?: string;
 };
 
 export type VideoJobCreateRequest = {
@@ -29,6 +32,26 @@ export type VideoJobGetResponse = {
   provider: string;
 };
 
+export type SettingsGetResponse = {
+  image_providers: Record<
+    string,
+    {
+      label: string;
+      base_url?: string;
+      api_key_set: boolean;
+      default_model?: string;
+      models?: string[];
+    }
+  >;
+};
+
+export type ProviderSettingsPatch = {
+  base_url?: string;
+  api_key?: string;
+  default_model?: string;
+  models?: string[];
+};
+
 async function httpJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
@@ -46,6 +69,37 @@ async function httpJSON<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  getImageMeta: () =>
+    httpJSON<{
+      default_provider: string;
+      providers: { id: string; label: string; configured: boolean; models: string[] }[];
+    }>("/api/meta/images", { method: "GET" }),
+
+  getSettings: () => httpJSON<SettingsGetResponse>("/api/settings", { method: "GET" }),
+
+  updateSettings: (patch: { image_providers: Record<string, ProviderSettingsPatch> }) =>
+    httpJSON<{ ok: boolean }>("/api/settings", {
+      method: "PUT",
+      body: JSON.stringify(patch)
+    }),
+
+  addImageModel: (providerId: string, model: string) =>
+    httpJSON<{ ok: boolean }>(`/api/settings/image-providers/${encodeURIComponent(providerId)}/models`, {
+      method: "POST",
+      body: JSON.stringify({ model })
+    }),
+
+  deleteImageModel: (providerId: string, model: string) =>
+    httpJSON<{ ok: boolean }>(
+      `/api/settings/image-providers/${encodeURIComponent(providerId)}/models?model=${encodeURIComponent(model)}`,
+      { method: "DELETE" }
+    ),
+
+  resetImageProvider: (providerId: string) =>
+    httpJSON<{ ok: boolean }>(`/api/settings/image-providers/${encodeURIComponent(providerId)}`, {
+      method: "DELETE"
+    }),
+
   generateImage: (req: ImageGenerateRequest) =>
     httpJSON<ImageGenerateResponse>("/api/images/generate", {
       method: "POST",
@@ -63,4 +117,3 @@ export const api = {
       method: "GET"
     })
 };
-

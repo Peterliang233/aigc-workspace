@@ -1,6 +1,6 @@
-# AIGC Workspace (React + Go)
+# AIGC Workspace
 
-目标：把大模型厂商的“生成图片 / 生成视频”能力，封装成一个前后端分离的 Web 应用。
+目标：把大模型厂商的“生成图片 / 生成视频”能力，封装成一个 Web 应用，自己直接对接模型厂商，做定制化能力，降低AIGC能力使用成本
 
 ## 目录结构
 
@@ -44,11 +44,19 @@ npm run dev
 
 前端默认 `http://localhost:5173`，已在 `vite.config.ts` 里把 `/api` 代理到后端。
 
+## 网页配置（推荐）
+
+前端侧边栏新增了「配置」模块，用于管理不同平台的“模型列表”（新增/删除）。
+
+- Base URL / API Key / 默认模型：通过部署环境配置（env）
+- 模型列表：仅存到 MySQL（需要配置 `MYSQL_DSN`；已支持新增/删除）
+
 ## Docker Compose
 
 ### 生产模式（构建镜像 + Nginx 托管前端）
 
 ```bash
+cp .env.example .env
 docker compose up -d --build
 ```
 
@@ -58,6 +66,7 @@ docker compose up -d --build
 ### 开发模式（容器跑 go run + vite，挂载源码）
 
 ```bash
+cp .env.example .env
 docker compose -f docker-compose.dev.yml up -d --build
 docker compose -f docker-compose.dev.yml logs --tail=200 -f
 ```
@@ -67,8 +76,8 @@ docker compose -f docker-compose.dev.yml logs --tail=200 -f
 ## API 概览
 
 - `POST /api/images/generate`
-  - 入参：`{ "prompt": "...", "size": "1024x1024", "n": 1 }`
-  - 出参：`{ "image_urls": ["..."], "provider": "..." }`
+  - 入参：`{ "provider": "siliconflow", "model": "Kwai-Kolors/Kolors", "prompt": "...", "size": "1024x1024", "n": 1 }`
+  - 出参：`{ "image_urls": ["..."], "provider": "...", "model": "..." }`
 - `POST /api/videos/jobs`
   - 入参：`{ "prompt": "...", "duration_seconds": 5, "aspect_ratio": "16:9" }`
   - 出参：`{ "job_id": "...", "status": "queued", "provider": "..." }`
@@ -83,5 +92,18 @@ docker compose -f docker-compose.dev.yml logs --tail=200 -f
 - 配置了 `AIGC_PROVIDER=openai_compatible` 且提供 `AIGC_API_KEY` 时，会走 OpenAI 兼容图片接口：
   - `POST {AIGC_BASE_URL}/v1/images/generations`
   - 当前实现优先使用 `b64_json`，后端会落盘到 `backend/var/generated/` 并通过 `/static/` 暴露
+- 配置了 `AIGC_PROVIDER=siliconflow` 时，会调用 SiliconFlow 图片接口并将返回的临时 URL 下载落盘：
+  - `POST https://api.siliconflow.cn/v1/images/generations`
+  - SiliconFlow 返回的图片 URL 通常是临时有效（约 1 小时），后端会立即下载到 `backend/var/generated/` 并返回本站 `/static/generated/...`，保证网页可稳定展示
+- 支持多平台并存：前端会调用 `GET /api/meta/images` 获取可选的平台与模型，并在 `POST /api/images/generate` 时携带 `provider/model`，后端按请求动态路由到对应平台。
 
 视频接口因为不同厂商差异很大，默认实现为“可用的异步任务链路 + 可配置的 start/status endpoint”。你可以先跑通 UI，再按目标厂商的 API 协议补齐 Provider 的字段映射。
+
+### 速创API（无印科技）模型名说明
+
+速创API 的图片生成接口是异步的，且模型名在 URL 中作为动态段出现：
+
+- `POST /api/async/{model}?key=你的密钥`
+- 例如 `model=image_nanoBanana_pro`
+
+因此在网页「配置」页里填写的模型列表，建议直接使用 `image_nanoBanana_pro` 这类模型名（而不是完整 URL）。

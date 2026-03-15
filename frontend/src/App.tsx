@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { ImageStudio } from "./components/ImageStudio";
 import { VideoStudio } from "./components/VideoStudio";
+import { ConfigStudio } from "./components/ConfigStudio";
 
-type Tab = "image" | "video";
+type Tab = "image" | "video" | "config";
 
-function Icon({ name }: { name: "image" | "video" | "menu" | "collapse" | "expand" }) {
+function Icon({ name }: { name: "image" | "video" | "settings" | "menu" | "collapse" | "expand" }) {
   if (name === "menu") {
     return (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -39,6 +40,23 @@ function Icon({ name }: { name: "image" | "video" | "menu" | "collapse" | "expan
           strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  if (name === "settings") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path
+          d="M8.2 3.4h3.6l.4 2.1a6.3 6.3 0 0 1 1.4.8l2-.8 1.8 3.1-1.6 1.4c.1.3.1.7.1 1.1s0 .8-.1 1.1l1.6 1.4-1.8 3.1-2-.8c-.4.3-.9.6-1.4.8l-.4 2.1H8.2l-.4-2.1a6.3 6.3 0 0 1-1.4-.8l-2 .8-1.8-3.1 1.6-1.4A4.8 4.8 0 0 1 4.8 10c0-.4 0-.8.1-1.1L3.3 7.5 5.1 4.4l2 .8c.4-.3.9-.6 1.4-.8l.4-2.1Z"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M10 12.6a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z"
+          stroke="currentColor"
+          strokeWidth="1.2"
         />
       </svg>
     );
@@ -90,11 +108,6 @@ export function App() {
   const [sideCollapsed, setSideCollapsed] = useState(false);
   const [sideOpen, setSideOpen] = useState(false); // mobile drawer
 
-  const subtitle = useMemo(() => {
-    if (tab === "image") return "生成图片: Prompt -> Image";
-    return "生成视频: Prompt -> Async Job -> Video";
-  }, [tab]);
-
   function onSelect(next: Tab) {
     setTab(next);
     setSideOpen(false);
@@ -136,7 +149,6 @@ export function App() {
               <span className="brand__titleFull">AIGC Studio</span>
               <span className="brand__titleMini">AIGC</span>
             </div>
-            <div className="brand__sub">{subtitle}</div>
           </div>
 
           <nav className="side__nav">
@@ -160,22 +172,17 @@ export function App() {
               </span>
               <span className="navitem__label">视频生成</span>
             </button>
-          </nav>
-
-          <div className="side__foot">
-            <div className="side__footrow">
-              <span className="muter">Backend</span>
-              <a href="/healthz" target="_blank" rel="noreferrer" title="/healthz">
-                /healthz
-              </a>
-            </div>
-            <div className="side__footrow">
-              <span className="muter">Provider</span>
-              <span className="muted2" title="backend/.env">
-                backend/.env
+            <button
+              className={tab === "config" ? "navitem navitem--active" : "navitem"}
+              onClick={() => onSelect("config")}
+              title="配置"
+            >
+              <span className="navitem__icon">
+                <Icon name="settings" />
               </span>
-            </div>
-          </div>
+              <span className="navitem__label">配置</span>
+            </button>
+          </nav>
         </aside>
 
         <main className="main">
@@ -183,10 +190,12 @@ export function App() {
             <button className="mobilebar__btn" onClick={() => setSideOpen(true)} title="Open menu">
               <Icon name="menu" />
             </button>
-            <div className="mobilebar__title">{tab === "image" ? "图片生成" : "视频生成"}</div>
+            <div className="mobilebar__title">
+              {tab === "image" ? "图片生成" : tab === "video" ? "视频生成" : "配置"}
+            </div>
           </div>
 
-          {tab === "image" ? <ImageStudio /> : <VideoStudio />}
+          {tab === "image" ? <ImageStudio /> : tab === "video" ? <VideoStudio /> : <ConfigStudio />}
         </main>
       </div>
     </div>

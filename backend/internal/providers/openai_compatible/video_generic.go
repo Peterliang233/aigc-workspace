@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -47,10 +48,10 @@ type startResp struct {
 
 func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCreateRequest) (string, error) {
 	if p.baseURL == "" || p.apiKey == "" {
-		return "", errors.New("missing AIGC_BASE_URL or AIGC_API_KEY")
+		return "", errors.New("平台未配置 Base URL 或 API Key")
 	}
 	if p.startEP == "" || p.statusEP == "" {
-		return "", errors.New("missing AIGC_VIDEO_START_ENDPOINT or AIGC_VIDEO_STATUS_ENDPOINT")
+		return "", errors.New("视频能力未配置接口")
 	}
 	prompt := strings.TrimSpace(req.Prompt)
 	if prompt == "" {
@@ -66,6 +67,7 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 	raw, _ := json.Marshal(payload)
 
 	u := p.baseURL + p.startEP
+	slog.Default().Info("provider_video_start", "provider", p.ProviderName(), "url", u)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
 	hreq.Header.Set("Content-Type", "application/json")
@@ -78,6 +80,7 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		slog.Default().Warn("provider_video_start_bad_status", "status", resp.StatusCode)
 		return "", fmt.Errorf("video start API error: status=%d body=%s", resp.StatusCode, string(b))
 	}
 	var out startResp
@@ -85,9 +88,11 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 		return "", err
 	}
 	if out.ID != "" {
+		slog.Default().Info("provider_video_started", "job_id", out.ID)
 		return out.ID, nil
 	}
 	if out.JobID != "" {
+		slog.Default().Info("provider_video_started", "job_id", out.JobID)
 		return out.JobID, nil
 	}
 	return "", errors.New("video start API returned no id/job_id")
@@ -102,10 +107,10 @@ type statusResp struct {
 
 func (p *VideoProvider) GetVideoJob(ctx context.Context, jobID string) (string, string, string, error) {
 	if p.baseURL == "" || p.apiKey == "" {
-		return "", "", "", errors.New("missing AIGC_BASE_URL or AIGC_API_KEY")
+		return "", "", "", errors.New("平台未配置 Base URL 或 API Key")
 	}
 	if p.statusEP == "" {
-		return "", "", "", errors.New("missing AIGC_VIDEO_STATUS_ENDPOINT")
+		return "", "", "", errors.New("视频能力未配置接口")
 	}
 	jobID = strings.TrimSpace(jobID)
 	if jobID == "" {
@@ -114,6 +119,7 @@ func (p *VideoProvider) GetVideoJob(ctx context.Context, jobID string) (string, 
 
 	ep := strings.ReplaceAll(p.statusEP, "{id}", jobID)
 	u := p.baseURL + ep
+	slog.Default().Debug("provider_video_status", "provider", p.ProviderName(), "url", u)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
 
@@ -125,6 +131,7 @@ func (p *VideoProvider) GetVideoJob(ctx context.Context, jobID string) (string, 
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		slog.Default().Warn("provider_video_status_bad_status", "status", resp.StatusCode)
 		return "", "", "", fmt.Errorf("video status API error: status=%d body=%s", resp.StatusCode, string(b))
 	}
 

@@ -5,16 +5,26 @@ import (
 	"strings"
 )
 
+type ImageProviderConfig struct {
+	BaseURL       string
+	APIKey        string
+	DefaultModel  string
+	Models        []string
+	ModelEndpoint map[string]string // for async APIs where model => endpoint path
+}
+
 type Config struct {
 	Provider       string
-	BaseURL        string
-	APIKey         string
-	ImageModel     string
 	VideoModel     string
 	VideoStartEP   string
 	VideoStatusEP  string
 	Port           string
 	AllowedOrigins []string
+
+	ImageProviders map[string]ImageProviderConfig
+
+	// Settings are stored in MySQL (required).
+	MySQLDSN string
 }
 
 func LoadFromEnv() Config {
@@ -42,15 +52,109 @@ func LoadFromEnv() Config {
 		provider = "mock"
 	}
 
+	// Backward-compatible shared envs (single-provider mode).
+	sharedBase := strings.TrimSpace(os.Getenv("AIGC_BASE_URL"))
+	sharedKey := strings.TrimSpace(os.Getenv("AIGC_API_KEY"))
+	sharedModel := strings.TrimSpace(os.Getenv("AIGC_IMAGE_MODEL"))
+
+	openaiBase := firstNonEmpty(strings.TrimSpace(os.Getenv("OPENAI_COMPAT_BASE_URL")), sharedBase)
+	openaiKey := firstNonEmpty(strings.TrimSpace(os.Getenv("OPENAI_COMPAT_API_KEY")), sharedKey)
+	openaiModel := firstNonEmpty(strings.TrimSpace(os.Getenv("OPENAI_COMPAT_IMAGE_MODEL")), sharedModel)
+	openaiModels := parseCSV(os.Getenv("OPENAI_COMPAT_IMAGE_MODELS"))
+
+	sfBase := firstNonEmpty(strings.TrimSpace(os.Getenv("SILICONFLOW_BASE_URL")), sharedBase)
+	sfKey := firstNonEmpty(strings.TrimSpace(os.Getenv("SILICONFLOW_API_KEY")), sharedKey)
+	sfModel := firstNonEmpty(strings.TrimSpace(os.Getenv("SILICONFLOW_IMAGE_MODEL")), sharedModel)
+	sfModels := parseCSV(os.Getenv("SILICONFLOW_IMAGE_MODELS"))
+
+	wyBase := strings.TrimSpace(os.Getenv("WUYIN_BASE_URL"))
+	wyKey := strings.TrimSpace(os.Getenv("WUYIN_API_KEY"))
+	wyModels := parseCSV(os.Getenv("WUYIN_IMAGE_MODELS"))
+	wyEndpoints := parseKVCSV(os.Getenv("WUYIN_IMAGE_ENDPOINTS"))
+
+	imageProviders := map[string]ImageProviderConfig{
+		"mock": {
+			BaseURL:      "",
+			APIKey:       "",
+			DefaultModel: "",
+			Models:       nil,
+		},
+		"openai_compatible": {
+			BaseURL:      openaiBase,
+			APIKey:       openaiKey,
+			DefaultModel: openaiModel,
+			Models:       openaiModels,
+		},
+		"siliconflow": {
+			BaseURL:      sfBase,
+			APIKey:       sfKey,
+			DefaultModel: sfModel,
+			Models:       sfModels,
+		},
+		"wuyinkeji": {
+			BaseURL:       wyBase,
+			APIKey:        wyKey,
+			DefaultModel:  "",
+			Models:        wyModels,
+			ModelEndpoint: wyEndpoints,
+		},
+	}
+
 	return Config{
 		Provider:       provider,
-		BaseURL:        strings.TrimSpace(os.Getenv("AIGC_BASE_URL")),
-		APIKey:         strings.TrimSpace(os.Getenv("AIGC_API_KEY")),
-		ImageModel:     strings.TrimSpace(os.Getenv("AIGC_IMAGE_MODEL")),
 		VideoModel:     strings.TrimSpace(os.Getenv("AIGC_VIDEO_MODEL")),
 		VideoStartEP:   strings.TrimSpace(os.Getenv("AIGC_VIDEO_START_ENDPOINT")),
 		VideoStatusEP:  strings.TrimSpace(os.Getenv("AIGC_VIDEO_STATUS_ENDPOINT")),
 		Port:           port,
 		AllowedOrigins: allowed,
+		ImageProviders: imageProviders,
+		MySQLDSN:       strings.TrimSpace(os.Getenv("MYSQL_DSN")),
 	}
+}
+
+func parseCSV(s string) []string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil
+	}
+	var out []string
+	for _, p := range strings.Split(s, ",") {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+func parseKVCSV(s string) map[string]string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil
+	}
+	out := map[string]string{}
+	for _, part := range strings.Split(s, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		k, v, ok := strings.Cut(part, ":")
+		if !ok {
+			continue
+		}
+		k = strings.TrimSpace(k)
+		v = strings.TrimSpace(v)
+		if k == "" || v == "" {
+			continue
+		}
+		out[k] = v
+	}
+	return out
+}
+
+func firstNonEmpty(a, b string) string {
+	if strings.TrimSpace(a) != "" {
+		return a
+	}
+	return b
 }

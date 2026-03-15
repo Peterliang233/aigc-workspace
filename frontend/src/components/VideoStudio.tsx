@@ -9,7 +9,6 @@ export function VideoStudio() {
   const [aspect, setAspect] = useState("16:9");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [provider, setProvider] = useState<string>("-");
   const [jobs, setJobs] = useState<JobRow[]>([]);
 
   const latest = useMemo(() => jobs[0], [jobs]);
@@ -23,7 +22,6 @@ export function VideoStudio() {
         duration_seconds: duration,
         aspect_ratio: aspect
       });
-      setProvider(res.provider || "-");
       setJobs((prev) => [
         {
           job_id: res.job_id,
@@ -47,7 +45,6 @@ export function VideoStudio() {
       if (latest.status === "succeeded" || latest.status === "failed") return;
       try {
         const res = await api.getVideoJob(latest.job_id);
-        setProvider(res.provider || provider);
         setJobs((prev) =>
           prev.map((j) => (j.job_id === res.job_id ? { ...j, ...res } : j))
         );
@@ -69,7 +66,6 @@ export function VideoStudio() {
       <section className="card">
         <div className="card__head">
           <h2 className="card__title">视频生成</h2>
-          <div className="badge">provider: {provider}</div>
         </div>
 
         <div className="form">
@@ -137,9 +133,7 @@ export function VideoStudio() {
               </div>
             )}
             {!latest.video_url && latest.status === "succeeded" && (
-              <div className="alert">
-                任务成功但未返回 video_url（需要按厂商协议补齐 Provider 字段映射）
-              </div>
+              <div className="alert">任务成功，但未返回可播放的视频地址。</div>
             )}
           </div>
         ) : (

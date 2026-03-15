@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -56,11 +57,16 @@ type imagesGenerateResponse struct {
 
 func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateRequest) (types.ImageGenerateResponse, error) {
 	if p.baseURL == "" || p.apiKey == "" {
-		return types.ImageGenerateResponse{}, errors.New("missing AIGC_BASE_URL or AIGC_API_KEY")
+		return types.ImageGenerateResponse{}, errors.New("平台未配置 Base URL 或 API Key")
 	}
 	prompt := strings.TrimSpace(req.Prompt)
 	if prompt == "" {
 		return types.ImageGenerateResponse{}, errors.New("prompt is required")
+	}
+
+	model := strings.TrimSpace(req.Model)
+	if model == "" {
+		model = p.imageModel
 	}
 
 	n := req.N
@@ -73,7 +79,7 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 	}
 
 	body := imagesGenerateRequest{
-		Model:          p.imageModel,
+		Model:          model,
 		Prompt:         prompt,
 		Size:           size,
 		N:              n,
@@ -82,6 +88,7 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 	raw, _ := json.Marshal(body)
 
 	u := p.baseURL + "/v1/images/generations"
+	slog.Default().Debug("provider_openai_compat_request", "url", u, "model", model, "size", size, "n", n)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
 	hreq.Header.Set("Content-Type", "application/json")
@@ -94,6 +101,7 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		slog.Default().Warn("provider_openai_compat_error", "status", resp.StatusCode)
 		return types.ImageGenerateResponse{}, fmt.Errorf("images API error: status=%d body=%s", resp.StatusCode, string(b))
 	}
 
@@ -122,21 +130,25 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		}
 		imgBytes, err := base64.StdEncoding.DecodeString(d.B64JSON)
 		if err != nil {
+			slog.Default().Warn("provider_openai_compat_decode_failed", "err", err.Error())
 			return types.ImageGenerateResponse{}, err
 		}
 		name := fmt.Sprintf("img_%d_%d.png", time.Now().UnixNano(), i)
 		if err := os.WriteFile(filepath.Join(outDir, name), imgBytes, 0o644); err != nil {
+			slog.Default().Warn("provider_openai_compat_write_failed", "name", name, "err", err.Error())
 			return types.ImageGenerateResponse{}, err
 		}
 		urls = append(urls, "/static/generated/"+name)
 	}
 
 	if len(urls) == 0 {
+		slog.Default().Warn("provider_openai_compat_no_urls")
 		return types.ImageGenerateResponse{}, errors.New("images API returned no usable images")
 	}
 
 	return types.ImageGenerateResponse{
 		ImageURLs: urls,
 		Provider:  p.ProviderName(),
+		Model:     model,
 	}, nil
 }

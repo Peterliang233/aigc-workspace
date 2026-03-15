@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,7 @@ func (p *Provider) ProviderName() string { return "mock" }
 func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateRequest) (types.ImageGenerateResponse, error) {
 	_ = ctx
 	id := randHex(8)
+	slog.Default().Debug("provider_mock_generate", "id", id)
 	prompt := strings.TrimSpace(req.Prompt)
 	if prompt == "" {
 		prompt = "(empty prompt)"

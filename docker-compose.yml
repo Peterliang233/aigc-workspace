@@ -1,18 +1,28 @@
 services:
+  mysql:
+    image: mysql:8.0
+    env_file:
+      - .env
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3307"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    environment:
-      PORT: "8080"
-      AIGC_PROVIDER: ${AIGC_PROVIDER:-mock}
-      AIGC_BASE_URL: ${AIGC_BASE_URL:-https://api.openai.com}
-      AIGC_API_KEY: ${AIGC_API_KEY:-}
-      AIGC_IMAGE_MODEL: ${AIGC_IMAGE_MODEL:-}
-      AIGC_VIDEO_MODEL: ${AIGC_VIDEO_MODEL:-}
-      AIGC_VIDEO_START_ENDPOINT: ${AIGC_VIDEO_START_ENDPOINT:-}
-      AIGC_VIDEO_STATUS_ENDPOINT: ${AIGC_VIDEO_STATUS_ENDPOINT:-}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8081}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - .env
     volumes:
       - backend_var:/app/var
     ports:
@@ -29,3 +39,4 @@ services:
 
 volumes:
   backend_var: {}
+  mysql_data: {}
