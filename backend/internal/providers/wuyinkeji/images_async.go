@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"aigc-backend/internal/logging"
 	"aigc-backend/internal/types"
 	"aigc-backend/internal/util/mediafetch"
 )
@@ -81,7 +82,7 @@ func New(baseURL, apiKey, staticRoot string, models []string, endpoints map[stri
 		apiKey:     strings.TrimSpace(apiKey),
 		models:     ms,
 		endpoints:  ep,
-		httpClient: &http.Client{Timeout: 2 * time.Minute},
+		httpClient: &http.Client{Timeout: 10 * time.Minute},
 		staticRoot: staticRoot,
 	}
 }
@@ -157,20 +158,28 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		startURL = fmt.Sprintf("%s/api/async/%s?key=%s", p.baseURL, seg, p.apiKey)
 	}
 
-	slog.Default().Debug("provider_wuyin_start", "model", model, "url", startURL)
 	payload := map[string]any{
 		"prompt":      prompt,
 		"size":        mapSize(req.Size),
 		"aspectRatio": mapAspect(req.AspectRatio),
 	}
 
+	logging.DownstreamRequest("provider_wuyin_start", p.ProviderName(), http.MethodPost, startURL, map[string]any{
+		"model":  model,
+		"prompt": logging.DownstreamPrompt(prompt),
+		"size":   payload["size"],
+		"aspect": payload["aspectRatio"],
+	})
+
 	raw, _ := json.Marshal(payload)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, startURL, bytes.NewReader(raw))
 	hreq.Header.Set("Content-Type", "application/json")
 	hreq.Header.Set("Authorization", p.apiKey)
 
+	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
+		logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, 0, time.Since(start), err)
 		slog.Default().Warn("provider_wuyin_start_failed", "err", err.Error())
 		return types.ImageGenerateResponse{}, err
 	}
@@ -178,9 +187,11 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		b, _ := ioReadAllLimit(resp.Body, 4<<20)
+		logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), errors.New("bad status"))
 		slog.Default().Warn("provider_wuyin_start_bad_status", "status", resp.StatusCode)
 		return types.ImageGenerateResponse{}, fmt.Errorf("wuyinkeji start error: status=%d body=%s", resp.StatusCode, string(b))
 	}
+	logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil)
 
 	var out startResp
 	b, _ := ioReadAllLimit(resp.Body, 10<<20)
@@ -231,19 +242,25 @@ type detailResp struct {
 }
 
 func (p *Provider) pollResult(ctx context.Context, id string) ([]string, error) {
-	deadline := time.Now().Add(90 * time.Second)
+	deadline := time.Now().Add(10 * time.Minute)
 
 	for time.Now().Before(deadline) {
 		u := fmt.Sprintf("%s/api/async/detail?key=%s&id=%s", p.baseURL, p.apiKey, id)
+		logging.DownstreamRequestDebug("provider_wuyin_detail", p.ProviderName(), http.MethodGet, u, map[string]any{
+			"job_id": id,
+		})
 		hreq, _ := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 		hreq.Header.Set("Authorization", p.apiKey)
 
+		start := time.Now()
 		resp, err := p.httpClient.Do(hreq)
 		if err != nil {
+			logging.DownstreamResponseDebug("provider_wuyin_detail_response", p.ProviderName(), http.MethodGet, u, 0, time.Since(start), err)
 			return nil, err
 		}
 		b, _ := ioReadAllLimit(resp.Body, 10<<20)
 		resp.Body.Close()
+		logging.DownstreamResponseDebug("provider_wuyin_detail_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), nil)
 
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			return nil, fmt.Errorf("wuyinkeji detail error: status=%d body=%s", resp.StatusCode, string(b))

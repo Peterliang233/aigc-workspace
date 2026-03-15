@@ -2,6 +2,7 @@
 .idea/
 .vscode/
 .env
+log/
 
 # Go
 backend/bin/

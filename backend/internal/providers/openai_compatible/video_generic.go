@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"aigc-backend/internal/logging"
 	"aigc-backend/internal/types"
 )
 
@@ -35,7 +36,7 @@ func NewVideoGeneric(baseURL, apiKey, videoModel, startEndpoint, statusEndpoint 
 		videoModel: strings.TrimSpace(videoModel),
 		startEP:    strings.TrimSpace(startEndpoint),
 		statusEP:   strings.TrimSpace(statusEndpoint),
-		httpClient: &http.Client{Timeout: 2 * time.Minute},
+		httpClient: &http.Client{Timeout: 10 * time.Minute},
 	}
 }
 
@@ -67,22 +68,31 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 	raw, _ := json.Marshal(payload)
 
 	u := p.baseURL + p.startEP
-	slog.Default().Info("provider_video_start", "provider", p.ProviderName(), "url", u)
+	logging.DownstreamRequest("provider_video_start", p.ProviderName(), http.MethodPost, u, map[string]any{
+		"model":            p.videoModel,
+		"duration_seconds": req.DurationSeconds,
+		"aspect_ratio":     req.AspectRatio,
+		"prompt":           logging.DownstreamPrompt(prompt),
+	})
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
 	hreq.Header.Set("Content-Type", "application/json")
 
+	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
+		logging.DownstreamResponse("provider_video_start_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
 		return "", err
 	}
 	defer resp.Body.Close()
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		logging.DownstreamResponse("provider_video_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
 		slog.Default().Warn("provider_video_start_bad_status", "status", resp.StatusCode)
 		return "", fmt.Errorf("video start API error: status=%d body=%s", resp.StatusCode, string(b))
 	}
+	logging.DownstreamResponse("provider_video_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil)
 	var out startResp
 	if err := json.Unmarshal(b, &out); err != nil {
 		return "", err
@@ -119,21 +129,27 @@ func (p *VideoProvider) GetVideoJob(ctx context.Context, jobID string) (string, 
 
 	ep := strings.ReplaceAll(p.statusEP, "{id}", jobID)
 	u := p.baseURL + ep
-	slog.Default().Debug("provider_video_status", "provider", p.ProviderName(), "url", u)
+	logging.DownstreamRequestDebug("provider_video_status", p.ProviderName(), http.MethodGet, u, map[string]any{
+		"job_id": jobID,
+	})
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
 
+	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
+		logging.DownstreamResponseDebug("provider_video_status_response", p.ProviderName(), http.MethodGet, u, 0, time.Since(start), err)
 		return "", "", "", err
 	}
 	defer resp.Body.Close()
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		logging.DownstreamResponseDebug("provider_video_status_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
 		slog.Default().Warn("provider_video_status_bad_status", "status", resp.StatusCode)
 		return "", "", "", fmt.Errorf("video status API error: status=%d body=%s", resp.StatusCode, string(b))
 	}
+	logging.DownstreamResponseDebug("provider_video_status_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), nil)
 
 	var out statusResp
 	if err := json.Unmarshal(b, &out); err != nil {

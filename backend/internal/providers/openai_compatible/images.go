@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"aigc-backend/internal/logging"
 	"aigc-backend/internal/types"
 )
 
@@ -33,7 +34,7 @@ func New(baseURL, apiKey, imageModel, staticRoot string) *Provider {
 		baseURL:    strings.TrimRight(strings.TrimSpace(baseURL), "/"),
 		apiKey:     strings.TrimSpace(apiKey),
 		imageModel: strings.TrimSpace(imageModel),
-		httpClient: &http.Client{Timeout: 2 * time.Minute},
+		httpClient: &http.Client{Timeout: 10 * time.Minute},
 		staticRoot: staticRoot,
 	}
 }
@@ -88,22 +89,32 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 	raw, _ := json.Marshal(body)
 
 	u := p.baseURL + "/v1/images/generations"
-	slog.Default().Debug("provider_openai_compat_request", "url", u, "model", model, "size", size, "n", n)
+	logging.DownstreamRequest("provider_openai_compat_request", p.ProviderName(), http.MethodPost, u, map[string]any{
+		"model":           model,
+		"size":            size,
+		"n":               n,
+		"response_format": "b64_json",
+		"prompt":          logging.DownstreamPrompt(prompt),
+	})
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
 	hreq.Header.Set("Content-Type", "application/json")
 
+	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
+		logging.DownstreamResponse("provider_openai_compat_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
 		return types.ImageGenerateResponse{}, err
 	}
 	defer resp.Body.Close()
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		logging.DownstreamResponse("provider_openai_compat_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
 		slog.Default().Warn("provider_openai_compat_error", "status", resp.StatusCode)
 		return types.ImageGenerateResponse{}, fmt.Errorf("images API error: status=%d body=%s", resp.StatusCode, string(b))
 	}
+	logging.DownstreamResponse("provider_openai_compat_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil)
 
 	var out imagesGenerateResponse
 	if err := json.Unmarshal(b, &out); err != nil {

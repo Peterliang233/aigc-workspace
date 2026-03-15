@@ -22,6 +22,8 @@ import (
 	"aigc-backend/internal/settings"
 	"aigc-backend/internal/store"
 	"aigc-backend/internal/types"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
@@ -75,24 +77,29 @@ func NewHandler(cfg config.Config, st settings.Store) http.Handler {
 	h.rebuildProvidersLocked()
 	h.provMu.Unlock()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", h.healthz)
-	// Only expose generated media. Do not expose the whole var/ directory, because it may contain secrets/config.
-	mux.Handle(
-		"/static/generated/",
-		http.StripPrefix(
-			"/static/generated/",
-			http.FileServer(http.Dir(filepath.Join(staticRoot, "generated"))),
-		),
-	)
-	mux.HandleFunc("/api/meta/images", h.metaImages)
-	mux.HandleFunc("/api/settings", h.settings)
-	mux.HandleFunc("/api/settings/image-providers/", h.settingsImageProviders)
-	mux.HandleFunc("/api/images/generate", h.imagesGenerate)
-	mux.HandleFunc("/api/videos/jobs", h.videosJobs)
-	mux.HandleFunc("/api/videos/jobs/", h.videosJobsID) // GET /api/videos/jobs/{id}
+	r := gin.New()
+	r.Use(slogHTTPMiddleware(cfg.AllowedOrigins))
 
-	return withMiddleware(mux, cfg.AllowedOrigins)
+	r.GET("/healthz", gin.WrapF(h.healthz))
+
+	// Only expose generated media. Do not expose the whole var/ directory, because it may contain secrets/config.
+	r.StaticFS("/static/generated", http.Dir(filepath.Join(staticRoot, "generated")))
+
+	r.GET("/api/meta/images", gin.WrapF(h.metaImages))
+
+	r.GET("/api/settings", gin.WrapF(h.settings))
+	r.PUT("/api/settings", gin.WrapF(h.settings))
+
+	// Keep the legacy path-parsing handler, but route through gin.
+	r.POST("/api/settings/image-providers/*path", gin.WrapF(h.settingsImageProviders))
+	r.DELETE("/api/settings/image-providers/*path", gin.WrapF(h.settingsImageProviders))
+
+	r.POST("/api/images/generate", gin.WrapF(h.imagesGenerate))
+
+	r.POST("/api/videos/jobs", gin.WrapF(h.videosJobs))
+	r.GET("/api/videos/jobs/*id", gin.WrapF(h.videosJobsID)) // GET /api/videos/jobs/{id}
+
+	return r
 }
 
 func (h *Handler) healthz(w http.ResponseWriter, r *http.Request) {
@@ -187,7 +194,7 @@ func (h *Handler) imagesGenerate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Minute)
 	defer cancel()
 
 	var req types.ImageGenerateRequest
@@ -657,7 +664,7 @@ func (h *Handler) videosJobs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Minute)
 	defer cancel()
 
 	var req types.VideoJobCreateRequest
@@ -705,7 +712,7 @@ func (h *Handler) videosJobsID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Minute)
 	defer cancel()
 
 	status, videoURL, jobErr, err := h.videoProv.GetVideoJob(ctx, id)
