@@ -1,8 +1,11 @@
 package config
 
 import (
+	"context"
+	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 type ImageProviderConfig struct {
@@ -108,8 +111,32 @@ func LoadFromEnv() Config {
 		Port:           port,
 		AllowedOrigins: allowed,
 		ImageProviders: imageProviders,
-		MySQLDSN:       strings.TrimSpace(os.Getenv("MYSQL_DSN")),
+		MySQLDSN:       pickMySQLDSN(),
 	}
+}
+
+func pickMySQLDSN() string {
+	// In docker compose we typically use tcp(mysql:3306).
+	// When running `go run` on the host, that hostname won't resolve, so we
+	// allow a separate MYSQL_DSN_LOCAL (e.g. tcp(127.0.0.1:3307)).
+	dsn := strings.TrimSpace(os.Getenv("MYSQL_DSN"))
+	local := strings.TrimSpace(os.Getenv("MYSQL_DSN_LOCAL"))
+	if local == "" {
+		return dsn
+	}
+	if dsn == "" {
+		return local
+	}
+	if !strings.Contains(dsn, "@tcp(mysql:") {
+		return dsn
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 150*time.Millisecond)
+	defer cancel()
+	if _, err := net.DefaultResolver.LookupHost(ctx, "mysql"); err != nil {
+		return local
+	}
+	return dsn
 }
 
 func parseCSV(s string) []string {

@@ -11,14 +11,12 @@ import (
 	"aigc-backend/internal/httpapi"
 	"aigc-backend/internal/logging"
 	"aigc-backend/internal/settings"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	// Convenience for local dev: load backend/.env if present.
+	// Convenience for local dev: load the first .env found when walking upwards from CWD.
 	// Environment variables set by the shell take precedence.
-	config.LoadDotEnv(".env")
+	config.LoadDotEnvUpwards(8)
 	cfg := config.LoadFromEnv()
 
 	logging.InitFromEnv()

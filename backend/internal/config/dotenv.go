@@ -3,6 +3,7 @@ package config
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -41,5 +42,33 @@ func LoadDotEnv(path string) {
 			}
 		}
 		_ = os.Setenv(k, v)
+	}
+}
+
+// LoadDotEnvUpwards searches for ".env" starting from the current working
+// directory and walking upwards, and loads the first one found.
+//
+// This lets developers run the backend from either repo root or backend/
+// without maintaining multiple .env files.
+func LoadDotEnvUpwards(maxHops int) {
+	if maxHops <= 0 {
+		maxHops = 8
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		return
+	}
+
+	for i := 0; i < maxHops; i++ {
+		p := filepath.Join(dir, ".env")
+		if _, err := os.Stat(p); err == nil {
+			LoadDotEnv(p)
+			return
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return
+		}
+		dir = parent
 	}
 }

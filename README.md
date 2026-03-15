@@ -18,12 +18,14 @@ make backend-test
 make -j2 dev
 ```
 
+注意：根目录 `.env` 是给 Docker Compose 和后端的 `.env` loader 使用的，不要用 `source .env` 的方式加载到 shell 里（例如 MySQL DSN 里的 `tcp(127.0.0.1:3307)` 不是合法的 POSIX shell 语法）。
+
 ### 1) 启动后端
 
 ```bash
-cd backend
 cp .env.example .env
-go run ./cmd/server
+cd backend
+env GOCACHE=/tmp/gocache go run .
 ```
 
 后端默认监听 `http://localhost:8080`，健康检查 `GET /healthz`。
@@ -31,7 +33,7 @@ go run ./cmd/server
 如果你在受限的沙箱环境里遇到 Go 构建缓存权限问题，可以临时指定：
 
 ```bash
-env GOCACHE=/tmp/gocache go run ./cmd/server
+env GOCACHE=/tmp/gocache go run .
 ```
 
 ### 2) 启动前端
@@ -72,6 +74,8 @@ docker compose -f docker-compose.dev.yml logs --tail=200 -f
 ```
 
 前端 `http://localhost:5173`，后端 `http://localhost:8080`。
+
+MySQL 默认会映射到宿主机 `3307`（避免和本机已有的 MySQL `3306` 冲突）。如需修改，编辑根目录 `.env` 里的 `MYSQL_PORT`，并同步调整 `MYSQL_DSN_LOCAL`。
 
 ## API 概览
 

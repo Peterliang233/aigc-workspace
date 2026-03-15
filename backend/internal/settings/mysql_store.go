@@ -2,7 +2,6 @@ package settings
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -11,12 +10,50 @@ import (
 	"time"
 
 	"aigc-backend/internal/logging"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 type MySQLStore struct {
-	db *sql.DB
+	db    *gorm.DB
+	sqlDB closerPinger
 	mu sync.Mutex // serialize migrations + read/modify/write updates
 }
+
+type closerPinger interface {
+	Close() error
+	PingContext(ctx context.Context) error
+	SetMaxOpenConns(n int)
+	SetMaxIdleConns(n int)
+	SetConnMaxLifetime(d time.Duration)
+}
+
+type providerConfigRow struct {
+	ProviderID      string     `gorm:"column:provider_id;primaryKey;size:64"`
+	BaseURL         *string    `gorm:"column:base_url;type:text"`
+	BaseURLSet      bool       `gorm:"column:base_url_set;not null;default:0"`
+	APIKey          *string    `gorm:"column:api_key;type:text"`
+	APIKeySet       bool       `gorm:"column:api_key_set;not null;default:0"`
+	DefaultModel    *string    `gorm:"column:default_model;size:255"`
+	DefaultModelSet bool       `gorm:"column:default_model_set;not null;default:0"`
+	ModelsSet       bool       `gorm:"column:models_set;not null;default:0"`
+	UpdatedAt       *time.Time `gorm:"column:updated_at;autoUpdateTime"`
+}
+
+func (providerConfigRow) TableName() string { return "aigc_provider_configs" }
+
+type providerModelRow struct {
+	ProviderID  string    `gorm:"column:provider_id;primaryKey;size:64"`
+	Capability  string    `gorm:"column:capability;primaryKey;size:16"`
+	Model       string    `gorm:"column:model;primaryKey;size:255"`
+	Ord         int       `gorm:"column:ord;not null;default:0"`
+	CreatedAt   time.Time `gorm:"column:created_at;autoCreateTime"`
+}
+
+func (providerModelRow) TableName() string { return "aigc_provider_models" }
 
 func NewMySQLStore(dsn string) (*MySQLStore, error) {
 	dsn = strings.TrimSpace(dsn)
@@ -24,24 +61,31 @@ func NewMySQLStore(dsn string) (*MySQLStore, error) {
 		return nil, errors.New("MYSQL_DSN is empty")
 	}
 
-	db, err := sql.Open("mysql", dsn)
+	gdb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		// Avoid noisy stdout logging; we log high-level events ourselves via slog.
+		Logger: gormlogger.Default.LogMode(gormlogger.Silent),
+	})
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-	db.SetConnMaxLifetime(10 * time.Minute)
+	sqlDB, err := gdb.DB()
+	if err != nil {
+		return nil, err
+	}
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetConnMaxLifetime(10 * time.Minute)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := db.PingContext(ctx); err != nil {
-		_ = db.Close()
+	if err := sqlDB.PingContext(ctx); err != nil {
+		_ = sqlDB.Close()
 		return nil, err
 	}
 
-	st := &MySQLStore{db: db}
+	st := &MySQLStore{db: gdb, sqlDB: sqlDB}
 	if err := st.migrate(); err != nil {
-		_ = db.Close()
+		_ = sqlDB.Close()
 		return nil, err
 	}
 	slog.Default().Info("settings_store_mysql_ready", "dsn", logging.RedactDSN(dsn))
@@ -49,10 +93,10 @@ func NewMySQLStore(dsn string) (*MySQLStore, error) {
 }
 
 func (st *MySQLStore) Close() error {
-	if st.db == nil {
+	if st.sqlDB == nil {
 		return nil
 	}
-	return st.db.Close()
+	return st.sqlDB.Close()
 }
 
 func (st *MySQLStore) Get() (Settings, error) {
@@ -68,28 +112,26 @@ func (st *MySQLStore) Update(fn func(*Settings) error) (Settings, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	tx, err := st.db.BeginTx(ctx, nil)
+	var out Settings
+	err := st.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		cur, err := st.getTx(tx)
+		if err != nil {
+			return err
+		}
+		next := deepCopy(cur)
+		if err := fn(&next); err != nil {
+			return err
+		}
+		if err := st.putTx(tx, next); err != nil {
+			return err
+		}
+		out = next
+		return nil
+	})
 	if err != nil {
 		return Settings{}, err
 	}
-	defer tx.Rollback()
-
-	cur, err := st.getTx(ctx, tx)
-	if err != nil {
-		return Settings{}, err
-	}
-	next := deepCopy(cur)
-	if err := fn(&next); err != nil {
-		return Settings{}, err
-	}
-
-	if err := st.putTx(ctx, tx, next); err != nil {
-		return Settings{}, err
-	}
-	if err := tx.Commit(); err != nil {
-		return Settings{}, err
-	}
-	return next, nil
+	return out, nil
 }
 
 func (st *MySQLStore) migrate() error {
@@ -126,7 +168,7 @@ func (st *MySQLStore) migrate() error {
 	}
 
 	for _, q := range stmts {
-		if _, err := st.db.ExecContext(ctx, q); err != nil {
+		if err := st.db.WithContext(ctx).Exec(q).Error; err != nil {
 			// Some migrations are "best effort" for existing installations.
 			// Example: adding a column that may already exist.
 			if strings.HasPrefix(strings.TrimSpace(strings.ToUpper(q)), "ALTER TABLE") {
@@ -140,48 +182,26 @@ func (st *MySQLStore) migrate() error {
 }
 
 func (st *MySQLStore) getLocked(ctx context.Context) (Settings, error) {
-	tx, err := st.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	tx := st.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return Settings{}, tx.Error
+	}
+	s, err := st.getTx(tx)
 	if err != nil {
+		_ = tx.Rollback().Error
 		return Settings{}, err
 	}
-	defer tx.Rollback()
-
-	s, err := st.getTx(ctx, tx)
-	if err != nil {
+	if err := tx.Commit().Error; err != nil {
 		return Settings{}, err
 	}
-	_ = tx.Commit()
 	return s, nil
 }
 
-func (st *MySQLStore) getTx(ctx context.Context, tx *sql.Tx) (Settings, error) {
+func (st *MySQLStore) getTx(tx *gorm.DB) (Settings, error) {
 	s := Settings{ImageProviders: map[string]ProviderSettings{}}
 
-	rows, err := tx.QueryContext(ctx, `SELECT provider_id, base_url, base_url_set, api_key, api_key_set, default_model, default_model_set, models_set FROM aigc_provider_configs`)
-	if err != nil {
-		return Settings{}, err
-	}
-	defer rows.Close()
-
-	type cfgRow struct {
-		ProviderID      string
-		BaseURL         sql.NullString
-		BaseURLSet      bool
-		APIKey          sql.NullString
-		APIKeySet       bool
-		DefaultModel    sql.NullString
-		DefaultModelSet bool
-		ModelsSet       bool
-	}
-	var cfgs []cfgRow
-	for rows.Next() {
-		var r cfgRow
-		if err := rows.Scan(&r.ProviderID, &r.BaseURL, &r.BaseURLSet, &r.APIKey, &r.APIKeySet, &r.DefaultModel, &r.DefaultModelSet, &r.ModelsSet); err != nil {
-			return Settings{}, err
-		}
-		cfgs = append(cfgs, r)
-	}
-	if err := rows.Err(); err != nil {
+	var cfgs []providerConfigRow
+	if err := tx.Find(&cfgs).Error; err != nil {
 		return Settings{}, err
 	}
 
@@ -194,22 +214,22 @@ func (st *MySQLStore) getTx(ctx context.Context, tx *sql.Tx) (Settings, error) {
 		ps := ProviderSettings{}
 		if r.BaseURLSet {
 			v := ""
-			if r.BaseURL.Valid {
-				v = r.BaseURL.String
+			if r.BaseURL != nil {
+				v = *r.BaseURL
 			}
 			ps.BaseURL = &v
 		}
 		if r.APIKeySet {
 			v := ""
-			if r.APIKey.Valid {
-				v = r.APIKey.String
+			if r.APIKey != nil {
+				v = *r.APIKey
 			}
 			ps.APIKey = &v
 		}
 		if r.DefaultModelSet {
 			v := ""
-			if r.DefaultModel.Valid {
-				v = r.DefaultModel.String
+			if r.DefaultModel != nil {
+				v = *r.DefaultModel
 			}
 			ps.DefaultModel = &v
 		}
@@ -231,26 +251,17 @@ func (st *MySQLStore) getTx(ctx context.Context, tx *sql.Tx) (Settings, error) {
 		return s, nil
 	}
 
-	mrows, err := tx.QueryContext(ctx, `SELECT provider_id, model FROM aigc_provider_models WHERE capability='image' ORDER BY provider_id ASC, ord ASC, created_at ASC`)
-	if err != nil {
+	var mrows []providerModelRow
+	if err := tx.Where("capability = ?", "image").Order("provider_id ASC, ord ASC, created_at ASC").Find(&mrows).Error; err != nil {
 		return Settings{}, err
 	}
-	defer mrows.Close()
-
 	byProv := map[string][]string{}
-	for mrows.Next() {
-		var pid, model string
-		if err := mrows.Scan(&pid, &model); err != nil {
-			return Settings{}, err
-		}
-		pid = strings.ToLower(strings.TrimSpace(pid))
+	for _, r := range mrows {
+		pid := strings.ToLower(strings.TrimSpace(r.ProviderID))
 		if pid == "" {
 			continue
 		}
-		byProv[pid] = append(byProv[pid], strings.TrimSpace(model))
-	}
-	if err := mrows.Err(); err != nil {
-		return Settings{}, err
+		byProv[pid] = append(byProv[pid], strings.TrimSpace(r.Model))
 	}
 
 	for pid := range needModels {
@@ -266,12 +277,34 @@ func (st *MySQLStore) getTx(ctx context.Context, tx *sql.Tx) (Settings, error) {
 	return s, nil
 }
 
-func (st *MySQLStore) putTx(ctx context.Context, tx *sql.Tx, s Settings) error {
-	if s.ImageProviders == nil {
-		return nil
+func (st *MySQLStore) putTx(tx *gorm.DB, s Settings) error {
+	desired := map[string]ProviderSettings{}
+	if s.ImageProviders != nil {
+		for k, v := range s.ImageProviders {
+			desired[strings.ToLower(strings.TrimSpace(k))] = v
+		}
 	}
 
-	for pid, ps := range s.ImageProviders {
+	// Delete providers that were removed from settings (or are now empty).
+	var existing []providerConfigRow
+	if err := tx.Select("provider_id").Find(&existing).Error; err != nil {
+		return err
+	}
+	for _, r := range existing {
+		id := strings.ToLower(strings.TrimSpace(r.ProviderID))
+		ps, ok := desired[id]
+		if !ok || (ps.BaseURL == nil && ps.APIKey == nil && ps.DefaultModel == nil && ps.Models == nil) {
+			if err := tx.Where("provider_id = ?", id).Delete(&providerConfigRow{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("provider_id = ? AND capability = ?", id, "image").Delete(&providerModelRow{}).Error; err != nil {
+				return err
+			}
+			delete(desired, id)
+		}
+	}
+
+	for pid, ps := range desired {
 		pid = strings.ToLower(strings.TrimSpace(pid))
 		if pid == "" {
 			continue
@@ -282,43 +315,41 @@ func (st *MySQLStore) putTx(ctx context.Context, tx *sql.Tx, s Settings) error {
 		defModelSet := ps.DefaultModel != nil
 		modelsSet := ps.Models != nil
 
-		var baseURL sql.NullString
+		cfg := providerConfigRow{
+			ProviderID:      pid,
+			BaseURLSet:      baseURLSet,
+			APIKeySet:       apiKeySet,
+			DefaultModelSet: defModelSet,
+			ModelsSet:       modelsSet,
+		}
 		if baseURLSet {
-			baseURL = sql.NullString{String: strings.TrimSpace(*ps.BaseURL), Valid: true}
+			v := strings.TrimSpace(*ps.BaseURL)
+			cfg.BaseURL = &v
 		}
-		var apiKey sql.NullString
 		if apiKeySet {
-			apiKey = sql.NullString{String: strings.TrimSpace(*ps.APIKey), Valid: true}
+			v := strings.TrimSpace(*ps.APIKey)
+			cfg.APIKey = &v
 		}
-		var defModel sql.NullString
 		if defModelSet {
-			defModel = sql.NullString{String: strings.TrimSpace(*ps.DefaultModel), Valid: true}
+			v := strings.TrimSpace(*ps.DefaultModel)
+			cfg.DefaultModel = &v
 		}
 
-		_, err := tx.ExecContext(ctx, `
-			INSERT INTO aigc_provider_configs
-				(provider_id, base_url, base_url_set, api_key, api_key_set, default_model, default_model_set, models_set)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-				base_url=VALUES(base_url),
-				base_url_set=VALUES(base_url_set),
-				api_key=VALUES(api_key),
-				api_key_set=VALUES(api_key_set),
-				default_model=VALUES(default_model),
-				default_model_set=VALUES(default_model_set),
-				models_set=VALUES(models_set)
-		`, pid, nullOrString(baseURLSet, baseURL), boolToInt(baseURLSet), nullOrString(apiKeySet, apiKey), boolToInt(apiKeySet), nullOrString(defModelSet, defModel), boolToInt(defModelSet), boolToInt(modelsSet))
-		if err != nil {
+		if err := tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "provider_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"base_url", "base_url_set", "api_key", "api_key_set", "default_model", "default_model_set", "models_set"}),
+		}).Create(&cfg).Error; err != nil {
 			return err
 		}
 
 		// models: always sync when models_set is known (true/false) in settings.
 		// If models is nil, we consider it "inherit", and thus delete stored models.
-		if _, err := tx.ExecContext(ctx, `DELETE FROM aigc_provider_models WHERE provider_id=? AND capability='image'`, pid); err != nil {
+		if err := tx.Where("provider_id = ? AND capability = ?", pid, "image").Delete(&providerModelRow{}).Error; err != nil {
 			return err
 		}
 		if modelsSet {
 			models := dedupeKeepOrder(*ps.Models)
+			var batch []providerModelRow
 			for i, m := range models {
 				if m == "" {
 					continue
@@ -326,34 +357,21 @@ func (st *MySQLStore) putTx(ctx context.Context, tx *sql.Tx, s Settings) error {
 				if len(m) > 255 {
 					return fmt.Errorf("model too long for provider %s", pid)
 				}
-				if _, err := tx.ExecContext(ctx, `
-					INSERT INTO aigc_provider_models (provider_id, capability, model, ord)
-					VALUES (?, 'image', ?, ?)
-					ON DUPLICATE KEY UPDATE ord=VALUES(ord)
-				`, pid, m, i); err != nil {
+				batch = append(batch, providerModelRow{
+					ProviderID: pid,
+					Capability: "image",
+					Model:      m,
+					Ord:        i,
+				})
+			}
+			if len(batch) > 0 {
+				if err := tx.Create(&batch).Error; err != nil {
 					return err
 				}
 			}
 		}
 	}
 	return nil
-}
-
-func nullOrString(set bool, v sql.NullString) any {
-	if !set {
-		return nil
-	}
-	if v.Valid {
-		return v.String
-	}
-	return ""
-}
-
-func boolToInt(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
 }
 
 func dedupeKeepOrder(in []string) []string {
