@@ -5,7 +5,9 @@
 	mysql-up mysql-down mysql-logs mysql-reset \
 	minio-up minio-down minio-logs minio-reset \
 	compose-up compose-down compose-logs \
-	compose-dev-up compose-dev-down compose-dev-logs
+	compose-dev-up compose-dev-down compose-dev-logs \
+	check-lines
+	.PHONY: check-lines
 
 GOCACHE ?= /tmp/gocache
 ENV_FILE ?= .env
@@ -30,6 +32,8 @@ help:
 	@printf "  minio-reset         docker compose (dev) down -v (DELETES dev data)\\n"
 	@printf "  compose-up          docker compose (prod) up -d\\n"
 	@printf "  compose-dev-up      docker compose (dev) up -d\\n"
+	@printf "  check-lines         enforce <=200 lines per file (Go/TS/TSX/CSS)\\n"
+	@printf "  check-lines         enforce <=200 lines per file (Go/TS/TSX/CSS)\\n"
 
 dev:
 	@$(MAKE) -j2 dev-backend dev-frontend
@@ -115,3 +119,6 @@ compose-dev-down:
 
 compose-dev-logs:
 	docker compose -f docker-compose.dev.yml logs --tail=200 -f
+
+check-lines:
+	MAX_LINES=200 bash scripts/check_max_lines.sh

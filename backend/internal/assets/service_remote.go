@@ -2,48 +2,19 @@ package assets
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
-	"aigc-backend/internal/blobstore"
 	"aigc-backend/internal/logging"
 	"aigc-backend/internal/util/mediafetch"
 
 	"github.com/minio/minio-go/v7"
 )
-
-type Service struct {
-	Store    Store
-	MinIO    *blobstore.MinIO
-	Download *mediafetch.Downloader
-
-	// MaxBytes caps the size of a single fetched asset to avoid runaway downloads.
-	MaxBytes int64
-}
-
-type StoreRemoteInput struct {
-	Capability    string
-	Provider      string
-	Model         string
-	Prompt        string
-	Params        any
-	SourceURL     string
-	ExternalJobID string // optional (video job id)
-}
-
-func (s *Service) Enabled() bool {
-	return s != nil && s.Store != nil && s.MinIO != nil && s.MinIO.Client != nil && strings.TrimSpace(s.MinIO.Bucket) != ""
-}
 
 func (s *Service) StoreRemote(ctx context.Context, in StoreRemoteInput) (*Asset, error) {
 	if !s.Enabled() {
@@ -103,7 +74,7 @@ func (s *Service) StoreRemote(ctx context.Context, in StoreRemoteInput) (*Asset,
 		return nil, err
 	}
 
-	var size int64 = resp.ContentLength
+	size := resp.ContentLength
 	if size > s.MaxBytes {
 		return nil, fmt.Errorf("asset too large: %d bytes", size)
 	}
@@ -150,29 +121,15 @@ func (s *Service) StoreRemote(ctx context.Context, in StoreRemoteInput) (*Asset,
 		}
 	}
 
-	paramsJSON := ""
-	if in.Params != nil {
-		if b, err := json.Marshal(in.Params); err == nil {
-			paramsJSON = string(b)
-		}
-	}
-
-	preview := strings.TrimSpace(in.Prompt)
-	if len([]rune(preview)) > 120 {
-		preview = string([]rune(preview)[:120])
-	}
-	sum := sha256.Sum256([]byte(in.Prompt))
-	promptSHA := hex.EncodeToString(sum[:])
-
+	sha, preview := promptMeta(in.Prompt)
 	redactedURL := logging.RedactURL(in.SourceURL)
-
 	a := &Asset{
 		Capability:    in.Capability,
 		Provider:      in.Provider,
 		Model:         in.Model,
-		PromptSHA256:  promptSHA,
+		PromptSHA256:  sha,
 		PromptPreview: preview,
-		ParamsJSON:    paramsJSON,
+		ParamsJSON:    marshalParams(in.Params),
 		Status:        "succeeded",
 		SourceURL:     &redactedURL,
 		ObjectKey:     objectKey,
@@ -208,17 +165,3 @@ func (s *Service) StoreRemote(ctx context.Context, in StoreRemoteInput) (*Asset,
 	return a, nil
 }
 
-func makeObjectKey(capability, ext string) (string, error) {
-	var b [16]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "", err
-	}
-	date := time.Now().Format("2006/01/02")
-	name := hex.EncodeToString(b[:])
-	ext = strings.TrimSpace(ext)
-	if ext == "" || strings.Contains(ext, "/") || strings.Contains(ext, "\\") {
-		ext = ".bin"
-	}
-	// Keep keys path-like for easier lifecycle management.
-	return filepath.ToSlash(fmt.Sprintf("%s/%s/%s%s", capability, date, name, ext)), nil
-}

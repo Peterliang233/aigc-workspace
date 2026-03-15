@@ -133,9 +133,16 @@ export function HistoryStudio() {
         <div className="card__head">
           <h2 className="card__title">结果预览</h2>
           {selected ? (
-            <a className="link" href={selected.url} target="_blank" rel="noreferrer">
-              open
-            </a>
+            <div className="chips" style={{ marginLeft: "auto" }}>
+              <a className="link" href={selected.url} target="_blank" rel="noreferrer">
+                open
+              </a>
+              {selected.capability === "image" && selected.url.startsWith("/api/assets/") ? (
+                <a className="btn btn--ghost" href={`${selected.url}?download=1`} title="下载图片">
+                  下载
+                </a>
+              ) : null}
+            </div>
           ) : (
             <span className="muted">-</span>
           )}
@@ -163,4 +170,3 @@ export function HistoryStudio() {
     </div>
   );
 }
-

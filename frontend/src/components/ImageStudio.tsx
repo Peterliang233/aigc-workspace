@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { api } from "../api";
+import { useImageMeta } from "../hooks/useImageMeta";
 
 export function ImageStudio() {
   const [prompt, setPrompt] = useState("一只在雨夜霓虹街头散步的柴犬，电影感，高对比，35mm");
@@ -8,86 +9,8 @@ export function ImageStudio() {
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
 
-  const [metaLoading, setMetaLoading] = useState(false);
-  const [providers, setProviders] = useState<
-    { id: string; label: string; configured: boolean; models: string[] }[]
-  >([]);
-  const [provider, setProvider] = useState<string>(() => localStorage.getItem("aigc_image_provider") || "");
-  const [model, setModel] = useState<string>(() => localStorage.getItem("aigc_image_model") || "");
-  const [customModel, setCustomModel] = useState<string>(() => localStorage.getItem("aigc_image_custom_model") || "");
-
-  const providerInfo = useMemo(
-    () => providers.find((p) => p.id === provider) || null,
-    [providers, provider]
-  );
-  const modelList = providerInfo?.models || [];
-  const useCustom = model === "__custom__" || modelList.length === 0;
-
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      setMetaLoading(true);
-      try {
-        const res = await api.getImageMeta();
-        if (!mounted) return;
-        const list = (res.providers || []).slice().sort((a, b) => a.label.localeCompare(b.label));
-        setProviders(list);
-
-        // pick default provider if none selected or selected is missing
-        const preferred = provider || res.default_provider || "mock";
-        const hasPreferred = list.some((p) => p.id === preferred && p.configured);
-        const fallback = list.find((p) => p.configured)?.id || "mock";
-        const nextProvider = hasPreferred ? preferred : fallback;
-        setProvider(nextProvider);
-
-        // pick default model if empty
-        const pi = list.find((p) => p.id === nextProvider);
-        const models = pi?.models || [];
-        if (!model) {
-          setModel(models[0] || "__custom__");
-        }
-      } catch (e: any) {
-        // if meta fails, fall back to mock with no model
-        if (mounted) {
-          setProviders([{ id: "mock", label: "Mock(联调)", configured: true, models: [] }]);
-          if (!provider) setProvider("mock");
-          if (!model) setModel("__custom__");
-        }
-      } finally {
-        if (mounted) setMetaLoading(false);
-      }
-    }
-    load();
-    return () => {
-      mounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (provider) localStorage.setItem("aigc_image_provider", provider);
-  }, [provider]);
-  useEffect(() => {
-    if (model) localStorage.setItem("aigc_image_model", model);
-  }, [model]);
-  useEffect(() => {
-    if (customModel) localStorage.setItem("aigc_image_custom_model", customModel);
-  }, [customModel]);
-
-  // When provider changes, reset model to first model (or custom) if current model isn't compatible.
-  useEffect(() => {
-    if (!providerInfo) return;
-    const models = providerInfo.models || [];
-    if (models.length === 0) {
-      if (model !== "__custom__") setModel("__custom__");
-      return;
-    }
-    if (model === "__custom__") return;
-    if (!models.includes(model)) {
-      setModel(models[0]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [provider]);
+  const { metaLoading, providers, provider, setProvider, model, setModel, customModel, setCustomModel, modelList, useCustom } =
+    useImageMeta();
 
   async function onGenerate() {
     setBusy(true);
@@ -197,6 +120,19 @@ export function ImageStudio() {
       <section className="card resultsCard">
         <div className="card__head">
           <h2 className="card__title">生成结果</h2>
+          {url ? (
+            <div className="chips" style={{ marginLeft: "auto" }}>
+              {url.startsWith("/api/assets/") ? (
+                <a className="btn btn--ghost" href={`${url}?download=1`} title="下载图片">
+                  下载
+                </a>
+              ) : (
+                <a className="btn btn--ghost" href={url} download title="下载图片">
+                  下载
+                </a>
+              )}
+            </div>
+          ) : null}
         </div>
 
         {url ? (

@@ -1,0 +1,69 @@
+.page {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.shell {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  padding: 18px 18px 18px 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.main {
+  max-width: none;
+  display: flex;
+  justify-content: stretch;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.workspace {
+  width: 100%;
+  display: grid;
+  /* Keep the editor (left) reasonably compact and let results (right) take more space. */
+  grid-template-columns: minmax(360px, 520px) minmax(420px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.resultsCard {
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+}
+
+.mobilebar {
+  display: none;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  padding: 8px 10px;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobilebar__btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 10px 10px;
+  cursor: pointer;
+}
+
+.mobilebar__title {
+  font-weight: 780;
+  letter-spacing: 0.3px;
+}
+

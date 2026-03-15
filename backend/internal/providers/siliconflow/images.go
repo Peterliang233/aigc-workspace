@@ -3,15 +3,12 @@ package siliconflow
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,7 +16,6 @@ import (
 
 	"aigc-backend/internal/logging"
 	"aigc-backend/internal/types"
-	"aigc-backend/internal/util/mediafetch"
 )
 
 // Implements https://docs.siliconflow.cn/cn/api-reference/images/images-generations
@@ -173,37 +169,4 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		Provider:  p.ProviderName(),
 		Model:     model,
 	}, nil
-}
-
-func (p *Provider) downloadAndStore(ctx context.Context, rawURL, outDir string, idx int) (string, error) {
-	pu, err := url.Parse(rawURL)
-	if err != nil {
-		return "", err
-	}
-	if pu.Scheme != "https" && pu.Scheme != "http" {
-		return "", errors.New("refusing to download non-http(s) url")
-	}
-
-	ext := guessImageExt("", rawURL)
-	if ext == "" {
-		ext = ".img"
-	}
-
-	name := fmt.Sprintf("sf_%d_%d_%s%s", time.Now().UnixNano(), idx, randHex(6), ext)
-	dl := &mediafetch.Downloader{HTTP: p.httpClient}
-	dst, _, err := dl.DownloadToDirAutoExt(ctx, rawURL, outDir, strings.TrimSuffix(name, ext), 25<<20)
-	if err != nil {
-		return "", err
-	}
-	return dst, nil
-}
-
-func guessImageExt(contentType, rawURL string) string {
-	return mediafetch.GuessExt(contentType, rawURL)
-}
-
-func randHex(nBytes int) string {
-	b := make([]byte, nBytes)
-	_, _ = rand.Read(b)
-	return hex.EncodeToString(b)
 }

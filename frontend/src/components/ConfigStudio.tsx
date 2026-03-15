@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api, SettingsGetResponse } from "../api";
+import { ProviderModelsEditor } from "./config/ProviderModelsEditor";
+import { ProviderStatusList } from "./config/ProviderStatusList";
 
 type ProvID = "siliconflow" | "wuyinkeji" | "openai_compatible";
 
@@ -14,13 +16,8 @@ export function ConfigStudio() {
     { default_provider: string; providers: { id: string; label: string; configured: boolean; models: string[] }[] } | null
   >(null);
 
-  // SiliconFlow editor state
   const [sfNewModel, setSfNewModel] = useState("");
-
-  // 速创API editor state
   const [wyNewModel, setWyNewModel] = useState("");
-
-  // OpenAI-compatible (optional)
   const [oaNewModel, setOaNewModel] = useState("");
 
   const provView = settings?.image_providers || {};
@@ -93,189 +90,64 @@ export function ConfigStudio() {
             Base URL / API Key / 默认模型 建议通过部署环境配置；此页面用于管理模型列表（新增/删除）。
           </div>
 
-          <div className="panel">
-            <div className="panel__row">
-              <div className="k">SiliconFlow</div>
-              <div className="v">{provView["siliconflow"]?.api_key_set ? "已配置" : "未配置"}</div>
-            </div>
+          <ProviderModelsEditor
+            title="SiliconFlow"
+            apiKeySet={!!provView["siliconflow"]?.api_key_set}
+            baseURL={provView["siliconflow"]?.base_url}
+            defaultModel={provView["siliconflow"]?.default_model}
+            models={provView["siliconflow"]?.models || []}
+            newModel={sfNewModel}
+            onNewModelChange={setSfNewModel}
+            onAdd={() => {
+              const v = sfNewModel.trim();
+              setSfNewModel("");
+              onAddModel("siliconflow", v);
+            }}
+            onDelete={(m) => onDeleteModel("siliconflow", m)}
+            disabled={loading || saving !== null}
+          />
 
-            <div className="panel__row">
-              <div className="k">Base URL</div>
-              <div className="v mono">{provView["siliconflow"]?.base_url || "-"}</div>
-            </div>
-            <div className="panel__row">
-              <div className="k">默认模型</div>
-              <div className="v mono">{provView["siliconflow"]?.default_model || "-"}</div>
-            </div>
-
-            <div className="panel" style={{ marginTop: 10 }}>
-              <div className="panel__row">
-                <div className="k">当前模型</div>
-                <div className="v">{(provView["siliconflow"]?.models || []).length}</div>
-              </div>
-              <div className="chips">
-                {(provView["siliconflow"]?.models || []).map((m) => (
-                  <button
-                    key={m}
-                    className="chip"
-                    onClick={() => onDeleteModel("siliconflow", m)}
-                    title="点击删除"
-                    disabled={loading || saving !== null}
-                  >
-                    <span className="chip__text">{m}</span>
-                    <span className="chip__x">del</span>
-                  </button>
-                ))}
-                {(provView["siliconflow"]?.models || []).length === 0 && <div className="muted">-</div>}
-              </div>
-              <div className="row" style={{ marginTop: 10 }}>
-                <label className="label" style={{ flex: 1 }}>
-                  新增模型
-                  <input
-                    className="input"
-                    value={sfNewModel}
-                    onChange={(e) => setSfNewModel(e.target.value)}
-                    placeholder="例如：Kwai-Kolors/Kolors"
-                    disabled={loading}
-                  />
-                </label>
-                <button
-                  className="btn"
-                  onClick={() => {
-                    const v = sfNewModel.trim();
-                    setSfNewModel("");
-                    onAddModel("siliconflow", v);
-                  }}
-                  disabled={loading || saving !== null}
-                >
-                  添加
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="panel">
-            <div className="panel__row">
-              <div className="k">速创API</div>
-              <div className="v">{provView["wuyinkeji"]?.api_key_set ? "已配置" : "未配置"}</div>
-            </div>
-
-            <div className="panel__row">
-              <div className="k">Base URL</div>
-              <div className="v mono">{provView["wuyinkeji"]?.base_url || "-"}</div>
-            </div>
-            <div className="hint">
-              速创API 通过 <span className="mono">/api/async/&lt;模型名&gt;</span> 动态路径调用，例如{" "}
-              <span className="mono">image_nanoBanana_pro</span>。
-            </div>
-
-            <div className="panel" style={{ marginTop: 10 }}>
-              <div className="panel__row">
-                <div className="k">当前模型</div>
-                <div className="v">{(provView["wuyinkeji"]?.models || []).length}</div>
-              </div>
-              <div className="chips">
-                {(provView["wuyinkeji"]?.models || []).map((m) => (
-                  <button
-                    key={m}
-                    className="chip"
-                    onClick={() => onDeleteModel("wuyinkeji", m)}
-                    title="点击删除"
-                    disabled={loading || saving !== null}
-                  >
-                    <span className="chip__text">{m}</span>
-                    <span className="chip__x">del</span>
-                  </button>
-                ))}
-                {(provView["wuyinkeji"]?.models || []).length === 0 && <div className="muted">-</div>}
-              </div>
-              <div className="row" style={{ marginTop: 10 }}>
-                <label className="label" style={{ flex: 1 }}>
-                  新增模型
-                  <input
-                    className="input"
-                    value={wyNewModel}
-                    onChange={(e) => setWyNewModel(e.target.value)}
-                    placeholder="例如：image_nanoBanana_pro"
-                    disabled={loading}
-                  />
-                </label>
-                <button
-                  className="btn"
-                  onClick={() => {
-                    const v = wyNewModel.trim();
-                    setWyNewModel("");
-                    onAddModel("wuyinkeji", v);
-                  }}
-                  disabled={loading || saving !== null}
-                >
-                  添加
-                </button>
-              </div>
-            </div>
-          </div>
+          <ProviderModelsEditor
+            title="速创API"
+            apiKeySet={!!provView["wuyinkeji"]?.api_key_set}
+            baseURL={provView["wuyinkeji"]?.base_url}
+            models={provView["wuyinkeji"]?.models || []}
+            hint={
+              <>
+                速创API 通过 <span className="mono">/api/async/&lt;模型名&gt;</span> 动态路径调用，例如{" "}
+                <span className="mono">image_nanoBanana_pro</span>。
+              </>
+            }
+            newModel={wyNewModel}
+            onNewModelChange={setWyNewModel}
+            onAdd={() => {
+              const v = wyNewModel.trim();
+              setWyNewModel("");
+              onAddModel("wuyinkeji", v);
+            }}
+            onDelete={(m) => onDeleteModel("wuyinkeji", m)}
+            disabled={loading || saving !== null}
+          />
 
           <details className="panel">
             <summary className="summary">高级：OpenAI Compatible</summary>
 
-            <div className="panel__row">
-              <div className="k">状态</div>
-              <div className="v">{provView["openai_compatible"]?.api_key_set ? "已配置" : "未配置"}</div>
-            </div>
-
-            <div className="panel__row">
-              <div className="k">Base URL</div>
-              <div className="v mono">{provView["openai_compatible"]?.base_url || "-"}</div>
-            </div>
-            <div className="panel__row">
-              <div className="k">默认模型</div>
-              <div className="v mono">{provView["openai_compatible"]?.default_model || "-"}</div>
-            </div>
-
-            <div className="panel" style={{ marginTop: 10 }}>
-              <div className="panel__row">
-                <div className="k">当前模型</div>
-                <div className="v">{(provView["openai_compatible"]?.models || []).length}</div>
-              </div>
-              <div className="chips">
-                {(provView["openai_compatible"]?.models || []).map((m) => (
-                  <button
-                    key={m}
-                    className="chip"
-                    onClick={() => onDeleteModel("openai_compatible", m)}
-                    title="点击删除"
-                    disabled={loading || saving !== null}
-                  >
-                    <span className="chip__text">{m}</span>
-                    <span className="chip__x">del</span>
-                  </button>
-                ))}
-                {(provView["openai_compatible"]?.models || []).length === 0 && <div className="muted">-</div>}
-              </div>
-              <div className="row" style={{ marginTop: 10 }}>
-                <label className="label" style={{ flex: 1 }}>
-                  新增模型
-                  <input
-                    className="input"
-                    value={oaNewModel}
-                    onChange={(e) => setOaNewModel(e.target.value)}
-                    placeholder="例如：gpt-image-1"
-                    disabled={loading}
-                  />
-                </label>
-                <button
-                  className="btn"
-                  onClick={() => {
-                    const v = oaNewModel.trim();
-                    setOaNewModel("");
-                    onAddModel("openai_compatible", v);
-                  }}
-                  disabled={loading || saving !== null}
-                >
-                  添加
-                </button>
-              </div>
-            </div>
+            <ProviderModelsEditor
+              title="OpenAI Compatible"
+              apiKeySet={!!provView["openai_compatible"]?.api_key_set}
+              baseURL={provView["openai_compatible"]?.base_url}
+              defaultModel={provView["openai_compatible"]?.default_model}
+              models={provView["openai_compatible"]?.models || []}
+              newModel={oaNewModel}
+              onNewModelChange={setOaNewModel}
+              onAdd={() => {
+                const v = oaNewModel.trim();
+                setOaNewModel("");
+                onAddModel("openai_compatible", v);
+              }}
+              onDelete={(m) => onDeleteModel("openai_compatible", m)}
+              disabled={loading || saving !== null}
+            />
           </details>
 
           {error && <div className="alert alert--err">Error: {error}</div>}
@@ -283,27 +155,7 @@ export function ConfigStudio() {
         </div>
       </section>
 
-      <section className="card resultsCard">
-        <div className="card__head">
-          <h2 className="card__title">当前状态</h2>
-          <div className="badge">{statusList.length} providers</div>
-        </div>
-
-        <div className="list">
-          {statusList.map((p) => (
-            <div className="list__row" key={p.id}>
-              <div>{p.label}</div>
-              <div className={p.configured ? "pill pill--ok" : "pill"}>{p.configured ? "可用" : "未配置"}</div>
-              <div className="muted">{(p.models || []).length} models</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="placeholder" style={{ marginTop: 12 }}>
-          <div className="placeholder__title">提示</div>
-          <div className="placeholder__sub">如果你刚保存了配置，但下拉框没更新，回到图片生成页刷新一次即可。</div>
-        </div>
-      </section>
+      <ProviderStatusList providers={statusList} />
     </div>
   );
 }

@@ -31,6 +31,7 @@
 - Go: run `gofmt` on touched files (`gofmt -w ./backend/...`); keep packages under `backend/internal/...`.
 - TypeScript/React: keep components in `frontend/src/components/`, prefer explicit names like `*Studio.tsx`.
 - Logs/events: use consistent `slog` event names (e.g. `provider_*`, `downstream_*`).
+- File size: keep any single `.go/.ts/.tsx/.css` file **<= 200 lines**. Split by concern (routes, services, helpers, UI subcomponents, stylesheets). Use `make check-lines`.
 
 ## Testing Guidelines
 
