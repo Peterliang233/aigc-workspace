@@ -17,4 +17,3 @@ func (h *Handler) settings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-

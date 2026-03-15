@@ -187,4 +187,3 @@ func (h *Handler) currentModels(providerID string) []string {
 	}
 	return append([]string{}, models...)
 }
-

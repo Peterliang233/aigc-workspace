@@ -22,7 +22,8 @@ type Handler struct {
 	provMu         sync.Mutex
 	imageProviders map[string]imageProvider
 	provKeys       map[string]string
-	videoProv      videoProvider
+	videoProviders map[string]videoProvider
+	videoProvKeys  map[string]string
 
 	jobs       *store.JobStore
 	staticRoot string
@@ -38,4 +39,3 @@ type videoProvider interface {
 	StartVideoJob(ctx context.Context, req types.VideoJobCreateRequest) (string, error)
 	GetVideoJob(ctx context.Context, jobID string) (string, string, string, error)
 }
-

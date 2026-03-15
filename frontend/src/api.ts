@@ -13,9 +13,15 @@ export type ImageGenerateResponse = {
 };
 
 export type VideoJobCreateRequest = {
+  provider?: string;
+  model?: string;
   prompt: string;
   duration_seconds?: number;
   aspect_ratio?: string;
+  image_size?: string;
+  negative_prompt?: string;
+  image?: string;
+  seed?: number;
 };
 
 export type VideoJobCreateResponse = {
@@ -30,6 +36,11 @@ export type VideoJobGetResponse = {
   video_url?: string;
   error?: string;
   provider: string;
+};
+
+export type VideoMetaResponse = {
+  default_provider: string;
+  providers: { id: string; label: string; configured: boolean; models: string[] }[];
 };
 
 export type SettingsGetResponse = {
@@ -74,6 +85,8 @@ export const api = {
       default_provider: string;
       providers: { id: string; label: string; configured: boolean; models: string[] }[];
     }>("/api/meta/images", { method: "GET" }),
+
+  getVideoMeta: () => httpJSON<VideoMetaResponse>("/api/meta/videos", { method: "GET" }),
 
   getSettings: () => httpJSON<SettingsGetResponse>("/api/settings", { method: "GET" }),
 

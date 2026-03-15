@@ -1,0 +1,157 @@
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import type { ImageGenerateRequest, VideoJobCreateRequest, VideoJobGetResponse } from "../api";
+import { api } from "../api";
+
+type ImageTask = {
+  id: string;
+  status: "running" | "succeeded" | "failed";
+  provider?: string;
+  model?: string;
+  prompt: string;
+  size?: string;
+  image_url?: string;
+  error?: string;
+  created_at: number;
+};
+
+type VideoTask = VideoJobGetResponse & { created_at: number };
+
+type GenState = {
+  images: ImageTask[];
+  videos: VideoTask[];
+};
+
+type Ctx = {
+  state: GenState;
+  startImage: (req: ImageGenerateRequest) => string;
+  createVideoJob: (req: VideoJobCreateRequest) => Promise<{ job_id: string; status: string; provider: string }>;
+};
+
+const LS_KEY = "aigc_inflight_v1";
+const MAX_KEEP = 20;
+
+function safeParseState(): GenState {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return { images: [], videos: [] };
+    const obj = JSON.parse(raw);
+    const images = Array.isArray(obj?.images) ? obj.images : [];
+    const videos = Array.isArray(obj?.videos) ? obj.videos : [];
+    return { images, videos };
+  } catch {
+    return { images: [], videos: [] };
+  }
+}
+
+function makeId() {
+  // Keep it simple and deterministic enough for UI keys.
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? (crypto as any).randomUUID()
+    : `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+const GenerationContext = createContext<Ctx | null>(null);
+
+export function GenerationProvider(props: { children: React.ReactNode }) {
+  const [state, setState] = useState<GenState>(() => safeParseState());
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+    } catch {
+      // ignore quota/permission issues
+    }
+  }, [state]);
+
+  // Poll video jobs globally so tab switches do not stop polling.
+  useEffect(() => {
+    let stopped = false;
+    let t: number | null = null;
+
+    async function tick() {
+      if (stopped) return;
+      const inflight = stateRef.current.videos.filter((v) => v.status !== "succeeded" && v.status !== "failed");
+      for (const v of inflight) {
+        try {
+          const res = await api.getVideoJob(v.job_id);
+          setState((prev) => ({
+            ...prev,
+            videos: prev.videos.map((x) => (x.job_id === res.job_id ? { ...x, ...res } : x))
+          }));
+        } catch {
+          // ignore transient polling errors
+        }
+      }
+      t = window.setTimeout(tick, 1800);
+    }
+
+    t = window.setTimeout(tick, 900);
+    return () => {
+      stopped = true;
+      if (t) window.clearTimeout(t);
+    };
+  }, []);
+
+  function startImage(req: ImageGenerateRequest) {
+    const id = makeId();
+    const task: ImageTask = {
+      id,
+      status: "running",
+      provider: req.provider,
+      model: req.model,
+      prompt: req.prompt,
+      size: req.size,
+      created_at: Date.now()
+    };
+
+    setState((prev) => ({ ...prev, images: [task, ...prev.images].slice(0, MAX_KEEP) }));
+
+    (async () => {
+      try {
+        const res = await api.generateImage(req);
+        const next = (res.image_urls || [])[0] || "";
+        setState((prev) => ({
+          ...prev,
+          images: prev.images.map((x) =>
+            x.id === id
+              ? {
+                  ...x,
+                  status: next ? "succeeded" : "failed",
+                  image_url: next || undefined,
+                  error: next ? undefined : "empty image url from provider"
+                }
+              : x
+          )
+        }));
+      } catch (e: any) {
+        setState((prev) => ({
+          ...prev,
+          images: prev.images.map((x) => (x.id === id ? { ...x, status: "failed", error: e?.message || String(e) } : x))
+        }));
+      }
+    })();
+
+    return id;
+  }
+
+  async function createVideoJob(req: VideoJobCreateRequest) {
+    const res = await api.createVideoJob(req);
+    const row: VideoTask = { job_id: res.job_id, status: res.status, provider: res.provider, created_at: Date.now() };
+    setState((prev) => ({ ...prev, videos: [row, ...prev.videos].slice(0, MAX_KEEP) }));
+    return res;
+  }
+
+  const value = useMemo<Ctx>(() => ({ state, startImage, createVideoJob }), [state]);
+  return <GenerationContext.Provider value={value}>{props.children}</GenerationContext.Provider>;
+}
+
+export function useGeneration() {
+  const ctx = useContext(GenerationContext);
+  if (!ctx) throw new Error("useGeneration must be used within <GenerationProvider />");
+  return ctx;
+}
+

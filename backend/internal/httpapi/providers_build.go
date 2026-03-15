@@ -50,13 +50,36 @@ func (h *Handler) rebuildProvidersLocked() {
 		})
 	}
 
-	// Video provider (single-provider): keep existing env-driven selection.
-	h.videoProv = nil
-	if strings.ToLower(cfg.Provider) == "openai_compatible" || strings.ToLower(cfg.Provider) == "openai-compatible" || strings.ToLower(cfg.Provider) == "openai" {
-		if cfg.VideoStartEP != "" && cfg.VideoStatusEP != "" {
-			pc := cfg.ImageProviders["openai_compatible"]
-			h.videoProv = openai_compatible.NewVideoGeneric(pc.BaseURL, pc.APIKey, cfg.VideoModel, cfg.VideoStartEP, cfg.VideoStatusEP)
+	// Video providers (multi-provider). IDs are stable and match frontend selection.
+	if h.videoProviders == nil {
+		h.videoProviders = map[string]videoProvider{}
+	}
+	if h.videoProvKeys == nil {
+		h.videoProvKeys = map[string]string{}
+	}
+	ensureV := func(id string, key string, build func() videoProvider) {
+		if prev, ok := h.videoProvKeys[id]; ok && prev == key && h.videoProviders[id] != nil {
+			return
+		}
+		h.videoProviders[id] = build()
+		h.videoProvKeys[id] = key
+	}
+
+	if pc, ok := cfg.ImageProviders["siliconflow"]; ok && strings.TrimSpace(pc.APIKey) != "" {
+		key := "sfv|" + pc.BaseURL + "|" + pc.APIKey
+		ensureV("siliconflow", key, func() videoProvider {
+			return siliconflow.NewVideo(pc.BaseURL, pc.APIKey)
+		})
+	}
+
+	// Generic async video API (env provides endpoints). Binds to openai_compatible credentials.
+	if cfg.VideoStartEP != "" && cfg.VideoStatusEP != "" {
+		pc := cfg.ImageProviders["openai_compatible"]
+		if strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+			key := "ov|" + pc.BaseURL + "|" + pc.APIKey + "|" + cfg.VideoModel + "|" + cfg.VideoStartEP + "|" + cfg.VideoStatusEP
+			ensureV("openai_compatible", key, func() videoProvider {
+				return openai_compatible.NewVideoGeneric(pc.BaseURL, pc.APIKey, cfg.VideoModel, cfg.VideoStartEP, cfg.VideoStatusEP)
+			})
 		}
 	}
 }
-

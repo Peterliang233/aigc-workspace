@@ -81,4 +81,3 @@ func (h *Handler) settingsPut(w http.ResponseWriter, r *http.Request) {
 	slog.Default().Info("settings_put_ok", "providers", len(req.ImageProviders))
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
-

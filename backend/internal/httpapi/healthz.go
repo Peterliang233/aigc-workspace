@@ -16,4 +16,3 @@ func (h *Handler) healthz(w http.ResponseWriter, r *http.Request) {
 		"provider": strings.ToLower(strings.TrimSpace(cfg.Provider)),
 	})
 }
-

@@ -120,4 +120,3 @@ func (h *Handler) historyGet(w http.ResponseWriter, r *http.Request) {
 		"created_at":     a.CreatedAt.Format(time.RFC3339),
 	})
 }
-

@@ -41,10 +41,11 @@ func (h *Handler) reloadFromStore() error {
 	h.provMu.Lock()
 	h.imageProviders = map[string]imageProvider{}
 	h.provKeys = map[string]string{}
+	h.videoProviders = map[string]videoProvider{}
+	h.videoProvKeys = map[string]string{}
 	h.rebuildProvidersLocked()
 	h.provMu.Unlock()
 
 	slog.Default().Info("settings_reloaded")
 	return nil
 }
-

@@ -38,6 +38,8 @@ func NewHandler(cfg config.Config, st settings.Store, assetsSvc *assets.Service)
 		staticRoot:     staticRoot,
 		imageProviders: map[string]imageProvider{},
 		provKeys:       map[string]string{},
+		videoProviders: map[string]videoProvider{},
+		videoProvKeys:  map[string]string{},
 	}
 	h.provMu.Lock()
 	h.rebuildProvidersLocked()
@@ -52,6 +54,7 @@ func NewHandler(cfg config.Config, st settings.Store, assetsSvc *assets.Service)
 	r.StaticFS("/static/generated", http.Dir(filepath.Join(staticRoot, "generated")))
 
 	r.GET("/api/meta/images", gin.WrapF(h.metaImages))
+	r.GET("/api/meta/videos", gin.WrapF(h.metaVideos))
 
 	r.GET("/api/settings", gin.WrapF(h.settings))
 	r.PUT("/api/settings", gin.WrapF(h.settings))
@@ -69,4 +72,3 @@ func NewHandler(cfg config.Config, st settings.Store, assetsSvc *assets.Service)
 
 	return r
 }
-

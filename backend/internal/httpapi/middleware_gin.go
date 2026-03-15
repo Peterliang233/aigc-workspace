@@ -77,4 +77,3 @@ func slogHTTPMiddleware(allowedOrigins []string) gin.HandlerFunc {
 		c.Next()
 	}
 }
-

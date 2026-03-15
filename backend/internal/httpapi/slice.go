@@ -19,4 +19,3 @@ func removeStr(list []string, v string) []string {
 	}
 	return out
 }
-

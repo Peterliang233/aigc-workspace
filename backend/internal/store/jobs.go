@@ -10,9 +10,12 @@ type VideoJob struct {
 	Status          string // queued|running|succeeded|failed
 	VideoURL        string
 	Error           string
+	Provider        string
+	Model           string
 	Prompt          string
 	DurationSeconds int
 	AspectRatio     string
+	ImageSize       string
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 }

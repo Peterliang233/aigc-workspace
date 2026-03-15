@@ -48,4 +48,3 @@ func (h *Handler) settingsGet(w http.ResponseWriter, r *http.Request) {
 		"image_providers": out,
 	})
 }
-
