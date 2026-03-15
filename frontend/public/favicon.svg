@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AIGC Studio">
+  <defs>
+    <linearGradient id="bg" x1="12" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0EA5E9"/>
+      <stop offset="0.55" stop-color="#22C55E"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="18" cy="12" r="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.42"/>
+      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0B1220" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="2.5" y="2.5" width="59" height="59" rx="16" fill="url(#bg)"/>
+  <rect x="2.5" y="2.5" width="59" height="59" rx="16" fill="url(#shine)"/>
+
+  <!-- Mark: a geometric "A" with a spark (AI) -->
+  <g filter="url(#softShadow)">
+    <path fill="#FFFFFF" fill-rule="evenodd" d="M32 14.5 47.2 50H39.9l-3.4-8.1H27.5L24.1 50H16.8L32 14.5Zm0 15.1-2.4 6h4.8l-2.4-6Z"/>
+    <path fill="#FFFFFF" d="M50.6 18.2l-1.6 3.2-3.2 1.6 3.2 1.6 1.6 3.2 1.6-3.2 3.2-1.6-3.2-1.6-1.6-3.2Z" opacity="0.92"/>
+  </g>
+
+  <!-- Border for contrast on light tab bars -->
+  <rect x="2.5" y="2.5" width="59" height="59" rx="16" fill="none" stroke="#0B1220" stroke-opacity="0.16"/>
+</svg>
+
