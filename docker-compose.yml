@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      PORT: "8080"
+      AIGC_PROVIDER: ${AIGC_PROVIDER:-mock}
+      AIGC_BASE_URL: ${AIGC_BASE_URL:-https://api.openai.com}
+      AIGC_API_KEY: ${AIGC_API_KEY:-}
+      AIGC_IMAGE_MODEL: ${AIGC_IMAGE_MODEL:-}
+      AIGC_VIDEO_MODEL: ${AIGC_VIDEO_MODEL:-}
+      AIGC_VIDEO_START_ENDPOINT: ${AIGC_VIDEO_START_ENDPOINT:-}
+      AIGC_VIDEO_STATUS_ENDPOINT: ${AIGC_VIDEO_STATUS_ENDPOINT:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8081}
+    volumes:
+      - backend_var:/app/var
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "8081:80"
+
+volumes:
+  backend_var: {}

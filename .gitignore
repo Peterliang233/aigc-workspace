@@ -1,0 +1,14 @@
+.DS_Store
+.idea/
+.vscode/
+
+# Go
+backend/bin/
+backend/var/
+backend/.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+

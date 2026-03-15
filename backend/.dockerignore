@@ -1,0 +1,5 @@
+bin/
+var/
+.env
+.DS_Store
+
