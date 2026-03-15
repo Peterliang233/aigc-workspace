@@ -7,7 +7,14 @@ func (h *Handler) modelRequiresInitImage(providerID, model string) bool {
 	model = strings.TrimSpace(model)
 	if providerID != "" && model != "" && h.models != nil {
 		if ms := h.models.Model(providerID, "video", model); ms != nil && ms.Form != nil {
-			return ms.Form.RequiresImage
+			if ms.Form.RequiresImage {
+				return true
+			}
+			for _, f := range ms.Form.Fields {
+				if strings.EqualFold(strings.TrimSpace(f.Key), "image") && f.Required {
+					return true
+				}
+			}
 		}
 	}
 

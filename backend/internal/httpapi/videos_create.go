@@ -53,9 +53,9 @@ func (h *Handler) videosJobs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Enforce per-model required fields (driven by models.json).
-	if h.modelRequiresInitImage(providerID, model) && strings.TrimSpace(req.Image) == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "该模型需要提供 init image"})
+	h.applyVideoModelDefaults(providerID, model, &req)
+	if miss := h.missingVideoRequiredFields(providerID, model, req); len(miss) > 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "missing required fields: " + strings.Join(miss, ", ")})
 		return
 	}
 

@@ -50,6 +50,11 @@ func (h *Handler) imagesGenerate(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(req.Model) == "" && h.models != nil {
 		req.Model = h.models.DefaultModel(providerID, "image")
 	}
+	h.applyImageModelDefaults(providerID, strings.TrimSpace(req.Model), &req)
+	if miss := h.missingImageRequiredFields(providerID, strings.TrimSpace(req.Model), req); len(miss) > 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "missing required fields: " + strings.Join(miss, ", ")})
+		return
+	}
 
 	slog.Default().Info("images_generate",
 		"provider", providerID,

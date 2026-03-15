@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { api } from "../api";
+import { api, ProviderModelMeta } from "../api";
 
-type ModelMeta = { id: string; label?: string; requires_image?: boolean };
-type ProviderMeta = { id: string; label: string; configured: boolean; models: ModelMeta[] };
+type ProviderMeta = { id: string; label: string; configured: boolean; models: ProviderModelMeta[] };
 
 export function useVideoMeta() {
   const [metaLoading, setMetaLoading] = useState(false);

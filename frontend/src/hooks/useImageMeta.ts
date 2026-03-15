@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { api } from "../api";
+import { api, ProviderModelMeta } from "../api";
 
-type ProviderMeta = { id: string; label: string; configured: boolean; models: string[] };
+type ProviderMeta = { id: string; label: string; configured: boolean; models: ProviderModelMeta[] };
 
 export function useImageMeta() {
   const [metaLoading, setMetaLoading] = useState(false);
@@ -12,8 +12,10 @@ export function useImageMeta() {
   const [customModel, setCustomModel] = useState<string>(() => localStorage.getItem("aigc_image_custom_model") || "");
 
   const providerInfo = useMemo(() => providers.find((p) => p.id === provider) || null, [providers, provider]);
-  const modelList = providerInfo?.models || [];
+  const models = providerInfo?.models || [];
+  const modelList = models.map((m) => m.id);
   const useCustom = model === "__custom__" || modelList.length === 0;
+  const selectedModelMeta = useMemo(() => models.find((m) => m.id === model) || null, [models, model]);
 
   useEffect(() => {
     let mounted = true;
@@ -32,8 +34,8 @@ export function useImageMeta() {
         setProvider(nextProvider);
 
         const pi = list.find((p) => p.id === nextProvider);
-        const models = pi?.models || [];
-        if (!model) setModel(models[0] || "__custom__");
+        const mids = (pi?.models || []).map((m) => m.id);
+        if (!model) setModel(mids[0] || "__custom__");
       } catch {
         if (mounted) {
           setProviders([{ id: "mock", label: "Mock(联调)", configured: true, models: [] }]);
@@ -64,13 +66,13 @@ export function useImageMeta() {
   // When provider changes, reset model to first model (or custom) if current model isn't compatible.
   useEffect(() => {
     if (!providerInfo) return;
-    const models = providerInfo.models || [];
-    if (models.length === 0) {
+    const mids = (providerInfo.models || []).map((m) => m.id);
+    if (mids.length === 0) {
       if (model !== "__custom__") setModel("__custom__");
       return;
     }
     if (model === "__custom__") return;
-    if (!models.includes(model)) setModel(models[0]);
+    if (!mids.includes(model)) setModel(mids[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider]);
 
@@ -83,8 +85,9 @@ export function useImageMeta() {
     setModel,
     customModel,
     setCustomModel,
+    models,
     modelList,
+    selectedModelMeta,
     useCustom
   };
 }
-

@@ -99,6 +99,9 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		NumInferenceSteps: 20,
 		GuidanceScale:     7.5,
 	}
+	if strings.TrimSpace(req.NegativePrompt) != "" {
+		body.NegativePrompt = strings.TrimSpace(req.NegativePrompt)
+	}
 
 	raw, _ := json.Marshal(body)
 	u := p.baseURL + "/v1/images/generations"

@@ -35,5 +35,23 @@ type ModelSpec struct {
 }
 
 type FormSpec struct {
-	RequiresImage bool `json:"requires_image,omitempty"`
+	// Legacy/simple flag. Prefer expressing this as a required `image` field below.
+	RequiresImage bool        `json:"requires_image,omitempty"`
+	Fields        []FieldSpec `json:"fields,omitempty"`
+}
+
+type FieldSpec struct {
+	Key         string        `json:"key"`
+	Label       string        `json:"label,omitempty"`
+	Type        string        `json:"type"` // text|textarea|select|number|image
+	Required    bool          `json:"required,omitempty"`
+	Placeholder string        `json:"placeholder,omitempty"`
+	Default     any           `json:"default,omitempty"`
+	Options     []FieldOption `json:"options,omitempty"`
+	Rows        int           `json:"rows,omitempty"` // textarea
+}
+
+type FieldOption struct {
+	Label string `json:"label,omitempty"`
+	Value string `json:"value"`
 }

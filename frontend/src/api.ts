@@ -4,12 +4,37 @@ export type ImageGenerateRequest = {
   prompt: string;
   size?: string;
   n?: number;
+  negative_prompt?: string;
+  aspect_ratio?: string;
+  seed?: number;
 };
 
 export type ImageGenerateResponse = {
   image_urls: string[];
   provider: string;
   model?: string;
+};
+
+export type ModelFormFieldOption = { label?: string; value: string };
+
+export type ModelFormField = {
+  key: string;
+  label?: string;
+  type: string; // text|textarea|select|number|image
+  required?: boolean;
+  placeholder?: string;
+  default?: any;
+  options?: ModelFormFieldOption[];
+  rows?: number;
+};
+
+export type ModelForm = { requires_image?: boolean; fields?: ModelFormField[] };
+
+export type ProviderModelMeta = {
+  id: string;
+  label?: string;
+  requires_image?: boolean;
+  form?: ModelForm;
 };
 
 export type VideoJobCreateRequest = {
@@ -44,7 +69,7 @@ export type VideoMetaResponse = {
     id: string;
     label: string;
     configured: boolean;
-    models: { id: string; label?: string; requires_image?: boolean }[];
+    models: ProviderModelMeta[];
   }[];
 };
 
@@ -68,7 +93,7 @@ export const api = {
   getImageMeta: () =>
     httpJSON<{
       default_provider: string;
-      providers: { id: string; label: string; configured: boolean; models: string[] }[];
+      providers: { id: string; label: string; configured: boolean; models: ProviderModelMeta[] }[];
     }>("/api/meta/images", { method: "GET" }),
 
   getVideoMeta: () => httpJSON<VideoMetaResponse>("/api/meta/videos", { method: "GET" }),
