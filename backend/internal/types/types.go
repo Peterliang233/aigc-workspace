@@ -12,6 +12,7 @@ type ImageGenerateRequest struct {
 	// Optional, provider-specific extensions (safe to ignore by providers that don't support them).
 	NegativePrompt string   `json:"negative_prompt,omitempty"`
 	AspectRatio    string   `json:"aspect_ratio,omitempty"`   // e.g. 16:9
+	Image          []string `json:"image,omitempty"`          // OpenAI-like i2i refs
 	ReferenceURLs  []string `json:"reference_urls,omitempty"` // e.g. input images
 	Seed           *int64   `json:"seed,omitempty"`           // optional seed
 	Strength       *float64 `json:"strength,omitempty"`       // e.g. img2img strength

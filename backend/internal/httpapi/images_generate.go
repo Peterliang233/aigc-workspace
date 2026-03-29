@@ -24,7 +24,7 @@ func (h *Handler) imagesGenerate(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	var req types.ImageGenerateRequest
-	if err := decodeJSON(w, r, &req); err != nil {
+	if err := decodeJSONWithLimit(w, r, &req, 20<<20); err != nil {
 		return
 	}
 	// Current UI + some providers only support a single output.

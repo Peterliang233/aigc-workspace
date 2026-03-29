@@ -44,6 +44,18 @@ func (h *Handler) applyImageModelDefaults(providerID, model string, req *types.I
 					req.Seed = &n
 				}
 			}
+		case "strength":
+			if req.Strength == nil {
+				if n, ok := asFloat64(f.Default); ok {
+					req.Strength = &n
+				}
+			}
+		case "style":
+			if strings.TrimSpace(req.Style) == "" {
+				if s, ok := asString(f.Default); ok {
+					req.Style = s
+				}
+			}
 		}
 	}
 }

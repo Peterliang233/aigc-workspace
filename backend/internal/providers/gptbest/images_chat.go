@@ -52,7 +52,7 @@ type chatReq struct {
 
 type chatMessage struct {
 	Role    string `json:"role"`
-	Content string `json:"content"`
+	Content any    `json:"content"`
 }
 
 type chatResp struct {
@@ -78,14 +78,29 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 	if model == "" {
 		model = "gpt-4o-image"
 	}
+	refs := mergeImageRefs(req.Image, req.ReferenceURLs)
 
-	body := chatReq{Model: model, Messages: []chatMessage{{Role: "user", Content: prompt}}}
+	if len(refs) > 0 {
+		out, err := p.generateByEdits(ctx, model, prompt, req, refs)
+		if err == nil {
+			return out, nil
+		}
+		if isEditOnlyModel(model) {
+			return types.ImageGenerateResponse{}, err
+		}
+	}
+	return p.generateByChat(ctx, model, prompt, refs)
+}
+
+func (p *Provider) generateByChat(ctx context.Context, model, prompt string, refs []string) (types.ImageGenerateResponse, error) {
+	body := chatReq{Model: model, Messages: []chatMessage{{Role: "user", Content: buildChatUserContent(prompt, refs)}}}
 	raw, _ := json.Marshal(body)
 	u := chatCompletionsURL(p.baseURL)
 
 	logging.DownstreamRequest("provider_gptbest_request", p.ProviderName(), http.MethodPost, u, map[string]any{
-		"model":  model,
-		"prompt": logging.DownstreamPrompt(prompt),
+		"model":       model,
+		"image_count": len(refs),
+		"prompt":      logging.DownstreamPrompt(prompt),
 	})
 
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
@@ -132,6 +147,24 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		Provider:  p.ProviderName(),
 		Model:     model,
 	}, nil
+}
+
+func buildChatUserContent(prompt string, refs []string) any {
+	if len(refs) == 0 {
+		return prompt
+	}
+	content := []map[string]any{{"type": "text", "text": prompt}}
+	for _, ref := range refs {
+		content = append(content, map[string]any{
+			"type":      "image_url",
+			"image_url": map[string]string{"url": ref},
+		})
+	}
+	return content
+}
+
+func isEditOnlyModel(model string) bool {
+	return strings.Contains(strings.ToLower(strings.TrimSpace(model)), "qwen-image-edit")
 }
 
 func chatCompletionsURL(base string) string {

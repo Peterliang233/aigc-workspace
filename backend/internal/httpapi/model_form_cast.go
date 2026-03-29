@@ -38,3 +38,28 @@ func asInt64(v any) (int64, bool) {
 		return n, err == nil
 	}
 }
+
+func asFloat64(v any) (float64, bool) {
+	switch x := v.(type) {
+	case float64:
+		return x, true
+	case float32:
+		return float64(x), true
+	case int64:
+		return float64(x), true
+	case int:
+		return float64(x), true
+	case string:
+		s := strings.TrimSpace(x)
+		if s == "" {
+			return 0, false
+		}
+		var n float64
+		_, err := fmt.Sscan(s, &n)
+		return n, err == nil
+	default:
+		var n float64
+		_, err := fmt.Sscan(fmt.Sprint(v), &n)
+		return n, err == nil
+	}
+}

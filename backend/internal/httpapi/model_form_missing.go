@@ -37,9 +37,34 @@ func (h *Handler) missingImageRequiredFields(providerID, model string, req types
 			if req.Seed == nil {
 				miss = append(miss, "seed")
 			}
+		case "image":
+			if len(cleanImageRefs(req.Image, req.ReferenceURLs)) == 0 {
+				miss = append(miss, "image")
+			}
+		case "reference_urls":
+			if len(cleanImageRefs(req.ReferenceURLs, req.Image)) == 0 {
+				miss = append(miss, "reference_urls")
+			}
+		case "strength":
+			if req.Strength == nil {
+				miss = append(miss, "strength")
+			}
 		}
 	}
 	return miss
+}
+
+func cleanImageRefs(groups ...[]string) []string {
+	out := make([]string, 0, 2)
+	for _, g := range groups {
+		for _, s := range g {
+			s = strings.TrimSpace(s)
+			if s != "" {
+				out = append(out, s)
+			}
+		}
+	}
+	return out
 }
 
 func (h *Handler) missingVideoRequiredFields(providerID, model string, req types.VideoJobCreateRequest) []string {

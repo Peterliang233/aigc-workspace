@@ -6,7 +6,11 @@ export type ImageGenerateRequest = {
   n?: number;
   negative_prompt?: string;
   aspect_ratio?: string;
+  image?: string[];
+  reference_urls?: string[];
   seed?: number;
+  strength?: number;
+  style?: string;
 };
 
 export type ImageGenerateResponse = {

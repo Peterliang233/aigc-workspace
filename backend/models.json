@@ -169,7 +169,28 @@
             "label": "GPT 4o Image",
             "form": {
               "fields": [
-                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 }
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                { "key": "image", "label": "参考图片", "type": "image" }
+              ]
+            }
+          },
+          {
+            "id": "qwen-image-edit",
+            "label": "Qwen Image Edit",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                { "key": "image", "label": "参考图片", "type": "image", "required": true }
+              ]
+            }
+          },
+          {
+            "id": "qwen-image-edit-2509",
+            "label": "Qwen Image Edit 2509",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                { "key": "image", "label": "参考图片", "type": "image", "required": true }
               ]
             }
           },

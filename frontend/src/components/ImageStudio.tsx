@@ -4,7 +4,7 @@ import { useGeneration } from "../state/generation";
 import { ModelFields } from "./form/ModelFields";
 import { useApplyFieldDefaults } from "./form/useApplyFieldDefaults";
 import type { ModelFormField } from "../api";
-
+import { InitImageField } from "./video/InitImageField";
 export function ImageStudio() {
   const {
     metaLoading,
@@ -20,7 +20,6 @@ export function ImageStudio() {
     selectedModelMeta,
     useCustom
   } = useImageMeta();
-
   const { state, startImage } = useGeneration();
   const latest = useMemo(() => state.images[0] || null, [state.images]);
   const busy = state.images.some((t) => t.status === "running");
@@ -43,7 +42,6 @@ export function ImageStudio() {
     prompt: "一只在雨夜霓虹街头散步的柴犬，电影感，高对比，35mm",
     size: "1024x1024"
   }));
-
   useApplyFieldDefaults(fields, setValues, [provider, model, customModel]);
 
   const missing = useMemo(() => {
@@ -60,6 +58,8 @@ export function ImageStudio() {
   function onGenerate() {
     const pickedModel = useCustom ? customModel.trim() : model;
     const seedNum = String(values["seed"] || "").trim() ? Number(String(values["seed"]).trim()) : undefined;
+    const strengthNum = String(values["strength"] || "").trim() ? Number(String(values["strength"]).trim()) : undefined;
+    const imageRef = String(values["image"] || values["reference_urls"] || "").trim();
     startImage({
       provider,
       model: pickedModel || undefined,
@@ -67,7 +67,10 @@ export function ImageStudio() {
       size: String(values["size"] || "").trim() || undefined,
       negative_prompt: String(values["negative_prompt"] || "").trim() || undefined,
       aspect_ratio: String(values["aspect_ratio"] || "").trim() || undefined,
-      seed: Number.isFinite(seedNum as any) ? (seedNum as number) : undefined
+      image: imageRef ? [imageRef] : undefined,
+      seed: Number.isFinite(seedNum as any) ? (seedNum as number) : undefined,
+      strength: Number.isFinite(strengthNum as any) ? (strengthNum as number) : undefined,
+      style: String(values["style"] || "").trim() || undefined
     });
   }
 
@@ -77,7 +80,6 @@ export function ImageStudio() {
         <div className="card__head">
           <h2 className="card__title">图片生成</h2>
         </div>
-
         <div className="form">
           <div className="row2">
             <label className="label">
@@ -136,6 +138,20 @@ export function ImageStudio() {
             values={values}
             onChange={(k, v) => setValues((prev) => ({ ...prev, [k]: v }))}
             disabled={busy}
+            custom={(f) => {
+              if (String(f.type || "").trim() !== "image") return null;
+              const k = String(f.key || "").trim();
+              if (!k) return null;
+              return (
+                <InitImageField
+                  key={k}
+                  value={values[k] || ""}
+                  onChange={(v) => setValues((prev) => ({ ...prev, [k]: v }))}
+                  disabled={busy}
+                  required={!!f.required}
+                />
+              );
+            }}
           />
 
           <button className="btn" disabled={busy || missing.length > 0} onClick={onGenerate}>
@@ -146,7 +162,6 @@ export function ImageStudio() {
         {latest?.status === "failed" && <div className="alert alert--err">Error: {latest.error || "failed"}</div>}
         {missing.length > 0 ? <div className="alert">缺少必填字段：{missing.join(", ")}</div> : null}
       </section>
-
       <section className="card resultsCard">
         <div className="card__head">
           <h2 className="card__title">生成结果</h2>

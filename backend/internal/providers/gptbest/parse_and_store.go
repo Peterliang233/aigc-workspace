@@ -83,6 +83,25 @@ func (p *Provider) storeDataURL(dataURL string) (string, error) {
 	case strings.Contains(head, "image/gif"):
 		ext = "gif"
 	}
+	return p.storeImageBytes(b, ext)
+}
+
+func (p *Provider) storeBase64Image(raw, ext string) (string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", errors.New("empty image data")
+	}
+	b, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(ext) == "" {
+		ext = "png"
+	}
+	return p.storeImageBytes(b, ext)
+}
+
+func (p *Provider) storeImageBytes(b []byte, ext string) (string, error) {
 	outDir := filepath.Join(p.staticRoot, "generated")
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return "", err
