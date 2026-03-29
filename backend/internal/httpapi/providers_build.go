@@ -3,6 +3,7 @@ package httpapi
 import (
 	"strings"
 
+	"aigc-backend/internal/providers/gptbest"
 	"aigc-backend/internal/providers/mock"
 	"aigc-backend/internal/providers/openai_compatible"
 	"aigc-backend/internal/providers/siliconflow"
@@ -48,6 +49,20 @@ func (h *Handler) rebuildProvidersLocked() {
 		key := "wy|" + pc.BaseURL + "|" + pc.APIKey
 		ensure("wuyinkeji", key, func() imageProvider {
 			return wuyinkeji.New(pc.BaseURL, pc.APIKey, h.staticRoot, nil, nil)
+		})
+	}
+	if pc, ok := cfg.ImageProviders["bltcy"]; ok {
+		dm := defImageModel("bltcy")
+		key := "bltcy|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
+		ensure("bltcy", key, func() imageProvider {
+			return gptbest.New("bltcy", pc.BaseURL, pc.APIKey, dm, h.staticRoot)
+		})
+	}
+	if pc, ok := cfg.ImageProviders["gpt_best"]; ok {
+		dm := defImageModel("gpt_best")
+		key := "gptbest|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
+		ensure("gpt_best", key, func() imageProvider {
+			return gptbest.New("gpt_best", pc.BaseURL, pc.APIKey, dm, h.staticRoot)
 		})
 	}
 

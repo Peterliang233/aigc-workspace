@@ -1,6 +1,7 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "../../layout/Icon";
 import { fileToDataURL } from "./fileBase64";
+import { HistoryImageSelector } from "./HistoryImageSelector";
 
 export function InitImagePicker(props: {
   imageUrl: string;
@@ -13,39 +14,45 @@ export function InitImagePicker(props: {
   const { imageUrl, onImageUrl, imageBase64, onImageBase64, disabled, required } = props;
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [fileName, setFileName] = useState("");
-  const [filePreview, setFilePreview] = useState<string | null>(null);
 
-  const active = useMemo(() => {
-    if (imageBase64) return "upload";
-    if (imageUrl.trim()) return "url";
-    return "none";
-  }, [imageBase64, imageUrl]);
+  const [mode, setMode] = useState<"upload" | "history">("upload");
+  const [fileName, setFileName] = useState("");
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [historyPreview, setHistoryPreview] = useState<string | null>(null);
+  const [pickedHistoryId, setPickedHistoryId] = useState<number | null>(null);
 
   useEffect(() => {
     return () => {
-      if (filePreview) URL.revokeObjectURL(filePreview);
+      if (localPreview) URL.revokeObjectURL(localPreview);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [localPreview]);
+
+  const previewUrl = localPreview || historyPreview;
+  const active = imageBase64 ? (pickedHistoryId ? "history" : "upload") : imageUrl.trim() ? "url" : "none";
 
   async function onPickFile(f: File | null) {
     if (!f) return;
-    const preview = URL.createObjectURL(f);
-    setFilePreview((prev) => {
+    setMode("upload");
+    const nextPreview = URL.createObjectURL(f);
+    setLocalPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev);
-      return preview;
+      return nextPreview;
     });
+    setHistoryPreview(null);
+    setPickedHistoryId(null);
     setFileName(f.name);
     const { dataUrl } = await fileToDataURL(f);
     onImageBase64(dataUrl);
     onImageUrl("");
   }
 
-  function clearUpload() {
+  function clearImage() {
     onImageBase64("");
+    onImageUrl("");
     setFileName("");
-    setFilePreview((prev) => {
+    setPickedHistoryId(null);
+    setHistoryPreview(null);
+    setLocalPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
@@ -59,51 +66,73 @@ export function InitImagePicker(props: {
         {required ? <span className="pill" style={{ marginLeft: 8 }}>必填</span> : <span className="muted">(可选)</span>}
       </div>
 
-      <div className="filepick">
-        <input
-          className="filepick__input"
-          id={inputId}
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => void onPickFile((e.target.files || [])[0] || null)}
+      <div className="chips">
+        <button
+          className={mode === "upload" ? "chip" : "chip chip--ghost"}
+          onClick={() => setMode("upload")}
           disabled={disabled}
-        />
-        <label className="btn btn--ghost filepick__btn" htmlFor={inputId} title="上传参考图片">
-          <Icon name="upload" />
-          <span>上传图片</span>
-        </label>
-        <button className="btn btn--ghost" onClick={clearUpload} disabled={disabled || !imageBase64} title="清除上传">
-          清除
+        >
+          <span className="chip__text">本地上传</span>
         </button>
-        <div className="filepick__meta" title={fileName}>
-          {imageBase64 ? `已上传：${fileName || "image"}` : "未上传"}
-        </div>
+        <button
+          className={mode === "history" ? "chip" : "chip chip--ghost"}
+          onClick={() => setMode("history")}
+          disabled={disabled}
+        >
+          <span className="chip__text">历史图片</span>
+        </button>
       </div>
 
-      <div className="row2" style={{ marginTop: 10 }}>
-        <label className="label">
-          或填写图片 URL
+      {mode === "upload" ? (
+        <div className="filepick">
           <input
-            className="input"
-            value={imageUrl}
-            onChange={(e) => {
-              onImageUrl(e.target.value);
-              if (e.target.value.trim()) onImageBase64("");
-            }}
-            placeholder="https://..."
+            className="filepick__input"
+            id={inputId}
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => void onPickFile((e.target.files || [])[0] || null)}
             disabled={disabled}
           />
-        </label>
-        <div className="label">
-          当前来源
-          <input className="input" value={active === "none" ? "-" : active} readOnly />
+          <label className="btn btn--ghost filepick__btn" htmlFor={inputId} title="上传参考图片">
+            <Icon name="upload" />
+            <span>上传图片</span>
+          </label>
+          <button className="btn btn--ghost" onClick={clearImage} disabled={disabled || !imageBase64} title="清除上传">
+            清除
+          </button>
+          <div className="filepick__meta" title={fileName}>
+            {imageBase64 ? `已上传：${fileName || "image"}` : "未上传"}
+          </div>
         </div>
+      ) : (
+        <HistoryImageSelector
+          selectedId={pickedHistoryId}
+          hasValue={!!imageBase64}
+          onClear={clearImage}
+          disabled={disabled}
+          onPicked={(v) => {
+            setMode("history");
+            setHistoryPreview(v.url);
+            setPickedHistoryId(v.id);
+            setFileName(`历史图片 #${v.id}`);
+            setLocalPreview((prev) => {
+              if (prev) URL.revokeObjectURL(prev);
+              return null;
+            });
+            onImageBase64(v.dataUrl);
+            onImageUrl("");
+          }}
+        />
+      )}
+
+      <div className="filepick__meta" title={fileName}>
+        当前来源：{active === "none" ? "-" : active}
       </div>
 
-      {filePreview ? (
+      {previewUrl ? (
         <div className="panel__media">
-          <img className="preview__img" src={filePreview} alt="init" />
+          <img className="preview__img" src={previewUrl} alt="init" />
         </div>
       ) : null}
     </div>

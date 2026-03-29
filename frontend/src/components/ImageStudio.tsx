@@ -89,7 +89,7 @@ export function ImageStudio() {
                 disabled={metaLoading}
               >
                 {providers.map((p) => (
-                  <option key={p.id} value={p.id} disabled={!p.configured}>
+                  <option key={p.id} value={p.id}>
                     {p.label}
                     {!p.configured ? " (未配置)" : ""}
                   </option>

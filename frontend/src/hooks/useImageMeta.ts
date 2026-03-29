@@ -27,9 +27,12 @@ export function useImageMeta() {
         const list = (res.providers || []).slice().sort((a, b) => a.label.localeCompare(b.label));
         setProviders(list);
 
-        const preferred = provider || res.default_provider || "mock";
-        const hasPreferred = list.some((p) => p.id === preferred && p.configured);
-        const fallback = list.find((p) => p.configured)?.id || "mock";
+        let preferred = provider || res.default_provider || "mock";
+        if (preferred === "gpt_best" && list.some((p) => p.id === "bltcy")) {
+          preferred = "bltcy";
+        }
+        const hasPreferred = list.some((p) => p.id === preferred);
+        const fallback = list.find((p) => p.configured)?.id || list[0]?.id || "mock";
         const nextProvider = hasPreferred ? preferred : fallback;
         setProvider(nextProvider);
 

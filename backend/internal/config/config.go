@@ -65,6 +65,16 @@ func LoadFromEnv() Config {
 	wyBase := strings.TrimSpace(os.Getenv("WUYIN_BASE_URL"))
 	wyKey := strings.TrimSpace(os.Getenv("WUYIN_API_KEY"))
 
+	bltcyBase := firstNonEmpty(
+		strings.TrimSpace(os.Getenv("BLTCY_BASE_URL")),
+		strings.TrimSpace(os.Getenv("GPT_BEST_BASE_URL")),
+	)
+	bltcyBase = firstNonEmpty(bltcyBase, "https://api.bltcy.ai")
+	bltcyKey := firstNonEmpty(
+		strings.TrimSpace(os.Getenv("BLTCY_API_KEY")),
+		strings.TrimSpace(os.Getenv("GPT_BEST_API_KEY")),
+	)
+
 	imageProviders := map[string]ImageProviderConfig{
 		"mock": {
 			BaseURL: "",
@@ -81,6 +91,15 @@ func LoadFromEnv() Config {
 		"wuyinkeji": {
 			BaseURL: wyBase,
 			APIKey:  wyKey,
+		},
+		"bltcy": {
+			BaseURL: bltcyBase,
+			APIKey:  bltcyKey,
+		},
+		// Backward-compatible alias for previous provider id.
+		"gpt_best": {
+			BaseURL: bltcyBase,
+			APIKey:  bltcyKey,
 		},
 	}
 

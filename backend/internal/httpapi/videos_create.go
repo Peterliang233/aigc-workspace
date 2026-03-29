@@ -21,7 +21,7 @@ func (h *Handler) videosJobs(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	var req types.VideoJobCreateRequest
-	if err := decodeJSON(w, r, &req); err != nil {
+	if err := decodeJSONWithLimit(w, r, &req, 16<<20); err != nil {
 		return
 	}
 

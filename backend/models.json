@@ -157,7 +157,28 @@
         "default_model": "",
         "models": []
       }
+    },
+    {
+      "id": "bltcy",
+      "label": "BLTCY(柏拉图)",
+      "image": {
+        "default_model": "gpt-4o-image",
+        "models": [
+          {
+            "id": "gpt-4o-image",
+            "label": "GPT 4o Image",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 }
+              ]
+            }
+          },
+          { "id": "gemini-2.5-flash-image", "label": "Gemini 2.5 Flash Image" },
+          { "id": "gemini-3-pro-image-preview", "label": "Gemini 3 Pro Image Preview" },
+          { "id": "qwen-image", "label": "Qwen Image" },
+          { "id": "nano-banana", "label": "Nano Banana" }
+        ]
+      }
     }
   ]
 }
-

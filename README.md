@@ -14,6 +14,8 @@
 在项目根目录：
 
 ```bash
+make mysql-up
+make minio-up
 make backend-test
 make -j2 dev
 ```
@@ -46,6 +48,39 @@ npm run dev
 
 前端默认 `http://localhost:5173`，已在 `vite.config.ts` 里把 `/api` 代理到后端。
 
+## MinIO 说明（历史资源存储）
+
+MinIO 用于保存生成结果（图片/视频）的归档副本，避免直接依赖下游厂商 URL（可能过期或不可访问），并支撑历史记录回显。
+
+### 快速启动（开发）
+
+```bash
+cp .env.example .env
+make minio-up
+```
+
+等价命令：
+
+```bash
+docker compose -f docker-compose.dev.yml up -d minio minio-init
+```
+
+- API Endpoint（宿主机）：`127.0.0.1:9000`（默认）
+- Console：`http://localhost:9001`
+- 默认账号密码：`minioadmin / minioadmin`（来自 `.env` 的 `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD`）
+- 默认 Bucket：`aigc-assets`（`MINIO_BUCKET`，`minio-init` 和后端都会确保 bucket 存在）
+
+### 配置说明
+
+- `MINIO_ENDPOINT=minio:9000`：容器网络内访问地址（Docker Compose 内部服务互联）。
+- `MINIO_ENDPOINT_LOCAL=127.0.0.1:9000`：后端本机 `go run` 时的回退地址。
+- 后端会自动判断当前环境：如果无法解析 `minio` 主机名，会自动使用 `MINIO_ENDPOINT_LOCAL`。
+- `MINIO_USE_SSL=false`：本地开发默认关闭 TLS；生产建议开启 TLS 并使用受信证书。
+
+### 不使用 MinIO（仅临时调试）
+
+若你只想先跑通接口，可将 `.env` 里的 `MINIO_ENDPOINT` 和 `MINIO_ENDPOINT_LOCAL` 都置空。后端会以 `minio_disabled` 模式启动，但历史资源归档能力不可用。
+
 ## 模型与表单配置（JSON）
 
 不同平台的不同模型，可能需要不同的必填表单（例如 I2V 模型需要参考图）。本项目将「平台/模型列表 + 表单要求」统一存储在 `backend/models.json` 中，由后端在启动时加载，并通过 `GET /api/meta/images`、`GET /api/meta/videos` 下发给前端驱动 UI。
@@ -76,6 +111,7 @@ docker compose -f docker-compose.dev.yml logs --tail=200 -f
 前端 `http://localhost:5173`，后端 `http://localhost:8080`。
 
 MySQL 默认会映射到宿主机 `3307`（避免和本机已有的 MySQL `3306` 冲突）。如需修改，编辑根目录 `.env` 里的 `MYSQL_PORT`，并同步调整 `MYSQL_DSN_LOCAL`。
+MinIO 默认映射 `9000`（API）和 `9001`（Console）。如需修改，编辑根目录 `.env` 里的 `MINIO_PORT` / `MINIO_CONSOLE_PORT`。
 
 ## API 概览
 
@@ -97,6 +133,19 @@ MySQL 默认会映射到宿主机 `3307`（避免和本机已有的 MySQL `3306`
 - 视频：前端通过 `GET /api/meta/videos` 获取可选的平台与模型。若模型配置为 `requires_image=true`（在 `backend/models.json`），前后端都会强制要求提供参考图片。
 
 视频接口因为不同厂商差异很大，默认实现为“可用的异步任务链路 + 可配置的 start/status endpoint”。你可以先跑通 UI，再按目标厂商的 API 协议补齐 Provider 的字段映射。
+
+### BLTCY（柏拉图）接入说明
+
+已内置 `bltcy` 图片 provider（走 `POST /v1/chat/completions`，默认模型 `gpt-4o-image`）。
+
+在根目录 `.env` 配置：
+
+```bash
+BLTCY_BASE_URL=https://api.bltcy.ai
+BLTCY_API_KEY=你的密钥
+```
+
+重启后端后，前端「图片生成」里可直接选择 `BLTCY(柏拉图)` 并切换模型。
 
 ### 速创API（无印科技）模型名说明
 

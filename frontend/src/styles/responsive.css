@@ -94,6 +94,9 @@
   .grid {
     grid-template-columns: 1fr;
   }
+  .historypick__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .list__row {
     grid-template-columns: 1fr;
   }
@@ -103,4 +106,3 @@
     justify-self: start;
   }
 }
-
