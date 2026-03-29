@@ -3,8 +3,8 @@ import type { VideoJobGetResponse } from "../../api";
 
 type JobRow = VideoJobGetResponse & { created_at: number };
 
-export function VideoResults(props: { jobs: JobRow[] }) {
-  const { jobs } = props;
+export function VideoResults(props: { jobs: JobRow[]; onDeleteJob: (jobID: string) => void }) {
+  const { jobs, onDeleteJob } = props;
   const latest = jobs[0] || null;
 
   return (
@@ -56,10 +56,21 @@ export function VideoResults(props: { jobs: JobRow[] }) {
             ) : (
               <span className="muted">-</span>
             )}
+            {j.status !== "succeeded" ? (
+              <button
+                className="btn btn--ghost"
+                onClick={() => onDeleteJob(j.job_id)}
+                title="删除任务"
+                style={{ justifySelf: "end", padding: "6px 10px" }}
+              >
+                删除
+              </button>
+            ) : (
+              <span className="muted">-</span>
+            )}
           </div>
         ))}
       </div>
     </section>
   );
 }
-

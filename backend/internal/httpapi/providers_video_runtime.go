@@ -6,6 +6,9 @@ import (
 
 func (h *Handler) defaultVideoProviderID() string {
 	cfg := h.cfg
+	if pc, ok := cfg.ImageProviders["bltcy"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		return "bltcy"
+	}
 	if pc, ok := cfg.ImageProviders["siliconflow"]; ok && strings.TrimSpace(pc.APIKey) != "" {
 		return "siliconflow"
 	}

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
-
+import { HistoryRow } from "./history/HistoryRow";
+import { HistoryToolbar } from "./history/HistoryToolbar";
 type Item = {
   id: number;
   capability: "image" | "video";
@@ -14,43 +15,40 @@ type Item = {
   url: string;
   created_at: string;
 };
-
-function fmtBytes(n: number) {
-  if (!Number.isFinite(n) || n <= 0) return "-";
-  const units = ["B", "KB", "MB", "GB"];
-  let v = n;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i += 1;
-  }
-  return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
-}
-
 export function HistoryStudio() {
   const [capability, setCapability] = useState<"all" | "image" | "video">("all");
+  const [q, setQ] = useState("");
+  const [qInput, setQInput] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [total, setTotal] = useState(0);
   const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-
-  const selected = useMemo(
-    () => items.find((x) => x.id === selectedId) || null,
-    [items, selectedId]
-  );
-
-  async function load() {
+  const selected = useMemo(() => items.find((x) => x.id === selectedId) || null, [items, selectedId]);
+  const pages = Math.max(1, Math.ceil(total / Math.max(1, pageSize)));
+  async function load(targetPage = page) {
     setBusy(true);
     setError(null);
     try {
       const res = await api.getHistory({
         capability: capability === "all" ? undefined : capability,
-        limit: 50,
-        offset: 0
+        q: q || undefined,
+        page: targetPage,
+        page_size: pageSize
       });
-      setItems(res.items || []);
+      const list = res.items || [];
+      setItems(list);
+      setTotal(Number(res.total || 0));
+      setPage(Number(res.page || targetPage));
       const first = (res.items || [])[0];
-      if (!selectedId && first) setSelectedId(first.id);
+      if (!first) {
+        setSelectedId(null);
+      } else if (!list.some((x) => x.id === selectedId)) {
+        setSelectedId(first.id);
+      }
     } catch (e: any) {
       setError(e?.message || String(e));
     } finally {
@@ -59,66 +57,67 @@ export function HistoryStudio() {
   }
 
   useEffect(() => {
-    load();
+    void load(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [capability]);
+  }, [capability, q, pageSize]);
 
+  async function onDeleteItem(it: Item) {
+    const ok = window.confirm(`确定永久删除记录 #${it.id} 吗？删除后不可恢复。`);
+    if (!ok) return;
+    setDeletingId(it.id);
+    setError(null);
+    try {
+      await api.deleteHistory(it.id);
+      const nextPage = page > 1 && items.length <= 1 ? page - 1 : page;
+      await load(nextPage);
+    } catch (e: any) {
+      setError(e?.message || String(e));
+    } finally {
+      setDeletingId(null);
+    }
+  }
   return (
     <div className="workspace">
       <section className="card">
-        <div className="card__head">
-          <h2 className="card__title">历史</h2>
-          <div className="chips">
-            <button
-              className={capability === "all" ? "chip" : "chip chip--ghost"}
-              onClick={() => setCapability("all")}
-              disabled={busy}
-            >
-              <span className="chip__text">全部</span>
-            </button>
-            <button
-              className={capability === "image" ? "chip" : "chip chip--ghost"}
-              onClick={() => setCapability("image")}
-              disabled={busy}
-            >
-              <span className="chip__text">图片</span>
-            </button>
-            <button
-              className={capability === "video" ? "chip" : "chip chip--ghost"}
-              onClick={() => setCapability("video")}
-              disabled={busy}
-            >
-              <span className="chip__text">视频</span>
-            </button>
-            <button className="btn btn--ghost" onClick={load} disabled={busy} title="Refresh">
-              {busy ? "Loading..." : "Refresh"}
-            </button>
-          </div>
-        </div>
+        <HistoryToolbar
+          capability={capability}
+          setCapability={(v) => {
+            setCapability(v);
+            setPage(1);
+          }}
+          qInput={qInput}
+          setQInput={setQInput}
+          onSearch={() => {
+            setPage(1);
+            setQ(qInput.trim());
+          }}
+          pageSize={pageSize}
+          setPageSize={(n) => {
+            setPage(1);
+            setPageSize(n);
+          }}
+          total={total}
+          page={page}
+          pages={pages}
+          busy={busy}
+          onRefresh={() => void load(page)}
+          onPrev={() => void load(page - 1)}
+          onNext={() => void load(page + 1)}
+        />
 
         {error && <div className="alert alert--err">Error: {error}</div>}
 
         <div className="list">
           {items.map((it) => (
-            <button
+            <HistoryRow
               key={it.id}
-              className={it.id === selectedId ? "hrow hrow--active" : "hrow"}
-              onClick={() => setSelectedId(it.id)}
-              title="Select"
-            >
-              <div className="hrow__top">
-                <div className="mono">#{it.id}</div>
-                <div className="pill">{it.capability}</div>
-              </div>
-              <div className="hrow__mid">
-                <div className="muted">{it.provider}</div>
-                <div className="muted">{fmtBytes(it.bytes)}</div>
-              </div>
-              <div className="hrow__bot">
-                <div className="hrow__prompt">{it.prompt_preview || ""}</div>
-                <div className="hrow__time mono">{it.created_at}</div>
-              </div>
-            </button>
+              item={it}
+              active={it.id === selectedId}
+              busy={busy}
+              deleting={deletingId === it.id}
+              onSelect={() => setSelectedId(it.id)}
+              onDelete={() => onDeleteItem(it)}
+            />
           ))}
           {items.length === 0 && !busy && (
             <div className="placeholder">

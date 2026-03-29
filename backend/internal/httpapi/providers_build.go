@@ -87,6 +87,26 @@ func (h *Handler) rebuildProvidersLocked() {
 			return siliconflow.NewVideo(pc.BaseURL, pc.APIKey)
 		})
 	}
+	if pc, ok := cfg.ImageProviders["bltcy"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		dm := ""
+		if h.models != nil {
+			dm = h.models.DefaultModel("bltcy", "image")
+		}
+		key := "bltcyv|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
+		ensureV("bltcy", key, func() videoProvider {
+			return gptbest.New("bltcy", pc.BaseURL, pc.APIKey, dm, h.staticRoot)
+		})
+	}
+	if pc, ok := cfg.ImageProviders["gpt_best"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		dm := ""
+		if h.models != nil {
+			dm = h.models.DefaultModel("gpt_best", "image")
+		}
+		key := "gptbestv|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
+		ensureV("gpt_best", key, func() videoProvider {
+			return gptbest.New("gpt_best", pc.BaseURL, pc.APIKey, dm, h.staticRoot)
+		})
+	}
 
 	// Generic async video API (env provides endpoints). Binds to openai_compatible credentials.
 	if cfg.VideoStartEP != "" && cfg.VideoStatusEP != "" {

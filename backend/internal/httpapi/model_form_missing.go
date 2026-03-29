@@ -94,6 +94,10 @@ func (h *Handler) missingVideoRequiredFields(providerID, model string, req types
 			if strings.TrimSpace(req.ImageSize) == "" {
 				miss = append(miss, "image_size")
 			}
+		case "aspect_ratio":
+			if strings.TrimSpace(req.AspectRatio) == "" {
+				miss = append(miss, "aspect_ratio")
+			}
 		case "duration_seconds":
 			if req.DurationSeconds <= 0 {
 				miss = append(miss, "duration_seconds")

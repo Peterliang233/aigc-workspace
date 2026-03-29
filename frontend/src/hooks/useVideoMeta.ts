@@ -27,7 +27,10 @@ export function useVideoMeta() {
         const list = (res.providers || []).slice().sort((a, b) => a.label.localeCompare(b.label));
         setProviders(list);
 
-        const preferred = provider || res.default_provider || "siliconflow";
+        let preferred = provider || res.default_provider || "siliconflow";
+        if (preferred === "gpt_best" && list.some((p) => p.id === "bltcy")) {
+          preferred = "bltcy";
+        }
         const hasPreferred = list.some((p) => p.id === preferred && p.configured);
         const fallback = list.find((p) => p.configured)?.id || preferred;
         const nextProvider = hasPreferred ? preferred : fallback;

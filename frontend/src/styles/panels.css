@@ -36,7 +36,7 @@
 
 .list__row {
   display: grid;
-  grid-template-columns: 1fr 110px 60px;
+  grid-template-columns: 1fr 110px 60px 80px;
   gap: 10px;
   align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.10);
@@ -46,11 +46,12 @@
 }
 
 .hrow {
+  position: relative;
   width: 100%;
   text-align: left;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 14px;
-  padding: 12px;
+  padding: 12px 12px 42px;
   background: rgba(255, 255, 255, 0.03);
   color: var(--text);
   cursor: pointer;
@@ -102,6 +103,32 @@
   opacity: 0.55;
 }
 
+.hrow__del {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.82);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.hrow__del:hover:not(:disabled) {
+  border-color: rgba(239, 68, 68, 0.55);
+  color: rgba(248, 113, 113, 0.95);
+}
+
+.hrow__del:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .pill {
   justify-self: end;
   padding: 6px 10px;
@@ -134,4 +161,3 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 12px;
 }
-

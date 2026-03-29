@@ -102,11 +102,14 @@ export const api = {
 
   getVideoMeta: () => httpJSON<VideoMetaResponse>("/api/meta/videos", { method: "GET" }),
 
-  getHistory: (params?: { capability?: string; limit?: number; offset?: number }) => {
+  getHistory: (params?: { capability?: string; q?: string; limit?: number; offset?: number; page?: number; page_size?: number }) => {
     const q = new URLSearchParams();
     if (params?.capability) q.set("capability", params.capability);
+    if (params?.q) q.set("q", params.q);
     if (typeof params?.limit === "number") q.set("limit", String(params.limit));
     if (typeof params?.offset === "number") q.set("offset", String(params.offset));
+    if (typeof params?.page === "number") q.set("page", String(params.page));
+    if (typeof params?.page_size === "number") q.set("page_size", String(params.page_size));
     const qs = q.toString();
     return httpJSON<{
       items: {
@@ -122,6 +125,9 @@ export const api = {
         url: string;
         created_at: string;
       }[];
+      total?: number;
+      page?: number;
+      page_size?: number;
     }>(`/api/history${qs ? `?${qs}` : ""}`, { method: "GET" });
   },
 
@@ -140,5 +146,10 @@ export const api = {
   getVideoJob: (jobId: string) =>
     httpJSON<VideoJobGetResponse>(`/api/videos/jobs/${encodeURIComponent(jobId)}`, {
       method: "GET"
+    }),
+
+  deleteHistory: (id: number) =>
+    httpJSON<{ ok: boolean; id: number }>(`/api/history/${encodeURIComponent(String(id))}`, {
+      method: "DELETE"
     })
 };

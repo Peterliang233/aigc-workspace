@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"aigc-backend/internal/assets"
 	"context"
 	"fmt"
 	"log/slog"
@@ -16,7 +17,7 @@ func (h *Handler) historyList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if h.assets == nil || !h.assets.Enabled() {
-		writeJSON(w, http.StatusOK, map[string]any{"items": []any{}})
+		writeJSON(w, http.StatusOK, map[string]any{"items": []any{}, "total": 0, "page": 1, "page_size": 20})
 		return
 	}
 
@@ -24,10 +25,34 @@ func (h *Handler) historyList(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	capability := strings.TrimSpace(r.URL.Query().Get("capability"))
+	keyword := strings.TrimSpace(r.URL.Query().Get("q"))
 	limit, _ := strconv.Atoi(strings.TrimSpace(r.URL.Query().Get("limit")))
 	offset, _ := strconv.Atoi(strings.TrimSpace(r.URL.Query().Get("offset")))
+	page, _ := strconv.Atoi(strings.TrimSpace(r.URL.Query().Get("page")))
+	pageSize, _ := strconv.Atoi(strings.TrimSpace(r.URL.Query().Get("page_size")))
+	if pageSize > 0 {
+		limit = pageSize
+	}
+	if limit <= 0 {
+		limit = 5
+	}
+	if limit > 200 {
+		limit = 200
+	}
+	if page > 0 {
+		offset = (page - 1) * limit
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	page = (offset / limit) + 1
 
-	items, err := h.assets.Store.List(ctx, capability, limit, offset)
+	items, total, err := h.assets.Store.List(ctx, assets.ListOptions{
+		Capability: capability,
+		Query:      keyword,
+		Limit:      limit,
+		Offset:     offset,
+	})
 	if err != nil {
 		slog.Default().Warn("history_list_failed", "err", err.Error())
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": err.Error()})
@@ -69,7 +94,12 @@ func (h *Handler) historyList(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	writeJSON(w, http.StatusOK, map[string]any{"items": out})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"items":     out,
+		"total":     total,
+		"page":      page,
+		"page_size": limit,
+	})
 }
 
 func (h *Handler) historyGet(w http.ResponseWriter, r *http.Request) {

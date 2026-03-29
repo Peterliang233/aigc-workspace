@@ -62,6 +62,7 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 
 	r.GET("/api/history", gin.WrapF(h.historyList))
 	r.GET("/api/history/*id", gin.WrapF(h.historyGet))
+	r.DELETE("/api/history/*id", gin.WrapF(h.historyDelete))
 	r.GET("/api/assets/*id", gin.WrapF(h.assetsGet))
 
 	return r

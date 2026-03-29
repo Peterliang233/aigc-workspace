@@ -25,6 +25,7 @@ type Ctx = {
   state: GenState;
   startImage: (req: ImageGenerateRequest) => string;
   createVideoJob: (req: VideoJobCreateRequest) => Promise<{ job_id: string; status: string; provider: string }>;
+  removeVideoJob: (jobID: string) => void;
 };
 
 const LS_KEY = "aigc_inflight_v1";
@@ -145,7 +146,13 @@ export function GenerationProvider(props: { children: React.ReactNode }) {
     return res;
   }
 
-  const value = useMemo<Ctx>(() => ({ state, startImage, createVideoJob }), [state]);
+  function removeVideoJob(jobID: string) {
+    jobID = String(jobID || "").trim();
+    if (!jobID) return;
+    setState((prev) => ({ ...prev, videos: prev.videos.filter((x) => x.job_id !== jobID) }));
+  }
+
+  const value = useMemo<Ctx>(() => ({ state, startImage, createVideoJob, removeVideoJob }), [state]);
   return <GenerationContext.Provider value={value}>{props.children}</GenerationContext.Provider>;
 }
 
@@ -154,4 +161,3 @@ export function useGeneration() {
   if (!ctx) throw new Error("useGeneration must be used within <GenerationProvider />");
   return ctx;
 }
-

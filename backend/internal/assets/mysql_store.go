@@ -114,6 +114,10 @@ func (st *MySQLStore) Get(ctx context.Context, id uint64) (*Asset, error) {
 	return &a, nil
 }
 
+func (st *MySQLStore) Delete(ctx context.Context, id uint64) error {
+	return st.db.WithContext(ctx).Delete(&Asset{}, "id = ?", id).Error
+}
+
 func (st *MySQLStore) FindByExternalJobID(ctx context.Context, jobID string) (*Asset, error) {
 	jobID = strings.TrimSpace(jobID)
 	if jobID == "" {
@@ -129,10 +133,13 @@ func (st *MySQLStore) FindByExternalJobID(ctx context.Context, jobID string) (*A
 	return &a, nil
 }
 
-func (st *MySQLStore) List(ctx context.Context, capability string, limit, offset int) ([]Asset, error) {
-	capability = strings.ToLower(strings.TrimSpace(capability))
+func (st *MySQLStore) List(ctx context.Context, opt ListOptions) ([]Asset, int64, error) {
+	capability := strings.ToLower(strings.TrimSpace(opt.Capability))
+	keyword := strings.TrimSpace(opt.Query)
+	limit := opt.Limit
+	offset := opt.Offset
 	if limit <= 0 {
-		limit = 50
+		limit = 20
 	}
 	if limit > 200 {
 		limit = 200
@@ -141,13 +148,25 @@ func (st *MySQLStore) List(ctx context.Context, capability string, limit, offset
 		offset = 0
 	}
 
-	q := st.db.WithContext(ctx).Model(&Asset{}).Order("id DESC").Limit(limit).Offset(offset)
+	base := st.db.WithContext(ctx).Model(&Asset{})
 	if capability != "" && capability != "all" {
-		q = q.Where("capability = ?", capability)
+		base = base.Where("capability = ?", capability)
+	}
+	if keyword != "" {
+		like := "%" + keyword + "%"
+		base = base.Where(
+			"CAST(id AS CHAR) LIKE ? OR provider LIKE ? OR model LIKE ? OR prompt_preview LIKE ?",
+			like, like, like, like,
+		)
+	}
+
+	var total int64
+	if err := base.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
 	var out []Asset
-	if err := q.Find(&out).Error; err != nil {
-		return nil, err
+	if err := base.Order("id DESC").Limit(limit).Offset(offset).Find(&out).Error; err != nil {
+		return nil, 0, err
 	}
-	return out, nil
+	return out, total, nil
 }

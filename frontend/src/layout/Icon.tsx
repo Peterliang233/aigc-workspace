@@ -6,6 +6,7 @@ export type IconName =
   | "upload"
   | "toolbox"
   | "history"
+  | "trash"
   | "menu"
   | "collapse"
   | "expand";
@@ -107,6 +108,27 @@ export function Icon({ name }: { name: IconName }) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+      </svg>
+    );
+  }
+  if (name === "trash") {
+    return (
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M4.8 6h10.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path
+          d="M7.2 6V4.9c0-.5.4-.9.9-.9h3.8c.5 0 .9.4.9.9V6"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M6.4 6l.7 8.2c.05.55.5.96 1.05.96h3.7c.55 0 1-.41 1.05-.96L13.6 6"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path d="M8.8 8.8v4.5M11.2 8.8v4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     );
   }
