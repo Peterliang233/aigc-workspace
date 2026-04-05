@@ -18,6 +18,7 @@
 
 .side {
   width: 264px;
+  min-width: 264px;
   max-width: 264px;
   background: var(--card-strong);
   border: 1px solid var(--stroke);
@@ -29,9 +30,10 @@
   flex-direction: column;
   flex: 0 0 auto;
   position: sticky;
-  top: 8px;
-  height: calc(100vh - 16px);
-  overflow: auto;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
   align-self: start;
   isolation: isolate;
 }
@@ -97,6 +99,7 @@
   flex-direction: column;
   gap: 10px;
   padding: 4px 4px 12px;
+  min-width: 0;
 }
 
 .navitem {
@@ -112,6 +115,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .navitem__icon {
@@ -128,6 +132,10 @@
 
 .navitem__label {
   font-weight: 650;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .navitem:hover {
@@ -156,6 +164,7 @@
 
 .side--collapsed {
   width: 84px;
+  min-width: 84px;
   max-width: 84px;
   padding: 12px;
 }

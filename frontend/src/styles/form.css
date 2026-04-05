@@ -1,6 +1,7 @@
 .form {
   display: grid;
   gap: 12px;
+  align-content: start;
 }
 
 .label {
@@ -8,6 +9,19 @@
   gap: 8px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.label__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.label__pill {
+  margin-left: auto;
+  justify-self: auto;
+  flex: 0 0 auto;
 }
 
 .input,

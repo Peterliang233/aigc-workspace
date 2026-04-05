@@ -1,6 +1,6 @@
 @media (max-width: 720px) {
   .shell {
-    padding: 8px 14px 14px 0;
+    padding: 0;
   }
 
   .mobilebar {
@@ -20,12 +20,12 @@
 
   .side {
     position: fixed;
-    left: 14px;
-    top: 8px;
-    bottom: 14px;
-    width: min(320px, calc(100vw - 28px));
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(320px, calc(100vw - 20px));
     max-width: none;
-    transform: translateX(calc(-100% - 22px));
+    transform: translateX(calc(-100% - 12px));
     transition: transform 0.18s ease;
     z-index: 20;
   }
@@ -47,7 +47,7 @@
   }
 
   .side--collapsed {
-    width: min(320px, calc(100vw - 28px));
+    width: min(320px, calc(100vw - 20px));
     max-width: none;
   }
 

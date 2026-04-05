@@ -23,10 +23,10 @@ export function ModelFields(props: {
         const val = values[k] ?? "";
 
         const head = (
-          <>
-            {label}
-            {f.required ? <span className="pill" style={{ marginLeft: 8 }}>必填</span> : null}
-          </>
+          <span className="label__head">
+            <span>{label}</span>
+            {f.required ? <span className="pill label__pill">必填</span> : null}
+          </span>
         );
 
         if (f.type === "textarea") {
@@ -79,4 +79,3 @@ export function ModelFields(props: {
     </>
   );
 }
-
