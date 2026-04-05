@@ -64,6 +64,16 @@ export function Sidebar(props: {
           <span className="navitem__label">视频生成</span>
         </button>
         <button
+          className={tab === "audio" ? "navitem navitem--active" : "navitem"}
+          onClick={() => onSelect("audio")}
+          title="音频生成"
+        >
+          <span className="navitem__icon">
+            <Icon name="audio" />
+          </span>
+          <span className="navitem__label">音频生成</span>
+        </button>
+        <button
           className={tab === "toolbox" ? "navitem navitem--active" : "navitem"}
           onClick={() => onSelect("toolbox")}
           title="工具箱"

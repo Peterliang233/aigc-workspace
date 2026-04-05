@@ -115,3 +115,30 @@ func (h *Handler) missingVideoRequiredFields(providerID, model string, req types
 	}
 	return miss
 }
+
+func (h *Handler) missingAudioRequiredFields(providerID, model string, req types.AudioGenerateRequest) []string {
+	if h.models == nil {
+		return nil
+	}
+	ms := h.models.Model(providerID, "audio", model)
+	if ms == nil || ms.Form == nil {
+		return nil
+	}
+	var miss []string
+	for _, f := range ms.Form.Fields {
+		if !f.Required {
+			continue
+		}
+		switch strings.ToLower(strings.TrimSpace(f.Key)) {
+		case "input":
+			if strings.TrimSpace(req.Input) == "" {
+				miss = append(miss, "input")
+			}
+		case "voice":
+			if strings.TrimSpace(req.Voice) == "" {
+				miss = append(miss, "voice")
+			}
+		}
+	}
+	return miss
+}

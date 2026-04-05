@@ -109,3 +109,23 @@ func (h *Handler) applyVideoModelDefaults(providerID, model string, req *types.V
 		}
 	}
 }
+
+func (h *Handler) applyAudioModelDefaults(providerID, model string, req *types.AudioGenerateRequest) {
+	if h.models == nil {
+		return
+	}
+	ms := h.models.Model(providerID, "audio", model)
+	if ms == nil || ms.Form == nil {
+		return
+	}
+	for _, f := range ms.Form.Fields {
+		if strings.ToLower(strings.TrimSpace(f.Key)) != "voice" || f.Default == nil {
+			continue
+		}
+		if strings.TrimSpace(req.Voice) == "" {
+			if s, ok := asString(f.Default); ok {
+				req.Voice = s
+			}
+		}
+	}
+}

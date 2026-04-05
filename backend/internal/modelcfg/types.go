@@ -14,6 +14,7 @@ type Config struct {
 type Defaults struct {
 	ImageProvider string `json:"image_provider"`
 	VideoProvider string `json:"video_provider"`
+	AudioProvider string `json:"audio_provider"`
 }
 
 type Provider struct {
@@ -21,6 +22,7 @@ type Provider struct {
 	Label string          `json:"label"`
 	Image *CapabilitySpec `json:"image,omitempty"`
 	Video *CapabilitySpec `json:"video,omitempty"`
+	Audio *CapabilitySpec `json:"audio,omitempty"`
 }
 
 type CapabilitySpec struct {

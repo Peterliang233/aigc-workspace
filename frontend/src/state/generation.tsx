@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
-import type { ImageGenerateRequest, VideoJobCreateRequest, VideoJobGetResponse } from "../api";
+import type { AudioGenerateRequest, ImageGenerateRequest, VideoJobCreateRequest, VideoJobGetResponse } from "../api";
 import { api } from "../api";
 
 type ImageTask = {
@@ -15,15 +15,28 @@ type ImageTask = {
 };
 
 type VideoTask = VideoJobGetResponse & { created_at: number };
+type AudioTask = {
+  id: string;
+  status: "running" | "succeeded" | "failed";
+  provider?: string;
+  model?: string;
+  voice?: string;
+  input: string;
+  audio_url?: string;
+  error?: string;
+  created_at: number;
+};
 
 type GenState = {
   images: ImageTask[];
   videos: VideoTask[];
+  audios: AudioTask[];
 };
 
 type Ctx = {
   state: GenState;
   startImage: (req: ImageGenerateRequest) => string;
+  startAudio: (req: AudioGenerateRequest) => string;
   createVideoJob: (req: VideoJobCreateRequest) => Promise<{ job_id: string; status: string; provider: string }>;
   removeVideoJob: (jobID: string) => void;
 };
@@ -34,13 +47,14 @@ const MAX_KEEP = 20;
 function safeParseState(): GenState {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return { images: [], videos: [] };
+    if (!raw) return { images: [], videos: [], audios: [] };
     const obj = JSON.parse(raw);
     const images = Array.isArray(obj?.images) ? obj.images : [];
     const videos = Array.isArray(obj?.videos) ? obj.videos : [];
-    return { images, videos };
+    const audios = Array.isArray(obj?.audios) ? obj.audios : [];
+    return { images, videos, audios };
   } catch {
-    return { images: [], videos: [] };
+    return { images: [], videos: [], audios: [] };
   }
 }
 
@@ -139,6 +153,27 @@ export function GenerationProvider(props: { children: React.ReactNode }) {
     return id;
   }
 
+  function startAudio(req: AudioGenerateRequest) {
+    const id = makeId();
+    const task: AudioTask = { id, status: "running", provider: req.provider, model: req.model, voice: req.voice, input: req.input, created_at: Date.now() };
+    setState((prev) => ({ ...prev, audios: [task, ...prev.audios].slice(0, MAX_KEEP) }));
+    (async () => {
+      try {
+        const res = await api.generateAudio(req);
+        setState((prev) => ({
+          ...prev,
+          audios: prev.audios.map((x) => x.id === id ? { ...x, status: res.audio_url ? "succeeded" : "failed", audio_url: res.audio_url || undefined, model: res.model || x.model, error: res.audio_url ? undefined : "empty audio url from provider" } : x)
+        }));
+      } catch (e: any) {
+        setState((prev) => ({
+          ...prev,
+          audios: prev.audios.map((x) => x.id === id ? { ...x, status: "failed", error: e?.message || String(e) } : x)
+        }));
+      }
+    })();
+    return id;
+  }
+
   async function createVideoJob(req: VideoJobCreateRequest) {
     const res = await api.createVideoJob(req);
     const row: VideoTask = { job_id: res.job_id, status: res.status, provider: res.provider, created_at: Date.now() };
@@ -152,7 +187,7 @@ export function GenerationProvider(props: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, videos: prev.videos.filter((x) => x.job_id !== jobID) }));
   }
 
-  const value = useMemo<Ctx>(() => ({ state, startImage, createVideoJob, removeVideoJob }), [state]);
+  const value = useMemo<Ctx>(() => ({ state, startImage, startAudio, createVideoJob, removeVideoJob }), [state]);
   return <GenerationContext.Provider value={value}>{props.children}</GenerationContext.Provider>;
 }
 

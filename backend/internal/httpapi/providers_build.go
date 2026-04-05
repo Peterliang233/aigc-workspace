@@ -66,6 +66,30 @@ func (h *Handler) rebuildProvidersLocked() {
 		})
 	}
 
+	if h.audioProviders == nil {
+		h.audioProviders = map[string]audioProvider{}
+	}
+	if h.audioProvKeys == nil {
+		h.audioProvKeys = map[string]string{}
+	}
+	ensureA := func(id string, key string, build func() audioProvider) {
+		if prev, ok := h.audioProvKeys[id]; ok && prev == key && h.audioProviders[id] != nil {
+			return
+		}
+		h.audioProviders[id] = build()
+		h.audioProvKeys[id] = key
+	}
+	if pc, ok := cfg.ImageProviders["bltcy"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		dm := ""
+		if h.models != nil {
+			dm = h.models.DefaultModel("bltcy", "audio")
+		}
+		key := "bltcya|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
+		ensureA("bltcy", key, func() audioProvider {
+			return gptbest.New("bltcy", pc.BaseURL, pc.APIKey, dm, h.staticRoot)
+		})
+	}
+
 	// Video providers (multi-provider). IDs are stable and match frontend selection.
 	if h.videoProviders == nil {
 		h.videoProviders = map[string]videoProvider{}

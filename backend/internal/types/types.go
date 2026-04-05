@@ -55,3 +55,19 @@ type VideoJobGetResponse struct {
 	Error    string `json:"error,omitempty"`
 	Provider string `json:"provider"`
 }
+
+type AudioGenerateRequest struct {
+	Provider       string   `json:"provider,omitempty"`
+	Model          string   `json:"model,omitempty"`
+	Input          string   `json:"input"`
+	Voice          string   `json:"voice,omitempty"`
+	ResponseFormat string   `json:"response_format,omitempty"`
+	Speed          *float64 `json:"speed,omitempty"`
+}
+
+type AudioGenerateResponse struct {
+	AudioURL    string `json:"audio_url"`
+	Provider    string `json:"provider"`
+	Model       string `json:"model,omitempty"`
+	ContentType string `json:"content_type,omitempty"`
+}

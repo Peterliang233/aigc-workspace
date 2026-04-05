@@ -39,6 +39,8 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 		provKeys:       map[string]string{},
 		videoProviders: map[string]videoProvider{},
 		videoProvKeys:  map[string]string{},
+		audioProviders: map[string]audioProvider{},
+		audioProvKeys:  map[string]string{},
 	}
 	h.provMu.Lock()
 	h.rebuildProvidersLocked()
@@ -54,8 +56,10 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 
 	r.GET("/api/meta/images", gin.WrapF(h.metaImages))
 	r.GET("/api/meta/videos", gin.WrapF(h.metaVideos))
+	r.GET("/api/meta/audios", gin.WrapF(h.metaAudios))
 
 	r.POST("/api/images/generate", gin.WrapF(h.imagesGenerate))
+	r.POST("/api/audios/generate", gin.WrapF(h.audiosGenerate))
 
 	r.POST("/api/videos/jobs", gin.WrapF(h.videosJobs))
 	r.GET("/api/videos/jobs/*id", gin.WrapF(h.videosJobsID))

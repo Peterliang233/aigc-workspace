@@ -2,7 +2,8 @@
   "version": 2,
   "defaults": {
     "image_provider": "siliconflow",
-    "video_provider": "siliconflow"
+    "video_provider": "siliconflow",
+    "audio_provider": "bltcy"
   },
   "providers": [
     {
@@ -275,6 +276,49 @@
           },
           { "id": "sora-2", "label": "Sora 2" },
           { "id": "vidu-q1", "label": "Vidu Q1" }
+        ]
+      },
+      "audio": {
+        "default_model": "tts-1",
+        "models": [
+          {
+            "id": "tts-1",
+            "label": "TTS 1",
+            "form": {
+              "fields": [
+                { "key": "input", "label": "文本内容", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "voice",
+                  "label": "音色",
+                  "type": "select",
+                  "required": true,
+                  "default": "alloy",
+                  "options": [
+                    { "label": "alloy", "value": "alloy" },
+                    { "label": "echo", "value": "echo" },
+                    { "label": "fable", "value": "fable" },
+                    { "label": "onyx", "value": "onyx" },
+                    { "label": "nova", "value": "nova" },
+                    { "label": "shimmer", "value": "shimmer" }
+                  ]
+                },
+                {
+                  "key": "response_format",
+                  "label": "输出格式",
+                  "type": "select",
+                  "default": "mp3",
+                  "options": [
+                    { "label": "mp3", "value": "mp3" },
+                    { "label": "opus", "value": "opus" },
+                    { "label": "aac", "value": "aac" },
+                    { "label": "flac", "value": "flac" }
+                  ]
+                },
+                { "key": "speed", "label": "语速", "type": "number", "default": 1, "placeholder": "0.25 - 4.0" }
+              ]
+            }
+          },
+          { "id": "tts-1-hd", "label": "TTS 1 HD" }
         ]
       }
     }

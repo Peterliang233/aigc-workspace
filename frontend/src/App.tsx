@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AudioStudio } from "./components/AudioStudio";
 import { ImageStudio } from "./components/ImageStudio";
 import { VideoStudio } from "./components/VideoStudio";
 import { HistoryStudio } from "./components/HistoryStudio";
@@ -42,6 +43,8 @@ export function App() {
             <ImageStudio />
           ) : tab === "video" ? (
             <VideoStudio />
+          ) : tab === "audio" ? (
+            <AudioStudio />
           ) : tab === "toolbox" ? (
             <ToolboxStudio />
           ) : (

@@ -150,7 +150,16 @@ func (st *MySQLStore) List(ctx context.Context, opt ListOptions) ([]Asset, int64
 
 	base := st.db.WithContext(ctx).Model(&Asset{})
 	if capability != "" && capability != "all" {
-		base = base.Where("capability = ?", capability)
+		switch capability {
+		case "audio":
+			base = base.Where("(capability = ? OR content_type LIKE 'audio/%')", capability)
+		case "video":
+			base = base.Where("(capability = ? OR content_type LIKE 'video/%')", capability)
+		case "image":
+			base = base.Where("(capability = ? OR content_type LIKE 'image/%')", capability)
+		default:
+			base = base.Where("capability = ?", capability)
+		}
 	}
 	if keyword != "" {
 		like := "%" + keyword + "%"

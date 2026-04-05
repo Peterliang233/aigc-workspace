@@ -3,6 +3,7 @@ import React from "react";
 export type IconName =
   | "image"
   | "video"
+  | "audio"
   | "upload"
   | "toolbox"
   | "history"
@@ -148,6 +149,15 @@ export function Icon({ name }: { name: IconName }) {
           strokeLinejoin="round"
         />
         <path d="M7.6 8.2h.01" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (name === "audio") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M5.4 11.6H3.8a1 1 0 0 1-1-1V9.4a1 1 0 0 1 1-1h1.6L9 5.6v8.8l-3.6-2.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+        <path d="M12.4 7.2a4 4 0 0 1 0 5.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M14.8 5.4a6.6 6.6 0 0 1 0 9.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
       </svg>
     );
   }

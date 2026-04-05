@@ -41,6 +41,16 @@ export type ProviderModelMeta = {
   form?: ModelForm;
 };
 
+export type ProviderMetaResponse = {
+  default_provider: string;
+  providers: {
+    id: string;
+    label: string;
+    configured: boolean;
+    models: ProviderModelMeta[];
+  }[];
+};
+
 export type VideoJobCreateRequest = {
   provider?: string;
   model?: string;
@@ -78,6 +88,22 @@ export type VideoMetaResponse = {
   }[];
 };
 
+export type AudioGenerateRequest = {
+  provider?: string;
+  model?: string;
+  input: string;
+  voice?: string;
+  response_format?: string;
+  speed?: number;
+};
+
+export type AudioGenerateResponse = {
+  audio_url: string;
+  provider: string;
+  model?: string;
+  content_type?: string;
+};
+
 async function httpJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
@@ -96,12 +122,10 @@ async function httpJSON<T>(url: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   getImageMeta: () =>
-    httpJSON<{
-      default_provider: string;
-      providers: { id: string; label: string; configured: boolean; models: ProviderModelMeta[] }[];
-    }>("/api/meta/images", { method: "GET" }),
+    httpJSON<ProviderMetaResponse>("/api/meta/images", { method: "GET" }),
 
   getVideoMeta: () => httpJSON<VideoMetaResponse>("/api/meta/videos", { method: "GET" }),
+  getAudioMeta: () => httpJSON<ProviderMetaResponse>("/api/meta/audios", { method: "GET" }),
 
   getHistory: (params?: { capability?: string; q?: string; limit?: number; offset?: number; page?: number; page_size?: number }) => {
     const q = new URLSearchParams();
@@ -115,7 +139,7 @@ export const api = {
     return httpJSON<{
       items: {
         id: number;
-        capability: "image" | "video";
+        capability: "image" | "video" | "audio";
         provider: string;
         model?: string;
         status: string;
@@ -134,6 +158,12 @@ export const api = {
 
   generateImage: (req: ImageGenerateRequest) =>
     httpJSON<ImageGenerateResponse>("/api/images/generate", {
+      method: "POST",
+      body: JSON.stringify(req)
+    }),
+
+  generateAudio: (req: AudioGenerateRequest) =>
+    httpJSON<AudioGenerateResponse>("/api/audios/generate", {
       method: "POST",
       body: JSON.stringify(req)
     }),

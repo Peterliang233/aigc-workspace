@@ -3,7 +3,7 @@ import { Icon } from "../../layout/Icon";
 
 export type HistoryItem = {
   id: number;
-  capability: "image" | "video";
+  capability: "image" | "video" | "audio";
   provider: string;
   prompt_preview?: string;
   bytes: number;

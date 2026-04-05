@@ -4,7 +4,7 @@ import { HistoryRow } from "./history/HistoryRow";
 import { HistoryToolbar } from "./history/HistoryToolbar";
 type Item = {
   id: number;
-  capability: "image" | "video";
+  capability: "image" | "video" | "audio";
   provider: string;
   model?: string;
   status: string;
@@ -16,7 +16,7 @@ type Item = {
   created_at: string;
 };
 export function HistoryStudio() {
-  const [capability, setCapability] = useState<"all" | "image" | "video">("all");
+  const [capability, setCapability] = useState<"all" | "image" | "video" | "audio">("all");
   const [q, setQ] = useState("");
   const [qInput, setQInput] = useState("");
   const [page, setPage] = useState(1);
@@ -122,7 +122,7 @@ export function HistoryStudio() {
           {items.length === 0 && !busy && (
             <div className="placeholder">
               <div className="placeholder__title">暂无记录</div>
-              <div className="placeholder__sub">生成图片或视频后，会自动保存到 MinIO 并出现在这里。</div>
+              <div className="placeholder__sub">生成图片、视频或音频后，会自动保存到 MinIO 并出现在这里。</div>
             </div>
           )}
         </div>
@@ -136,8 +136,8 @@ export function HistoryStudio() {
               <a className="link" href={selected.url} target="_blank" rel="noreferrer">
                 open
               </a>
-              {selected.capability === "image" && selected.url.startsWith("/api/assets/") ? (
-                <a className="btn btn--ghost" href={`${selected.url}?download=1`} title="下载图片">
+              {selected.url.startsWith("/api/assets/") ? (
+                <a className="btn btn--ghost" href={`${selected.url}?download=1`} title="下载资源">
                   下载
                 </a>
               ) : null}
@@ -152,6 +152,10 @@ export function HistoryStudio() {
             <div className="panel__media">
               <video className="video" controls src={selected.url} />
             </div>
+          ) : selected.capability === "audio" ? (
+            <div className="panel__media">
+              <audio className="audioPlayer" controls src={selected.url} />
+            </div>
           ) : (
             <a className="preview" href={selected.url} target="_blank" rel="noreferrer">
               <img className="preview__img" src={selected.url} alt={selected.prompt_preview || ""} />
@@ -160,7 +164,7 @@ export function HistoryStudio() {
         ) : (
           <div className="placeholder">
             <div className="placeholder__title">选择一条记录预览</div>
-            <div className="placeholder__sub">左侧列表选择图片或视频。</div>
+            <div className="placeholder__sub">左侧列表选择图片、视频或音频。</div>
           </div>
         )}
 

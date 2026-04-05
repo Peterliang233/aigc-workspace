@@ -1,8 +1,8 @@
 import React from "react";
 
 export function HistoryToolbar(props: {
-  capability: "all" | "image" | "video";
-  setCapability: (v: "all" | "image" | "video") => void;
+  capability: "all" | "image" | "video" | "audio";
+  setCapability: (v: "all" | "image" | "video" | "audio") => void;
   qInput: string;
   setQInput: (v: string) => void;
   onSearch: () => void;
@@ -30,6 +30,9 @@ export function HistoryToolbar(props: {
           </button>
           <button className={p.capability === "video" ? "chip" : "chip chip--ghost"} onClick={() => p.setCapability("video")} disabled={p.busy}>
             <span className="chip__text">视频</span>
+          </button>
+          <button className={p.capability === "audio" ? "chip" : "chip chip--ghost"} onClick={() => p.setCapability("audio")} disabled={p.busy}>
+            <span className="chip__text">音频</span>
           </button>
           <button className="btn btn--ghost" onClick={p.onRefresh} disabled={p.busy} title="Refresh">
             {p.busy ? "Loading..." : "Refresh"}
