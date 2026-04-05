@@ -77,8 +77,8 @@ export function HistoryStudio() {
     }
   }
   return (
-    <div className="workspace">
-      <section className="card">
+    <div className="workspace workspace--history">
+      <section className="card historyCard">
         <HistoryToolbar
           capability={capability}
           setCapability={(v) => {
@@ -107,7 +107,7 @@ export function HistoryStudio() {
 
         {error && <div className="alert alert--err">Error: {error}</div>}
 
-        <div className="list">
+        <div className="list historyCard__list">
           {items.map((it) => (
             <HistoryRow
               key={it.id}
@@ -128,7 +128,7 @@ export function HistoryStudio() {
         </div>
       </section>
 
-      <section className="card resultsCard">
+      <section className="card resultsCard historyPreviewCard">
         <div className="card__head">
           <h2 className="card__title">结果预览</h2>
           {selected ? (

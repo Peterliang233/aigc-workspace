@@ -102,6 +102,10 @@ func (h *Handler) missingVideoRequiredFields(providerID, model string, req types
 			if req.DurationSeconds <= 0 {
 				miss = append(miss, "duration_seconds")
 			}
+		default:
+			if !req.HasFieldValue(k) {
+				miss = append(miss, k)
+			}
 		}
 	}
 

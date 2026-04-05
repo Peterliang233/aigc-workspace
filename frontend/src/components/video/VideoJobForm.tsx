@@ -5,6 +5,7 @@ import { useGeneration } from "../../state/generation";
 import { ModelFields } from "../form/ModelFields";
 import { useApplyFieldDefaults } from "../form/useApplyFieldDefaults";
 import { InitImageField } from "./InitImageField";
+import { pickVideoExtra } from "./videoRequest";
 import { fallbackVideoFields, isFieldRequired } from "./videoFormDefaults";
 
 export function VideoJobForm(props: { latestStatus?: string }) {
@@ -82,7 +83,8 @@ export function VideoJobForm(props: { latestStatus?: string }) {
         image: String(values["image"] || "").trim() || undefined,
         seed: Number.isFinite(seedNum as any) ? (seedNum as number) : undefined,
         duration_seconds: Number.isFinite(durNum as any) ? (durNum as number) : undefined,
-        aspect_ratio: String(values["aspect_ratio"] || "").trim() || undefined
+        aspect_ratio: String(values["aspect_ratio"] || "").trim() || undefined,
+        extra: pickVideoExtra(fields, values)
       });
     } catch (e: any) {
       setError(e?.message || String(e));

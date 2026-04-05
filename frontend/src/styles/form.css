@@ -14,11 +14,17 @@
 .textarea {
   width: 100%;
   color: var(--text);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--stroke);
+  background: var(--field);
   border-radius: 12px;
   padding: 10px 12px;
   outline: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: rgba(205, 213, 240, 0.38);
 }
 
 .textarea {
@@ -28,8 +34,8 @@
 
 .input:focus,
 .textarea:focus {
-  border-color: rgba(14, 165, 233, 0.45);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+  border-color: rgba(139, 92, 246, 0.52);
+  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3), 0 0 0 4px var(--ring);
 }
 
 .row {
@@ -51,18 +57,22 @@
 }
 
 .btn {
-  border: 1px solid rgba(14, 165, 233, 0.38);
-  background: linear-gradient(180deg, rgba(14, 165, 233, 0.24), rgba(14, 165, 233, 0.08));
+  border: 1px solid rgba(139, 92, 246, 0.38);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(6, 182, 212, 0.72) 52%, rgba(236, 72, 153, 0.78));
+  background-size: 180% 180%;
   color: var(--text);
   border-radius: 12px;
   padding: 12px 14px;
   cursor: pointer;
-  transition: transform 0.08s ease, filter 0.15s ease;
+  transition: transform 0.08s ease, filter 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 10px 28px rgba(109, 40, 217, 0.22);
+  animation: gradient-shift 9s ease-in-out infinite;
 }
 
 .btn:hover {
   transform: translateY(-1px);
   filter: brightness(1.1);
+  box-shadow: 0 14px 32px rgba(109, 40, 217, 0.28);
 }
 
 .btn:disabled {
@@ -71,13 +81,15 @@
 }
 
 .btn--ghost {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.78);
+  background: var(--surface-soft);
+  border-color: var(--stroke);
+  color: rgba(245, 247, 255, 0.8);
+  box-shadow: none;
+  animation: none;
 }
 
 .btn--ghost:hover {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: var(--stroke-strong);
   filter: brightness(1.05);
 }
 
@@ -107,7 +119,7 @@
 }
 
 .filepick__meta {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--muted);
   font-size: 12px;
   max-width: 420px;
   overflow: hidden;
@@ -130,8 +142,8 @@
 }
 
 .historypick__item {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--stroke);
+  background: var(--field);
   border-radius: 12px;
   padding: 0;
   overflow: hidden;
@@ -140,12 +152,12 @@
 }
 
 .historypick__item:hover {
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: var(--stroke-strong);
 }
 
 .historypick__item--active {
-  border-color: rgba(14, 165, 233, 0.45);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+  border-color: rgba(139, 92, 246, 0.48);
+  box-shadow: 0 0 0 3px var(--ring);
 }
 
 .historypick__img {
@@ -162,7 +174,7 @@
   font-size: 11px;
   padding: 4px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.5);
-  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--stroke);
+  background: rgba(8, 11, 20, 0.64);
+  color: var(--text);
 }

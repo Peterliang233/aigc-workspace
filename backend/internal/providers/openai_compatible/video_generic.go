@@ -67,12 +67,12 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 		return "", errors.New("missing model")
 	}
 
-	payload := map[string]any{
+	payload := req.MergePayload(map[string]any{
 		"model":            model,
 		"prompt":           prompt,
 		"duration_seconds": req.DurationSeconds,
 		"aspect_ratio":     req.AspectRatio,
-	}
+	})
 	raw, _ := json.Marshal(payload)
 
 	u := p.baseURL + p.startEP

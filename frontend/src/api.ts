@@ -51,6 +51,7 @@ export type VideoJobCreateRequest = {
   negative_prompt?: string;
   image?: string;
   seed?: number;
+  extra?: Record<string, unknown>;
 };
 
 export type VideoJobCreateResponse = {

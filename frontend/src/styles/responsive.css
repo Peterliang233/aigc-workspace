@@ -1,6 +1,6 @@
 @media (max-width: 720px) {
   .shell {
-    padding: 14px 14px 14px 0;
+    padding: 8px 14px 14px 0;
   }
 
   .mobilebar {
@@ -13,6 +13,7 @@
 
   .resultsCard {
     position: static;
+    min-height: auto;
     max-height: none;
     overflow: visible;
   }
@@ -20,7 +21,7 @@
   .side {
     position: fixed;
     left: 14px;
-    top: 14px;
+    top: 8px;
     bottom: 14px;
     width: min(320px, calc(100vw - 28px));
     max-width: none;
@@ -88,6 +89,22 @@
   .row2 {
     grid-template-columns: 1fr;
   }
+
+  .historyCard,
+  .historyPreviewCard {
+    min-height: auto;
+    max-height: none;
+  }
+
+  .historyCard {
+    overflow: visible;
+  }
+
+  .historyCard__list {
+    overflow: visible;
+    padding-right: 0;
+  }
+
   .btn {
     grid-column: 1 / -1;
   }

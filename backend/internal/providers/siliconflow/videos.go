@@ -64,29 +64,29 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 		return "", errors.New("image is required for I2V models")
 	}
 
-	body := sfVideoSubmitRequest{
-		Model:          model,
-		Prompt:         prompt,
-		NegativePrompt: strings.TrimSpace(req.NegativePrompt),
-		ImageSize:      imageSize,
-		Image:          image,
-		Seed:           req.Seed,
-	}
+	body := req.MergePayload(map[string]any{
+		"model":           model,
+		"prompt":          prompt,
+		"negative_prompt": strings.TrimSpace(req.NegativePrompt),
+		"image_size":      imageSize,
+		"image":           image,
+		"seed":            req.Seed,
+	})
 	raw, _ := json.Marshal(body)
 
 	u := p.baseURL + "/v1/video/submit"
 	logging.DownstreamRequest("provider_siliconflow_video_submit", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"model":           model,
-		"image_size":      body.ImageSize,
-		"seed_set":        body.Seed != nil,
-		"negative_prompt": logging.DownstreamPrompt(body.NegativePrompt),
+		"image_size":      imageSize,
+		"seed_set":        req.Seed != nil,
+		"negative_prompt": logging.DownstreamPrompt(strings.TrimSpace(req.NegativePrompt)),
 		"prompt":          logging.DownstreamPrompt(prompt),
 		"image": func() any {
-			if body.Image == "" {
+			if image == "" {
 				return ""
 			}
-			if strings.HasPrefix(strings.ToLower(body.Image), "http://") || strings.HasPrefix(strings.ToLower(body.Image), "https://") {
-				return logging.RedactURL(body.Image)
+			if strings.HasPrefix(strings.ToLower(image), "http://") || strings.HasPrefix(strings.ToLower(image), "https://") {
+				return logging.RedactURL(image)
 			}
 			return "base64"
 		}(),

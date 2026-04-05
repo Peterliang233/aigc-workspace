@@ -54,9 +54,9 @@ export function HistoryToolbar(props: {
         <label className="label">
           每页
           <select className="input" value={String(p.pageSize)} onChange={(e) => p.setPageSize(Number(e.target.value) || 5)} disabled={p.busy}>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
+            <option value="10">5</option>
+            <option value="20">10</option>
+            <option value="50">20</option>
           </select>
         </label>
       </div>

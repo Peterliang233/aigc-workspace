@@ -27,12 +27,12 @@ func (p *Provider) StartVideoJob(ctx context.Context, req types.VideoJobCreateRe
 	if prompt == "" {
 		return "", errors.New("prompt is required")
 	}
-	body := map[string]any{
+	body := req.MergePayload(map[string]any{
 		"model":        model,
 		"prompt":       prompt,
 		"aspect_ratio": pickAspectRatio(req.AspectRatio, req.ImageSize),
 		"duration":     pickDuration(req.DurationSeconds),
-	}
+	})
 	if s := strings.TrimSpace(req.NegativePrompt); s != "" {
 		body["negative_prompt"] = s
 	}

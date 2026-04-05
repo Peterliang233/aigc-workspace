@@ -11,22 +11,23 @@
   gap: 10px;
   padding: 8px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--stroke);
+  background: var(--surface-soft);
+  color: rgba(245, 247, 255, 0.88);
   cursor: pointer;
   transition: transform 0.08s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 .chip--ghost {
-  background: rgba(0, 0, 0, 0.16);
-  border-color: rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.78);
+  background: rgba(8, 11, 20, 0.34);
+  border-color: var(--stroke);
+  color: rgba(245, 247, 255, 0.8);
 }
 
 .chip:hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: var(--stroke-strong);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .chip:disabled {
@@ -41,10 +42,9 @@
 
 .chip__x {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(205, 213, 240, 0.62);
+  border: 1px solid var(--stroke);
   border-radius: 999px;
   padding: 2px 6px;
-  background: rgba(0, 0, 0, 0.18);
+  background: rgba(8, 11, 20, 0.36);
 }
-

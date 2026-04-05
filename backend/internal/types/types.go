@@ -35,10 +35,11 @@ type VideoJobCreateRequest struct {
 	AspectRatio     string `json:"aspect_ratio,omitempty"` // legacy (generic providers)
 
 	// SiliconFlow specific fields (safe to ignore by other providers).
-	ImageSize      string `json:"image_size,omitempty"`      // 1280x720|720x1280|960x960
-	NegativePrompt string `json:"negative_prompt,omitempty"` // optional
-	Image          string `json:"image,omitempty"`           // URL or base64 (I2V)
-	Seed           *int64 `json:"seed,omitempty"`            // optional seed
+	ImageSize      string         `json:"image_size,omitempty"`      // 1280x720|720x1280|960x960
+	NegativePrompt string         `json:"negative_prompt,omitempty"` // optional
+	Image          string         `json:"image,omitempty"`           // URL or base64 (I2V)
+	Seed           *int64         `json:"seed,omitempty"`            // optional seed
+	Extra          map[string]any `json:"extra,omitempty"`           // provider/model-specific passthrough fields
 }
 
 type VideoJobCreateResponse struct {

@@ -1,30 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AIGC Studio">
   <defs>
-    <linearGradient id="bg" x1="12" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#0EA5E9"/>
-      <stop offset="0.55" stop-color="#22C55E"/>
-      <stop offset="1" stop-color="#F59E0B"/>
+    <linearGradient id="bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#171d32"/>
+      <stop offset="0.55" stop-color="#101728"/>
+      <stop offset="1" stop-color="#0a0f1c"/>
     </linearGradient>
-    <radialGradient id="shine" cx="18" cy="12" r="44" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.42"/>
-      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.06"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    <linearGradient id="edge" x1="10" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset="0.52" stop-color="#67e8f9"/>
+      <stop offset="1" stop-color="#ec4899"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="18" cy="14" r="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#67e8f9" stop-opacity="0.22"/>
+      <stop offset="0.4" stop-color="#8b5cf6" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
     </radialGradient>
     <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0B1220" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#04070f" flood-opacity="0.42"/>
     </filter>
   </defs>
 
-  <rect x="2.5" y="2.5" width="59" height="59" rx="16" fill="url(#bg)"/>
-  <rect x="2.5" y="2.5" width="59" height="59" rx="16" fill="url(#shine)"/>
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="#050811"/>
+  <rect x="5.5" y="5.5" width="53" height="53" rx="16.5" fill="url(#bg)"/>
+  <rect x="5.5" y="5.5" width="53" height="53" rx="16.5" fill="url(#glow)"/>
+  <rect x="5.5" y="5.5" width="53" height="53" rx="16.5" fill="none" stroke="url(#edge)" stroke-opacity="0.52" stroke-width="1.5"/>
 
-  <!-- Mark: a geometric "A" with a spark (AI) -->
   <g filter="url(#softShadow)">
-    <path fill="#FFFFFF" fill-rule="evenodd" d="M32 14.5 47.2 50H39.9l-3.4-8.1H27.5L24.1 50H16.8L32 14.5Zm0 15.1-2.4 6h4.8l-2.4-6Z"/>
-    <path fill="#FFFFFF" d="M50.6 18.2l-1.6 3.2-3.2 1.6 3.2 1.6 1.6 3.2 1.6-3.2 3.2-1.6-3.2-1.6-1.6-3.2Z" opacity="0.92"/>
+    <path
+      fill="url(#edge)"
+      fill-rule="evenodd"
+      d="M32 14.5 47.2 49.5H39.8l-3.1-7.5h-9.4l-3.1 7.5h-7.4L32 14.5Zm0 12.9-2.9 7.7h5.8L32 27.4Z"
+    />
+    <path
+      d="M43.4 18.6h6.2"
+      stroke="#F5F7FF"
+      stroke-opacity="0.9"
+      stroke-width="2.2"
+      stroke-linecap="round"
+    />
+    <path
+      d="M46.5 15.5v6.2"
+      stroke="#F5F7FF"
+      stroke-opacity="0.9"
+      stroke-width="2.2"
+      stroke-linecap="round"
+    />
   </g>
 
-  <!-- Border for contrast on light tab bars -->
-  <rect x="2.5" y="2.5" width="59" height="59" rx="16" fill="none" stroke="#0B1220" stroke-opacity="0.16"/>
+  <rect x="9" y="9" width="46" height="46" rx="13" fill="none" stroke="#F5F7FF" stroke-opacity="0.05"/>
 </svg>
-

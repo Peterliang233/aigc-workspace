@@ -1,14 +1,15 @@
 .page {
-  min-height: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .shell {
   flex: 1;
   display: flex;
   gap: 16px;
-  padding: 18px 18px 18px 0;
+  padding: 8px 20px 20px 0;
   align-items: flex-start;
   justify-content: flex-start;
   position: relative;
@@ -27,36 +28,37 @@
 .workspace {
   width: 100%;
   display: grid;
-  /* Keep the editor (left) reasonably compact and let results (right) take more space. */
   grid-template-columns: minmax(340px, 460px) minmax(520px, 1fr);
-  gap: 16px;
-  align-items: start;
+  gap: 18px;
+  align-items: stretch;
 }
 
 .resultsCard {
   position: sticky;
-  top: 18px;
+  top: 8px;
   align-self: start;
-  max-height: calc(100vh - 36px);
+  min-height: calc(100vh - 16px);
+  max-height: calc(100vh - 16px);
   overflow: auto;
 }
 
 .mobilebar {
   display: none;
   height: 48px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--stroke);
+  background: var(--card);
   border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-soft);
   padding: 8px 10px;
   align-items: center;
   gap: 10px;
+  backdrop-filter: blur(18px);
 }
 
 .mobilebar__btn {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.18);
-  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
   border-radius: 12px;
   padding: 10px 10px;
   cursor: pointer;
@@ -65,4 +67,8 @@
 .mobilebar__title {
   font-weight: 780;
   letter-spacing: 0.3px;
+  background: linear-gradient(90deg, #f5f7ff 0%, #c4b5fd 45%, #67e8f9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

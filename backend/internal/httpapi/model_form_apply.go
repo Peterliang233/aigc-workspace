@@ -104,6 +104,8 @@ func (h *Handler) applyVideoModelDefaults(providerID, model string, req *types.V
 					req.Seed = &n
 				}
 			}
+		default:
+			req.SetExtraDefault(k, f.Default)
 		}
 	}
 }
