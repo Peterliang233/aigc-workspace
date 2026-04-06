@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
+import { ResultActions } from "./common/ResultActions";
 import { HistoryRow } from "./history/HistoryRow";
 import { HistoryToolbar } from "./history/HistoryToolbar";
 type Item = {
@@ -132,35 +133,33 @@ export function HistoryStudio() {
         <div className="card__head">
           <h2 className="card__title">结果预览</h2>
           {selected ? (
-            <div className="chips" style={{ marginLeft: "auto" }}>
-              <a className="link" href={selected.url} target="_blank" rel="noreferrer">
-                open
-              </a>
-              {selected.url.startsWith("/api/assets/") ? (
-                <a className="btn btn--ghost" href={`${selected.url}?download=1`} title="下载资源">
-                  下载
-                </a>
-              ) : null}
-            </div>
+            <div style={{ marginLeft: "auto" }}><ResultActions url={selected.url} /></div>
           ) : (
             <span className="muted">-</span>
           )}
         </div>
 
         {selected ? (
-          selected.capability === "video" ? (
-            <div className="panel__media">
-              <video className="video" controls src={selected.url} />
+          <>
+            <div className="panel">
+              <div className="panel__row"><div className="k">Provider</div><div className="v">{selected.provider || "-"}</div></div>
+              <div className="panel__row"><div className="k">Model</div><div className="v">{selected.model || "-"}</div></div>
+              <div className="panel__row"><div className="k">Status</div><div className="v">{selected.status || "-"}</div></div>
             </div>
-          ) : selected.capability === "audio" ? (
-            <div className="panel__media">
-              <audio className="audioPlayer" controls src={selected.url} />
-            </div>
-          ) : (
-            <a className="preview" href={selected.url} target="_blank" rel="noreferrer">
-              <img className="preview__img" src={selected.url} alt={selected.prompt_preview || ""} />
-            </a>
-          )
+            {selected.capability === "video" ? (
+              <div className="panel__media">
+                <video className="video" controls src={selected.url} />
+              </div>
+            ) : selected.capability === "audio" ? (
+              <div className="panel__media">
+                <audio className="audioPlayer" controls src={selected.url} />
+              </div>
+            ) : (
+              <a className="preview" href={selected.url} target="_blank" rel="noreferrer">
+                <img className="preview__img" src={selected.url} alt={selected.prompt_preview || ""} />
+              </a>
+            )}
+          </>
         ) : (
           <div className="placeholder">
             <div className="placeholder__title">选择一条记录预览</div>

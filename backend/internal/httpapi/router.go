@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"aigc-backend/internal/animation"
 	"aigc-backend/internal/assets"
 	"aigc-backend/internal/config"
 	"aigc-backend/internal/modelcfg"
@@ -34,6 +35,8 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 		models:         models,
 		assets:         assetsSvc,
 		jobs:           store.NewJobStore(),
+		animationJobs:  store.NewAnimationStore(),
+		mediaWorker:    animation.NewMediaClient(cfg.MediaWorkerURL),
 		staticRoot:     staticRoot,
 		imageProviders: map[string]imageProvider{},
 		provKeys:       map[string]string{},
@@ -63,6 +66,8 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 
 	r.POST("/api/videos/jobs", gin.WrapF(h.videosJobs))
 	r.GET("/api/videos/jobs/*id", gin.WrapF(h.videosJobsID))
+	r.POST("/api/animations/jobs", gin.WrapF(h.animationsJobs))
+	r.GET("/api/animations/jobs/*id", gin.WrapF(h.animationsJobsID))
 
 	r.GET("/api/history", gin.WrapF(h.historyList))
 	r.GET("/api/history/*id", gin.WrapF(h.historyGet))

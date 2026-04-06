@@ -1,0 +1,53 @@
+.animSegments {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.animSegments__item {
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.animSegments__head,
+.animSegments__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.animSegments__head {
+  justify-content: space-between;
+}
+
+.animSegments__video,
+.animSegments__prompt {
+  margin-top: 10px;
+}
+
+.animSegments__prompt {
+  color: rgba(245, 247, 255, 0.82);
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.animSegments__empty {
+  margin-top: 10px;
+  border: 1px dashed var(--stroke);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--muted);
+  background: rgba(8, 11, 20, 0.24);
+}
+
+@media (max-width: 900px) {
+  .animSegments__head,
+  .animSegments__meta {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}

@@ -5,6 +5,7 @@ export type HistoryItem = {
   id: number;
   capability: "image" | "video" | "audio";
   provider: string;
+  model?: string;
   prompt_preview?: string;
   bytes: number;
   created_at: string;
@@ -50,7 +51,11 @@ export function HistoryRow(props: {
         <div className="pill">{item.capability}</div>
       </div>
       <div className="hrow__mid">
-        <div className="muted">{item.provider}</div>
+        <div className="hrow__meta" title={item.model ? `${item.provider} · ${item.model}` : item.provider}>
+          <span className="muted">{item.provider}</span>
+          {item.model ? <span className="hrow__sep">·</span> : null}
+          {item.model ? <span className="hrow__model mono">{item.model}</span> : null}
+        </div>
         <div className="muted">{fmtBytes(item.bytes)}</div>
       </div>
       <div className="hrow__bot">

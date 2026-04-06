@@ -4,6 +4,7 @@ import { useGeneration } from "../state/generation";
 import { ModelFields } from "./form/ModelFields";
 import { useApplyFieldDefaults } from "./form/useApplyFieldDefaults";
 import type { ModelFormField } from "../api";
+import { ResultActions } from "./common/ResultActions";
 import { InitImageField } from "./video/InitImageField";
 export function ImageStudio() {
   const {
@@ -165,23 +166,11 @@ export function ImageStudio() {
       <section className="card resultsCard">
         <div className="card__head">
           <h2 className="card__title">生成结果</h2>
-          {url ? (
-            <div className="chips" style={{ marginLeft: "auto" }}>
-              {url.startsWith("/api/assets/") ? (
-                <a className="btn btn--ghost" href={`${url}?download=1`} title="下载图片">
-                  下载
-                </a>
-              ) : (
-                <a className="btn btn--ghost" href={url} download title="下载图片">
-                  下载
-                </a>
-              )}
-            </div>
-          ) : null}
+          {url ? <div style={{ marginLeft: "auto" }}><ResultActions url={url} /></div> : null}
         </div>
 
         {url ? (
-          <a className="preview" href={url} target="_blank" rel="noreferrer" title="Open original">
+          <a className="preview" href={url} target="_blank" rel="noreferrer" title="查看原图">
             <img className="preview__img" src={url} alt={values["prompt"] || ""} />
           </a>
         ) : (

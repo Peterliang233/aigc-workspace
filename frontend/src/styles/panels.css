@@ -108,6 +108,27 @@
   align-items: center;
 }
 
+.hrow__meta {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.hrow__sep {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.hrow__model {
+  color: rgba(196, 181, 253, 0.88);
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .hrow__bot {
   margin-top: 10px;
   display: grid;

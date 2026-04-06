@@ -3,6 +3,7 @@
 	frontend-install frontend-dev frontend-build frontend-preview \
 	env-init \
 	mysql-up mysql-down mysql-logs mysql-reset \
+	media-worker-up media-worker-down media-worker-logs \
 	minio-up minio-down minio-logs minio-reset \
 	compose-up compose-down compose-logs \
 	compose-dev-up compose-dev-down compose-dev-logs \
@@ -26,6 +27,9 @@ help:
 	@printf "  mysql-logs          docker compose (dev) logs mysql\\n"
 	@printf "  mysql-down          docker compose (dev) stop mysql\\n"
 	@printf "  mysql-reset         docker compose (dev) down -v (DELETES dev data)\\n"
+	@printf "  media-worker-up     docker compose (dev) up -d media-worker\\n"
+	@printf "  media-worker-logs   docker compose (dev) logs media-worker\\n"
+	@printf "  media-worker-down   docker compose (dev) stop media-worker\\n"
 	@printf "  minio-up            docker compose (dev) up -d minio (+ init bucket)\\n"
 	@printf "  minio-logs          docker compose (dev) logs minio\\n"
 	@printf "  minio-down          docker compose (dev) stop minio\\n"
@@ -84,6 +88,16 @@ mysql-reset:
 	# WARNING: this deletes the dev mysql volume (data) and re-initializes it.
 	@$(MAKE) env-init
 	docker compose -f docker-compose.dev.yml down -v
+
+media-worker-up:
+	@$(MAKE) env-init
+	docker compose -f docker-compose.dev.yml up -d --build media-worker
+
+media-worker-logs:
+	docker compose -f docker-compose.dev.yml logs --tail=200 -f media-worker
+
+media-worker-down:
+	docker compose -f docker-compose.dev.yml stop media-worker
 
 minio-up:
 	@$(MAKE) env-init

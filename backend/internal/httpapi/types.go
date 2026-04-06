@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"aigc-backend/internal/animation"
 	"aigc-backend/internal/assets"
 	"aigc-backend/internal/config"
 	"aigc-backend/internal/modelcfg"
@@ -24,8 +25,10 @@ type Handler struct {
 	audioProviders map[string]audioProvider
 	audioProvKeys  map[string]string
 
-	jobs       *store.JobStore
-	staticRoot string
+	jobs          *store.JobStore
+	animationJobs *store.AnimationStore
+	mediaWorker   *animation.MediaClient
+	staticRoot    string
 }
 
 type imageProvider interface {

@@ -49,12 +49,21 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
+      media-worker:
+        condition: service_started
     env_file:
       - .env
     volumes:
       - backend_var:/app/var
     ports:
       - "8080:8080"
+
+  media-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.media-worker
+    env_file:
+      - .env
 
   frontend:
     build:

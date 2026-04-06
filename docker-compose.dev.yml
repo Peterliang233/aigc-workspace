@@ -51,6 +51,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
+      media-worker:
+        condition: service_started
     env_file:
       - .env
     volumes:
@@ -58,6 +60,15 @@ services:
       - backend_gocache:/tmp/gocache
     ports:
       - "8080:8080"
+
+  media-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.media-worker
+    env_file:
+      - .env
+    ports:
+      - "${MEDIA_WORKER_PORT:-8090}:8090"
 
   frontend:
     image: node:20

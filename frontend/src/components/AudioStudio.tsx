@@ -3,6 +3,7 @@ import type { ModelFormField } from "../api";
 import { useAudioMeta } from "../hooks/useAudioMeta";
 import { useGeneration } from "../state/generation";
 import { ModelFields } from "./form/ModelFields";
+import { ResultActions } from "./common/ResultActions";
 import { useApplyFieldDefaults } from "./form/useApplyFieldDefaults";
 
 export function AudioStudio() {
@@ -90,10 +91,7 @@ export function AudioStudio() {
         <div className="card__head">
           <h2 className="card__title">生成结果</h2>
           {latest?.audio_url ? (
-            <div className="chips" style={{ marginLeft: "auto" }}>
-              <a className="link" href={latest.audio_url} target="_blank" rel="noreferrer">open</a>
-              <a className="btn btn--ghost" href={latest.audio_url.startsWith("/api/assets/") ? `${latest.audio_url}?download=1` : latest.audio_url}>下载</a>
-            </div>
+            <div style={{ marginLeft: "auto" }}><ResultActions url={latest.audio_url} /></div>
           ) : null}
         </div>
         {latest?.audio_url ? (

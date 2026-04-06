@@ -16,6 +16,7 @@ type ImageProviderConfig struct {
 type Config struct {
 	VideoStartEP   string
 	VideoStatusEP  string
+	MediaWorkerURL string
 	Port           string
 	AllowedOrigins []string
 
@@ -106,6 +107,7 @@ func LoadFromEnv() Config {
 	return Config{
 		VideoStartEP:   strings.TrimSpace(os.Getenv("AIGC_VIDEO_START_ENDPOINT")),
 		VideoStatusEP:  strings.TrimSpace(os.Getenv("AIGC_VIDEO_STATUS_ENDPOINT")),
+		MediaWorkerURL: pickMediaWorkerURL(),
 		Port:           port,
 		AllowedOrigins: allowed,
 		ImageProviders: imageProviders,
@@ -164,6 +166,27 @@ func pickMinIOEndpoint() string {
 		return local
 	}
 	return ep
+}
+
+func pickMediaWorkerURL() string {
+	url := strings.TrimSpace(os.Getenv("MEDIA_WORKER_URL"))
+	local := strings.TrimSpace(os.Getenv("MEDIA_WORKER_URL_LOCAL"))
+	if local == "" {
+		return url
+	}
+	if url == "" {
+		return local
+	}
+	if !strings.Contains(url, "media-worker") {
+		return url
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 150*time.Millisecond)
+	defer cancel()
+	if _, err := net.DefaultResolver.LookupHost(ctx, "media-worker"); err != nil {
+		return local
+	}
+	return url
 }
 
 // helpers live in env_parse.go

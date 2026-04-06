@@ -40,7 +40,7 @@ func (p *Provider) StartVideoJob(ctx context.Context, req types.VideoJobCreateRe
 		body["seed"] = *req.Seed
 	}
 	if img := strings.TrimSpace(req.Image); img != "" {
-		body["image"] = img
+		applyGptBestVideoImage(body, img)
 	}
 
 	raw, _ := json.Marshal(body)
@@ -72,7 +72,7 @@ func (p *Provider) startVideoOnce(
 		"negative_prompt": logging.DownstreamPrompt(fmt.Sprint(body["negative_prompt"])),
 		"prompt":          logging.DownstreamPrompt(fmt.Sprint(body["prompt"])),
 		"image": func() any {
-			s := strings.TrimSpace(fmt.Sprint(body["image"]))
+			s := firstNonEmptyString(body["img_url"], body["image"])
 			if s == "" {
 				return ""
 			}

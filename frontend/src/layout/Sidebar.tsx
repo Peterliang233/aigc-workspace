@@ -1,4 +1,5 @@
 import React from "react";
+import { AnimationMark } from "./AnimationMark";
 import { Icon } from "./Icon";
 import type { Tab } from "./tabs";
 
@@ -72,6 +73,16 @@ export function Sidebar(props: {
             <Icon name="audio" />
           </span>
           <span className="navitem__label">音频生成</span>
+        </button>
+        <button
+          className={tab === "animation" ? "navitem navitem--active" : "navitem"}
+          onClick={() => onSelect("animation")}
+          title="动画工坊"
+        >
+          <span className="navitem__icon">
+            <AnimationMark />
+          </span>
+          <span className="navitem__label">动画工坊</span>
         </button>
         <button
           className={tab === "toolbox" ? "navitem navitem--active" : "navitem"}

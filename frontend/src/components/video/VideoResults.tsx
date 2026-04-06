@@ -1,17 +1,19 @@
 import React from "react";
 import type { VideoJobGetResponse } from "../../api";
+import { ActionLink, ResultActions } from "../common/ResultActions";
 
 type JobRow = VideoJobGetResponse & { created_at: number };
 
 export function VideoResults(props: { jobs: JobRow[]; onDeleteJob: (jobID: string) => void }) {
   const { jobs, onDeleteJob } = props;
   const latest = jobs[0] || null;
+  const recentJobs = jobs.slice(0, 5);
 
   return (
     <section className="card resultsCard">
       <div className="card__head">
         <h2 className="card__title">生成结果</h2>
-        <div className="badge">{jobs.length} jobs</div>
+        {latest?.video_url ? <div style={{ marginLeft: "auto" }}><ResultActions url={latest.video_url} /></div> : <div className="badge">{recentJobs.length} / {jobs.length} jobs</div>}
       </div>
 
       {latest ? (
@@ -45,14 +47,12 @@ export function VideoResults(props: { jobs: JobRow[]; onDeleteJob: (jobID: strin
       )}
 
       <div className="list">
-        {jobs.map((j) => (
+        {recentJobs.map((j) => (
           <div className="list__row" key={j.job_id}>
             <div className="mono">{j.job_id}</div>
             <div className="pill">{j.status}</div>
             {j.video_url ? (
-              <a className="link" href={j.video_url} target="_blank" rel="noreferrer">
-                open
-              </a>
+              <ActionLink href={j.video_url} compact />
             ) : (
               <span className="muted">-</span>
             )}

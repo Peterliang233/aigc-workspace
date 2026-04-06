@@ -3,6 +3,7 @@ import { PRESETS, RATIOS, type Mode } from "./toolbox/presets";
 import { outFileName, renderToPngBlob } from "./toolbox/render";
 import { SizeControls, SIZE_KEY_RATIO } from "./toolbox/SizeControls";
 import { targetFromRatio } from "./toolbox/target";
+import { ResultActions } from "./common/ResultActions";
 import { Icon } from "../layout/Icon";
 export function ToolboxStudio() {
   const [srcFile, setSrcFile] = useState<File | null>(null);
@@ -174,17 +175,11 @@ export function ToolboxStudio() {
       <section className="card resultsCard">
         <div className="card__head">
           <h2 className="card__title">预览</h2>
-          {outUrl ? (
-            <div className="chips" style={{ marginLeft: "auto" }}>
-              <a className="btn btn--ghost" href={outUrl} download={outName} title="下载处理后的图片">
-                下载
-              </a>
-            </div>
-          ) : null}
+          {outUrl ? <div style={{ marginLeft: "auto" }}><ResultActions url={outUrl} downloadName={outName} /></div> : null}
         </div>
 
         {outUrl ? (
-          <a className="preview" href={outUrl} target="_blank" rel="noreferrer" title="Open">
+          <a className="preview" href={outUrl} target="_blank" rel="noreferrer" title="查看预览">
             <img className="preview__img" src={outUrl} alt="output" />
           </a>
         ) : (
