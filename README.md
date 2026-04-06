@@ -2,6 +2,14 @@
 
 目标：把大模型厂商的“生成图片 / 生成视频”能力，封装成一个 Web 应用，自己直接对接模型厂商，做定制化能力，降低AIGC能力使用成本
 
+## 系统文档索引
+
+为方便后续维护与快速定位模块，仓库新增了 `docs/` 目录。
+
+- 总入口：`docs/README.md`
+- 需求到模块索引：`docs/change-map.md`
+- 系统总览：`docs/architecture/system-overview.md`
+
 ## 目录结构
 
 - `backend/`: Go HTTP API（不依赖第三方 Web 框架，便于二次封装）
