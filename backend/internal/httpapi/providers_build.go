@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"aigc-backend/internal/providers/gptbest"
+	"aigc-backend/internal/providers/jeniya"
 	"aigc-backend/internal/providers/mock"
 	"aigc-backend/internal/providers/openai_compatible"
 	"aigc-backend/internal/providers/siliconflow"
@@ -51,6 +52,13 @@ func (h *Handler) rebuildProvidersLocked() {
 			return wuyinkeji.New(pc.BaseURL, pc.APIKey, h.staticRoot, nil, nil)
 		})
 	}
+	if pc, ok := cfg.ImageProviders["jeniya"]; ok {
+		dm := defImageModel("jeniya")
+		key := "jeniya|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
+		ensure("jeniya", key, func() imageProvider {
+			return jeniya.New(pc.BaseURL, pc.APIKey, dm, h.staticRoot)
+		})
+	}
 	if pc, ok := cfg.ImageProviders["bltcy"]; ok {
 		dm := defImageModel("bltcy")
 		key := "bltcy|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
@@ -89,6 +97,22 @@ func (h *Handler) rebuildProvidersLocked() {
 			return gptbest.New("bltcy", pc.BaseURL, pc.APIKey, dm, h.staticRoot)
 		})
 	}
+	if pc, ok := cfg.ImageProviders["wuyinkeji"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		key := "wya|" + pc.BaseURL + "|" + pc.APIKey
+		ensureA("wuyinkeji", key, func() audioProvider {
+			return wuyinkeji.New(pc.BaseURL, pc.APIKey, h.staticRoot, nil, nil)
+		})
+	}
+	if pc, ok := cfg.ImageProviders["jeniya"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		dm := ""
+		if h.models != nil {
+			dm = h.models.DefaultModel("jeniya", "audio")
+		}
+		key := "jeniyaa|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
+		ensureA("jeniya", key, func() audioProvider {
+			return jeniya.New(pc.BaseURL, pc.APIKey, dm, h.staticRoot)
+		})
+	}
 
 	// Video providers (multi-provider). IDs are stable and match frontend selection.
 	if h.videoProviders == nil {
@@ -111,6 +135,12 @@ func (h *Handler) rebuildProvidersLocked() {
 			return siliconflow.NewVideo(pc.BaseURL, pc.APIKey)
 		})
 	}
+	if pc, ok := cfg.ImageProviders["wuyinkeji"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		key := "wyv|" + pc.BaseURL + "|" + pc.APIKey
+		ensureV("wuyinkeji", key, func() videoProvider {
+			return wuyinkeji.New(pc.BaseURL, pc.APIKey, h.staticRoot, nil, nil)
+		})
+	}
 	if pc, ok := cfg.ImageProviders["bltcy"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
 		dm := ""
 		if h.models != nil {
@@ -119,6 +149,16 @@ func (h *Handler) rebuildProvidersLocked() {
 		key := "bltcyv|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
 		ensureV("bltcy", key, func() videoProvider {
 			return gptbest.New("bltcy", pc.BaseURL, pc.APIKey, dm, h.staticRoot)
+		})
+	}
+	if pc, ok := cfg.ImageProviders["jeniya"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		dm := ""
+		if h.models != nil {
+			dm = h.models.DefaultModel("jeniya", "image")
+		}
+		key := "jeniyav|" + pc.BaseURL + "|" + pc.APIKey + "|" + dm
+		ensureV("jeniya", key, func() videoProvider {
+			return jeniya.New(pc.BaseURL, pc.APIKey, dm, h.staticRoot)
 		})
 	}
 	if pc, ok := cfg.ImageProviders["gpt_best"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {

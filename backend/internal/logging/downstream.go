@@ -73,7 +73,7 @@ func DownstreamRequestDebug(event, provider, method, rawURL string, params any) 
 }
 
 // DownstreamResponse logs an outbound response.
-func DownstreamResponse(event, provider, method, rawURL string, status int, dur time.Duration, err error) {
+func DownstreamResponse(event, provider, method, rawURL string, status int, dur time.Duration, err error, body ...string) {
 	if strings.TrimSpace(event) == "" {
 		event = "downstream_response"
 	}
@@ -83,6 +83,9 @@ func DownstreamResponse(event, provider, method, rawURL string, status int, dur 
 		"url", RedactURL(rawURL),
 		"status", status,
 		"dur_ms", dur.Milliseconds(),
+	}
+	if text := downstreamBody(body...); text != "" {
+		fields = append(fields, "body", text)
 	}
 	if err != nil {
 		fields = append(fields, "err", err.Error())
@@ -92,7 +95,7 @@ func DownstreamResponse(event, provider, method, rawURL string, status int, dur 
 	slog.Default().Info(event, fields...)
 }
 
-func DownstreamResponseDebug(event, provider, method, rawURL string, status int, dur time.Duration, err error) {
+func DownstreamResponseDebug(event, provider, method, rawURL string, status int, dur time.Duration, err error, body ...string) {
 	if strings.TrimSpace(event) == "" {
 		event = "downstream_response"
 	}
@@ -102,6 +105,9 @@ func DownstreamResponseDebug(event, provider, method, rawURL string, status int,
 		"url", RedactURL(rawURL),
 		"status", status,
 		"dur_ms", dur.Milliseconds(),
+	}
+	if text := downstreamBody(body...); text != "" {
+		fields = append(fields, "body", text)
 	}
 	if err != nil {
 		fields = append(fields, "err", err.Error())
@@ -137,4 +143,23 @@ func truncRunes(s string, n int) (string, bool) {
 		return s, false
 	}
 	return string(r[:n]), true
+}
+
+func downstreamBody(body ...string) string {
+	if len(body) == 0 {
+		return ""
+	}
+	text := strings.TrimSpace(body[0])
+	if text == "" {
+		return ""
+	}
+	limit := envInt("LOG_DOWNSTREAM_BODY_CHARS", 1500)
+	if envBool("LOG_DOWNSTREAM_BODY_FULL") || limit <= 0 {
+		return text
+	}
+	out, truncated := truncRunes(text, limit)
+	if truncated {
+		return out + "..."
+	}
+	return out
 }

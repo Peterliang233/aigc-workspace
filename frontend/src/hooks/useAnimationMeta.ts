@@ -4,7 +4,7 @@ import { api, type ProviderModelMeta } from "../api";
 type ProviderMeta = { id: string; label: string; configured: boolean; models: ProviderModelMeta[] };
 
 function isContinuousModel(m: ProviderModelMeta) {
-  return !!m.requires_image || !!m.form?.requires_image || !!(m.form?.fields || []).some((f) => String(f.key || "").trim() === "image" && !!f.required);
+  return !!m.requires_image || !!m.form?.requires_image || !!(m.form?.fields || []).some((f) => String(f.key || "").trim() === "image");
 }
 
 export function useAnimationMeta() {

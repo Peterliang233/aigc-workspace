@@ -37,7 +37,7 @@ func (p *Provider) pollResult(ctx context.Context, id string) ([]string, error) 
 		}
 		b, _ := ioReadAllLimit(resp.Body, 10<<20)
 		resp.Body.Close()
-		logging.DownstreamResponseDebug("provider_wuyin_detail_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), nil)
+		logging.DownstreamResponseDebug("provider_wuyin_detail_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), nil, string(b))
 
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			return nil, fmt.Errorf("wuyinkeji detail error: status=%d body=%s", resp.StatusCode, string(b))
@@ -70,4 +70,3 @@ func (p *Provider) pollResult(ctx context.Context, id string) ([]string, error) 
 
 	return nil, errors.New("wuyinkeji timeout waiting for result")
 }
-

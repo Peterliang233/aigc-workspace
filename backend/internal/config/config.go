@@ -65,6 +65,8 @@ func LoadFromEnv() Config {
 
 	wyBase := strings.TrimSpace(os.Getenv("WUYIN_BASE_URL"))
 	wyKey := strings.TrimSpace(os.Getenv("WUYIN_API_KEY"))
+	jeniyaBase := firstNonEmpty(strings.TrimSpace(os.Getenv("JENIYA_BASE_URL")), "https://jeniya.cn")
+	jeniyaKey := strings.TrimSpace(os.Getenv("JENIYA_API_KEY"))
 
 	bltcyBase := firstNonEmpty(
 		strings.TrimSpace(os.Getenv("BLTCY_BASE_URL")),
@@ -92,6 +94,10 @@ func LoadFromEnv() Config {
 		"wuyinkeji": {
 			BaseURL: wyBase,
 			APIKey:  wyKey,
+		},
+		"jeniya": {
+			BaseURL: jeniyaBase,
+			APIKey:  jeniyaKey,
 		},
 		"bltcy": {
 			BaseURL: bltcyBase,

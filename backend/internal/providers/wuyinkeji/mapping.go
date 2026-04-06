@@ -54,4 +54,3 @@ func normalizeModelSegment(s string) (string, error) {
 	}
 	return s, nil
 }
-

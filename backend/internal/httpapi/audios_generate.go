@@ -74,6 +74,24 @@ func (h *Handler) audiosGenerate(w http.ResponseWriter, r *http.Request) {
 			resp.AudioURL = fmt.Sprintf("/api/assets/%d", a.ID)
 			_ = os.Remove(p)
 		}
+	} else if h.assets != nil && h.assets.Enabled() && strings.TrimSpace(resp.AudioURL) != "" {
+		a, err := h.assets.StoreRemote(ctx, assets.StoreRemoteInput{
+			Capability: "audio",
+			Provider:   providerID,
+			Model:      strings.TrimSpace(resp.Model),
+			Prompt:     req.Input,
+			Params: map[string]any{
+				"voice":           strings.TrimSpace(req.Voice),
+				"response_format": strings.TrimSpace(req.ResponseFormat),
+				"speed":           req.Speed,
+			},
+			SourceURL: strings.TrimSpace(resp.AudioURL),
+		})
+		if err != nil {
+			slog.Default().Warn("audios_store_remote_asset_failed", "provider", providerID, "err", err.Error())
+		} else if a != nil {
+			resp.AudioURL = fmt.Sprintf("/api/assets/%d", a.ID)
+		}
 	}
 	writeJSON(w, http.StatusOK, resp)
 }

@@ -86,14 +86,13 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		b, _ := ioReadAllLimit(resp.Body, 4<<20)
-		logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), errors.New("bad status"))
+		logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), errors.New("bad status"), string(b))
 		slog.Default().Warn("provider_wuyin_start_bad_status", "status", resp.StatusCode)
 		return types.ImageGenerateResponse{}, fmt.Errorf("wuyinkeji start error: status=%d body=%s", resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil)
-
 	var out startResp
 	b, _ := ioReadAllLimit(resp.Body, 10<<20)
+	logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil, string(b))
 	if err := json.Unmarshal(b, &out); err != nil {
 		return types.ImageGenerateResponse{}, err
 	}
@@ -157,4 +156,3 @@ func (p *Provider) buildStartURL(model string) (string, error) {
 	}
 	return fmt.Sprintf("%s/api/async/%s?key=%s", p.baseURL, seg, p.apiKey), nil
 }
-

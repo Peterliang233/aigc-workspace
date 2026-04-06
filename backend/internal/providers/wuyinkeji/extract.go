@@ -65,3 +65,17 @@ func ioReadAllLimit(r io.Reader, n int64) ([]byte, error) {
 	return io.ReadAll(io.LimitReader(r, n))
 }
 
+func extractFieldURL(v any, key string) string {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return ""
+	}
+	for mk, mv := range m {
+		if strings.EqualFold(strings.TrimSpace(mk), strings.TrimSpace(key)) {
+			if s, ok := mv.(string); ok {
+				return strings.TrimSpace(s)
+			}
+		}
+	}
+	return ""
+}

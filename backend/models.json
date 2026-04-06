@@ -131,6 +131,133 @@
             }
           }
         ]
+      },
+      "video": {
+        "default_model": "video_veo3.1_fast",
+        "models": [
+          {
+            "id": "video_veo3.1_fast",
+            "label": "veo3.1-fast",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "aspect_ratio",
+                  "label": "Aspect Ratio",
+                  "type": "select",
+                  "default": "16:9",
+                  "options": [
+                    { "label": "16:9", "value": "16:9" },
+                    { "label": "9:16", "value": "9:16" }
+                  ]
+                },
+                {
+                  "key": "image_size",
+                  "label": "Quality",
+                  "type": "select",
+                  "default": "1280x720",
+                  "options": [
+                    { "label": "720p", "value": "1280x720" },
+                    { "label": "1080p", "value": "1920x1080" },
+                    { "label": "4K", "value": "3840x2160" }
+                  ]
+                },
+                { "key": "reference_url", "label": "首帧公共图片URL", "type": "text", "placeholder": "可选，需公网可访问" },
+                { "key": "last_frame_url", "label": "尾帧公共图片URL", "type": "text", "placeholder": "可选，需搭配首帧 URL" }
+              ]
+            }
+          },
+          {
+            "id": "video_grok_imagine",
+            "label": "Grok Imagine",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "duration_seconds",
+                  "label": "Duration (sec)",
+                  "type": "select",
+                  "default": 6,
+                  "options": [
+                    { "label": "6", "value": "6" },
+                    { "label": "10", "value": "10" }
+                  ]
+                },
+                {
+                  "key": "aspect_ratio",
+                  "label": "Aspect Ratio",
+                  "type": "select",
+                  "default": "2:3",
+                  "options": [
+                    { "label": "2:3", "value": "2:3" },
+                    { "label": "3:2", "value": "3:2" },
+                    { "label": "1:1", "value": "1:1" },
+                    { "label": "16:9", "value": "16:9" },
+                    { "label": "9:16", "value": "9:16" }
+                  ]
+                },
+                { "key": "reference_url", "label": "参考图片公共URL", "type": "text", "placeholder": "可选，需公网可访问" }
+              ]
+            }
+          },
+          {
+            "id": "video_sora2",
+            "label": "Sora2",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "aspect_ratio",
+                  "label": "Aspect Ratio",
+                  "type": "select",
+                  "default": "9:16",
+                  "options": [
+                    { "label": "9:16", "value": "9:16" },
+                    { "label": "16:9", "value": "16:9" }
+                  ]
+                },
+                {
+                  "key": "duration_seconds",
+                  "label": "Duration (sec)",
+                  "type": "select",
+                  "default": 10,
+                  "options": [
+                    { "label": "10", "value": "10" },
+                    { "label": "15", "value": "15" }
+                  ]
+                },
+                {
+                  "key": "size",
+                  "label": "Quality",
+                  "type": "select",
+                  "default": "small",
+                  "options": [
+                    { "label": "small", "value": "small" },
+                    { "label": "large", "value": "large" }
+                  ]
+                },
+                { "key": "url", "label": "参考图片URL", "type": "text", "placeholder": "可选，需公网可访问单图" },
+                { "key": "remix_target_id", "label": "续作 PID", "type": "text", "placeholder": "可选，续作视频返回的 PID" }
+              ]
+            }
+          }
+        ]
+      },
+      "audio": {
+        "default_model": "voice_composite",
+        "models": [
+          {
+            "id": "voice_composite",
+            "label": "语音合成",
+            "form": {
+              "fields": [
+                { "key": "input", "label": "文本内容", "type": "textarea", "required": true, "rows": 6 },
+                { "key": "voice", "label": "音色ID", "type": "text", "required": true, "default": "female-shaonv", "placeholder": "例如 female-shaonv" },
+                { "key": "speed", "label": "语速", "type": "number", "default": 1, "placeholder": "0.5 - 2.0" }
+              ]
+            }
+          }
+        ]
       }
     },
     {
@@ -157,6 +284,125 @@
       "video": {
         "default_model": "",
         "models": []
+      }
+    },
+    {
+      "id": "jeniya",
+      "label": "简易API",
+      "image": {
+        "default_model": "gpt-image-1",
+        "models": [
+          {
+            "id": "gpt-image-1",
+            "label": "GPT Image 1",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "size",
+                  "label": "Size",
+                  "type": "select",
+                  "default": "1024x1024",
+                  "options": [
+                    { "label": "1024x1024", "value": "1024x1024" },
+                    { "label": "1536x1024", "value": "1536x1024" },
+                    { "label": "1024x1536", "value": "1024x1536" }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "video": {
+        "default_model": "veo_3_1",
+        "models": [
+          {
+            "id": "veo_3_1",
+            "label": "Veo 3.1",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                { "key": "image", "label": "参考图片", "type": "image" },
+                {
+                  "key": "duration_seconds",
+                  "label": "Duration (sec)",
+                  "type": "select",
+                  "default": 5,
+                  "options": [
+                    { "label": "5", "value": "5" },
+                    { "label": "8", "value": "8" },
+                    { "label": "10", "value": "10" }
+                  ]
+                },
+                {
+                  "key": "aspect_ratio",
+                  "label": "Aspect Ratio",
+                  "type": "select",
+                  "default": "16:9",
+                  "options": [
+                    { "label": "16:9", "value": "16:9" },
+                    { "label": "9:16", "value": "9:16" },
+                    { "label": "1:1", "value": "1:1" }
+                  ]
+                },
+                {
+                  "key": "size",
+                  "label": "Size",
+                  "type": "select",
+                  "default": "1280x720",
+                  "options": [
+                    { "label": "1280x720", "value": "1280x720" },
+                    { "label": "720x1280", "value": "720x1280" },
+                    { "label": "1024x1024", "value": "1024x1024" }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "audio": {
+        "default_model": "gpt-4o-mini-tts",
+        "models": [
+          {
+            "id": "gpt-4o-mini-tts",
+            "label": "GPT 4o Mini TTS",
+            "form": {
+              "fields": [
+                { "key": "input", "label": "文本内容", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "voice",
+                  "label": "音色",
+                  "type": "select",
+                  "required": true,
+                  "default": "alloy",
+                  "options": [
+                    { "label": "alloy", "value": "alloy" },
+                    { "label": "echo", "value": "echo" },
+                    { "label": "fable", "value": "fable" },
+                    { "label": "onyx", "value": "onyx" },
+                    { "label": "nova", "value": "nova" },
+                    { "label": "shimmer", "value": "shimmer" }
+                  ]
+                },
+                {
+                  "key": "response_format",
+                  "label": "输出格式",
+                  "type": "select",
+                  "default": "mp3",
+                  "options": [
+                    { "label": "mp3", "value": "mp3" },
+                    { "label": "opus", "value": "opus" },
+                    { "label": "aac", "value": "aac" },
+                    { "label": "flac", "value": "flac" }
+                  ]
+                },
+                { "key": "speed", "label": "语速", "type": "number", "default": 1, "placeholder": "0.25 - 4.0" }
+              ]
+            }
+          }
+        ]
       }
     },
     {
