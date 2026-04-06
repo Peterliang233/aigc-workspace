@@ -86,7 +86,7 @@ func pickVideoURL(raw []byte) string {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		return ""
 	}
-	for _, k := range []string{"video_url", "output_url", "result_url", "play_url", "url"} {
+	for _, k := range []string{"video_url", "output_url", "output", "result_url", "play_url", "url"} {
 		if s := findStringByKeys(m, k); isVideoURL(s) {
 			return strings.TrimSpace(s)
 		}

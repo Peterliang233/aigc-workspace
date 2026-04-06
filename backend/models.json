@@ -275,6 +275,7 @@
             }
           },
           { "id": "sora-2", "label": "Sora 2" },
+          { "id": "veo3.1-fast", "label": "veo3.1-fast" },
           { "id": "vidu-q1", "label": "Vidu Q1" }
         ]
       },
