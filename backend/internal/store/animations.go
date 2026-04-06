@@ -10,6 +10,7 @@ type AnimationSegment struct {
 	Status        string
 	Duration      int
 	Prompt        string
+	Continuity    string
 	SourceJobID   string
 	VideoURL      string
 	LastFramePath string
@@ -21,11 +22,14 @@ type AnimationJob struct {
 	Status            string
 	Provider          string
 	Model             string
+	PlannerModel      string
 	Prompt            string
 	DurationSeconds   int
 	AspectRatio       string
 	LeadImage         string
 	Seed              *int64
+	PlannerStatus     string
+	PlannerError      string
 	SegmentCount      int
 	CompletedSegments int
 	CurrentSegment    int

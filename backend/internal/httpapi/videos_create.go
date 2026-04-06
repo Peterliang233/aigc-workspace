@@ -77,6 +77,7 @@ func (h *Handler) videosJobs(w http.ResponseWriter, r *http.Request) {
 		DurationSeconds: req.DurationSeconds,
 		AspectRatio:     req.AspectRatio,
 		ImageSize:       req.ImageSize,
+		Extra:           cloneMap(req.Extra),
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	})

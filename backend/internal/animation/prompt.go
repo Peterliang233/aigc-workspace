@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+type PlannedSegment struct {
+	DurationSeconds int
+	Prompt          string
+	Continuity      string
+}
+
 func BuildSegmentPrompt(prompt string, index, total int) string {
 	stage := segmentStage(index, total)
 	parts := []string{
@@ -12,9 +18,21 @@ func BuildSegmentPrompt(prompt string, index, total int) string {
 		fmt.Sprintf("Segment %d of %d.", index+1, total),
 		stage,
 		"Keep the same subject, outfit, environment, camera direction, lighting, and visual style.",
-		"Continue motion naturally from the previous segment without a hard cut.",
+		segmentContinuity(index, total),
 	}
 	return strings.Join(parts, " ")
+}
+
+func BuildFallbackSegments(prompt string, plan []int) []PlannedSegment {
+	out := make([]PlannedSegment, 0, len(plan))
+	for idx, dur := range plan {
+		out = append(out, PlannedSegment{
+			DurationSeconds: dur,
+			Prompt:          BuildSegmentPrompt(prompt, idx, len(plan)),
+			Continuity:      segmentContinuity(idx, len(plan)),
+		})
+	}
+	return out
 }
 
 func segmentStage(index, total int) string {
@@ -26,4 +44,14 @@ func segmentStage(index, total int) string {
 	default:
 		return "Continue the same shot with smooth camera and subject motion."
 	}
+}
+
+func segmentContinuity(index, total int) string {
+	if index == 0 {
+		return "Start a single continuous shot that can be extended by later segments."
+	}
+	if index == total-1 {
+		return "Match the previous tail frame exactly and finish the same shot naturally without a hard cut."
+	}
+	return "Match the previous tail frame exactly and continue the same shot without a hard cut."
 }

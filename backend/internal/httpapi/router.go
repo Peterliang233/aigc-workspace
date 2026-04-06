@@ -37,6 +37,7 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 		jobs:           store.NewJobStore(),
 		animationJobs:  store.NewAnimationStore(),
 		mediaWorker:    animation.NewMediaClient(cfg.MediaWorkerURL),
+		animationPlan:  animation.NewPromptPlanner(cfg.ImageProviders["bltcy"].BaseURL, cfg.ImageProviders["bltcy"].APIKey, "gpt-5.4"),
 		staticRoot:     staticRoot,
 		imageProviders: map[string]imageProvider{},
 		provKeys:       map[string]string{},

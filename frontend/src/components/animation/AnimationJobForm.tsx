@@ -1,21 +1,25 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAnimationMeta } from "../../hooks/useAnimationMeta";
 import { useAnimationJobs } from "../../state/animation";
 import { InitImageField } from "../video/InitImageField";
 
 const FALLBACK_AR = ["16:9", "9:16", "1:1"];
+const PLANNER_KEY = "aigc_animation_planner_model";
+const PLANNER_PRESETS = ["gpt-5.4", "gpt-5.2", "gpt-4.1", "__custom__"];
 
 export function AnimationJobForm(props: { latestStatus?: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { metaLoading, providers, provider, setProvider, model, setModel, customModel, setCustomModel, models, modelList, selectedModelMeta, useCustom } = useAnimationMeta();
   const { createAnimationJob } = useAnimationJobs();
-  const [values, setValues] = useState<Record<string, string>>({ prompt: "一只机械狐狸在赛博城市霓虹街道中向前奔跑，镜头连续跟拍，氛围一致。", duration_seconds: "20", aspect_ratio: "16:9", seed: "", lead_image: "" });
+  const savedPlanner = typeof window !== "undefined" ? localStorage.getItem(PLANNER_KEY) || "gpt-5.4" : "gpt-5.4";
+  const [values, setValues] = useState<Record<string, string>>({ prompt: "一只机械狐狸在赛博城市霓虹街道中向前奔跑，镜头连续跟拍，氛围一致。", planner_model: savedPlanner, duration_seconds: "20", aspect_ratio: "16:9", seed: "", lead_image: "" });
   const aspectOptions = useMemo(() => {
     const field = (selectedModelMeta?.form?.fields || []).find((f) => String(f.key || "").trim() === "aspect_ratio");
     const opts = (field?.options || []).map((o) => o.value).filter(Boolean);
     return opts.length > 0 ? opts : FALLBACK_AR;
   }, [selectedModelMeta]);
+  const plannerPreset = useMemo(() => PLANNER_PRESETS.includes(values.planner_model || "") ? values.planner_model : "__custom__", [values.planner_model]);
   const missing = useMemo(() => {
     const out: string[] = [];
     if (!String(values.prompt || "").trim()) out.push("prompt");
@@ -23,6 +27,10 @@ export function AnimationJobForm(props: { latestStatus?: string }) {
     if (useCustom && !customModel.trim()) out.push("model");
     return out;
   }, [values, useCustom, customModel]);
+
+  useEffect(() => {
+    if (String(values.planner_model || "").trim()) localStorage.setItem(PLANNER_KEY, String(values.planner_model).trim());
+  }, [values.planner_model]);
 
   async function onSubmit() {
     setBusy(true);
@@ -32,6 +40,7 @@ export function AnimationJobForm(props: { latestStatus?: string }) {
       await createAnimationJob({
         provider,
         model: useCustom ? customModel.trim() || undefined : model,
+        planner_model: String(values.planner_model || "").trim() || undefined,
         prompt: String(values.prompt || ""),
         duration_seconds: Number(String(values.duration_seconds || "0")),
         aspect_ratio: String(values.aspect_ratio || "").trim() || undefined,
@@ -56,9 +65,11 @@ export function AnimationJobForm(props: { latestStatus?: string }) {
         {modelList.length > 0 && useCustom ? <label className="label">自定义模型<input className="input" value={customModel} onChange={(e) => setCustomModel(e.target.value)} placeholder="输入 I2V 模型名称" /></label> : null}
         <label className="label">动画描述<textarea className="textarea" rows={6} value={values.prompt || ""} onChange={(e) => setValues((prev) => ({ ...prev, prompt: e.target.value }))} placeholder="描述主体、场景、镜头语言和连续动作。" disabled={busy} /></label>
         <div className="row2">
+          <label className="label">改写模型<select className="input" value={plannerPreset} onChange={(e) => setValues((prev) => ({ ...prev, planner_model: e.target.value === "__custom__" ? "" : e.target.value }))} disabled={busy}><option value="gpt-5.4">gpt-5.4</option><option value="gpt-5.2">gpt-5.2</option><option value="gpt-4.1">gpt-4.1</option><option value="__custom__">自定义...</option></select></label>
           <label className="label">总时长（秒）<input className="input" type="number" min="1" max="180" value={values.duration_seconds || ""} onChange={(e) => setValues((prev) => ({ ...prev, duration_seconds: e.target.value }))} disabled={busy} /></label>
-          <label className="label">画面比例<select className="input" value={values.aspect_ratio || aspectOptions[0]} onChange={(e) => setValues((prev) => ({ ...prev, aspect_ratio: e.target.value }))} disabled={busy}>{aspectOptions.map((v) => <option key={v} value={v}>{v}</option>)}</select></label>
         </div>
+        {plannerPreset === "__custom__" ? <label className="label">自定义改写模型<input className="input" value={values.planner_model || ""} onChange={(e) => setValues((prev) => ({ ...prev, planner_model: e.target.value }))} placeholder="输入 planner model，例如 gpt-5.4" disabled={busy} /></label> : null}
+        <label className="label">画面比例<select className="input" value={values.aspect_ratio || aspectOptions[0]} onChange={(e) => setValues((prev) => ({ ...prev, aspect_ratio: e.target.value }))} disabled={busy}>{aspectOptions.map((v) => <option key={v} value={v}>{v}</option>)}</select></label>
         <label className="label">Seed（可选）<input className="input" type="number" value={values.seed || ""} onChange={(e) => setValues((prev) => ({ ...prev, seed: e.target.value }))} placeholder="固定主体一致性" disabled={busy} /></label>
         <InitImageField value={values.lead_image || ""} onChange={(v) => setValues((prev) => ({ ...prev, lead_image: v }))} disabled={busy} />
         <button className="btn" disabled={busy || missing.length > 0} onClick={onSubmit}>{busy ? "Submitting..." : "Submit"}</button>

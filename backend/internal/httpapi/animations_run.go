@@ -31,6 +31,7 @@ func (h *Handler) runAnimationJob(jobID string) {
 		return
 	}
 	h.prepareAnimationJob(jobID, plan)
+	segments := h.buildAnimationSegments(context.Background(), jobID, job, plan)
 	req := types.AnimationJobCreateRequest{
 		Provider:        job.Provider,
 		Model:           job.Model,
@@ -53,7 +54,7 @@ func (h *Handler) runAnimationJob(jobID string) {
 
 	localVideos := make([]string, 0, len(plan))
 	for idx, dur := range plan {
-		segmentPrompt := anim.BuildSegmentPrompt(job.Prompt, idx, len(plan))
+		segmentPrompt := segments[idx].Prompt
 		videoURL, nextLead, err := h.runAnimationSegment(context.Background(), jobID, idx, dur, segmentPrompt, leadImage, tmpDir, vp, job)
 		if err != nil {
 			h.failAnimationJob(jobID, err)

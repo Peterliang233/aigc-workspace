@@ -57,6 +57,7 @@ func (h *Handler) animationsJobs(w http.ResponseWriter, r *http.Request) {
 		Status:          "queued",
 		Provider:        providerID,
 		Model:           strings.TrimSpace(req.Model),
+		PlannerModel:    strings.TrimSpace(req.PlannerModel),
 		Prompt:          req.Prompt,
 		DurationSeconds: req.DurationSeconds,
 		AspectRatio:     strings.TrimSpace(req.AspectRatio),

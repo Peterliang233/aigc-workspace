@@ -1,6 +1,7 @@
 export type AnimationJobCreateRequest = {
   provider?: string;
   model?: string;
+  planner_model?: string;
   prompt: string;
   duration_seconds: number;
   aspect_ratio?: string;
@@ -13,6 +14,7 @@ export type AnimationSegment = {
   status: string;
   duration_seconds: number;
   prompt?: string;
+  continuity?: string;
   source_job_id?: string;
   video_url?: string;
   last_frame_ready?: boolean;
@@ -29,6 +31,9 @@ export type AnimationJobCreateResponse = {
 
 export type AnimationJobGetResponse = AnimationJobCreateResponse & {
   prompt?: string;
+  planner_status?: string;
+  planner_model?: string;
+  planner_error?: string;
   segment_count: number;
   completed_segments: number;
   current_segment: number;

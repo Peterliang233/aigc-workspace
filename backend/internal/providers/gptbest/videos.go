@@ -31,7 +31,7 @@ func (p *Provider) StartVideoJob(ctx context.Context, req types.VideoJobCreateRe
 		"model":        model,
 		"prompt":       prompt,
 		"aspect_ratio": pickAspectRatio(req.AspectRatio, req.ImageSize),
-		"duration":     pickDuration(req.DurationSeconds),
+		"duration":     pickVideoDuration(model, req.DurationSeconds),
 	})
 	if s := strings.TrimSpace(req.NegativePrompt); s != "" {
 		body["negative_prompt"] = s
@@ -164,6 +164,13 @@ func pickDuration(v int) int {
 		return v
 	}
 	return 5
+}
+
+func pickVideoDuration(model string, v int) any {
+	if strings.EqualFold(strings.TrimSpace(model), "sora-2") {
+		return fmt.Sprintf("%d", pickDuration(v))
+	}
+	return pickDuration(v)
 }
 
 func pickAspectRatio(ar, imageSize string) string {

@@ -28,6 +28,7 @@ type Handler struct {
 	jobs          *store.JobStore
 	animationJobs *store.AnimationStore
 	mediaWorker   *animation.MediaClient
+	animationPlan *animation.PromptPlanner
 	staticRoot    string
 }
 

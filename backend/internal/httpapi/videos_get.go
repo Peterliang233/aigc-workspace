@@ -76,6 +76,9 @@ func (h *Handler) videosJobsID(w http.ResponseWriter, r *http.Request) {
 			in.Provider = strings.ToLower(strings.TrimSpace(job.Provider))
 			in.Model = strings.TrimSpace(job.Model)
 			in.Prompt = job.Prompt
+			for key, value := range job.Extra {
+				params[key] = value
+			}
 			if job.DurationSeconds > 0 {
 				params["duration_seconds"] = job.DurationSeconds
 			}
@@ -106,4 +109,15 @@ func (h *Handler) videosJobsID(w http.ResponseWriter, r *http.Request) {
 		Error:    jobErr,
 		Provider: providerID,
 	})
+}
+
+func cloneMap(src map[string]any) map[string]any {
+	if len(src) == 0 {
+		return nil
+	}
+	dst := make(map[string]any, len(src))
+	for key, value := range src {
+		dst[key] = value
+	}
+	return dst
 }

@@ -16,6 +16,7 @@ type VideoJob struct {
 	DurationSeconds int
 	AspectRatio     string
 	ImageSize       string
+	Extra           map[string]any
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 }

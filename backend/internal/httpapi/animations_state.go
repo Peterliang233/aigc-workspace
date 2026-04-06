@@ -35,7 +35,8 @@ func (h *Handler) storeAnimationFinal(ctx context.Context, outputPath string, jo
 
 func (h *Handler) prepareAnimationJob(jobID string, plan []int) {
 	h.animationJobs.Update(jobID, func(j *store.AnimationJob) {
-		j.Status = "running"
+		j.Status = "planning"
+		j.PlannerError = ""
 		j.SegmentCount = len(plan)
 		j.CompletedSegments = 0
 		j.CurrentSegment = 0

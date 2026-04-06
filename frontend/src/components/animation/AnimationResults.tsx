@@ -18,7 +18,9 @@ export function AnimationResults(props: { jobs: JobRow[]; onDeleteJob: (jobID: s
         <div className="panel">
           <div className="panel__row"><div className="k">Job</div><div className="v mono">{latest.job_id}</div></div>
           <div className="panel__row"><div className="k">Status</div><div className="v">{latest.status}</div></div>
+          <div className="panel__row"><div className="k">Planner</div><div className="v">{latest.planner_model ? `${latest.planner_model} · ${latest.planner_status || "-"}` : latest.planner_status || "disabled"}</div></div>
           <div className="panel__row"><div className="k">Progress</div><div className="v">{latest.completed_segments}/{latest.segment_count || 0}{latest.current_segment ? ` · 当前第 ${latest.current_segment} 段` : ""}</div></div>
+          {latest.planner_error ? <div className="alert">规划失败，已自动回退到模板分段：{latest.planner_error}</div> : null}
           {latest.error ? <div className="alert alert--err">Error: {latest.error}</div> : null}
           {latest.video_url ? <div className="panel__media"><video className="video" controls src={latest.video_url} /></div> : null}
           <div className="animSegments">
@@ -40,6 +42,7 @@ export function AnimationResults(props: { jobs: JobRow[]; onDeleteJob: (jobID: s
                   <div className="animSegments__empty">当前分段还没有可预览视频，状态：{seg.status}</div>
                 )}
                 <div className="animSegments__prompt">{seg.prompt || "-"}</div>
+                {seg.continuity ? <div className="muted">{seg.continuity}</div> : null}
                 {seg.error ? <div className="alert alert--err">Error: {seg.error}</div> : null}
               </div>
             ))}
