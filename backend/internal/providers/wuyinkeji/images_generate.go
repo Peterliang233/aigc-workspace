@@ -62,15 +62,14 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		"size":        mapSize(req.Size),
 		"aspectRatio": mapAspect(req.AspectRatio),
 	}
+	raw, _ := json.Marshal(payload)
 
-	logging.DownstreamRequest("provider_wuyin_start", p.ProviderName(), http.MethodPost, startURL, map[string]any{
+	logging.DownstreamRequestRaw("provider_wuyin_start", p.ProviderName(), http.MethodPost, startURL, map[string]any{
 		"model":  model,
 		"prompt": logging.DownstreamPrompt(prompt),
 		"size":   payload["size"],
 		"aspect": payload["aspectRatio"],
-	})
-
-	raw, _ := json.Marshal(payload)
+	}, "application/json", raw)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, startURL, bytes.NewReader(raw))
 	hreq.Header.Set("Content-Type", "application/json")
 	hreq.Header.Set("Authorization", p.apiKey)
@@ -78,7 +77,7 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, 0, time.Since(start), err, "", nil)
 		slog.Default().Warn("provider_wuyin_start_failed", "err", err.Error())
 		return types.ImageGenerateResponse{}, err
 	}
@@ -86,13 +85,13 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		b, _ := ioReadAllLimit(resp.Body, 4<<20)
-		logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), errors.New("bad status"), string(b))
+		logging.DownstreamResponseRaw("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		slog.Default().Warn("provider_wuyin_start_bad_status", "status", resp.StatusCode)
 		return types.ImageGenerateResponse{}, fmt.Errorf("wuyinkeji start error: status=%d body=%s", resp.StatusCode, string(b))
 	}
 	var out startResp
 	b, _ := ioReadAllLimit(resp.Body, 10<<20)
-	logging.DownstreamResponse("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil, string(b))
+	logging.DownstreamResponseRaw("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 	if err := json.Unmarshal(b, &out); err != nil {
 		return types.ImageGenerateResponse{}, err
 	}

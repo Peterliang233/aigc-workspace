@@ -49,6 +49,7 @@
 ## Security & Configuration Notes
 
 - Root `.env` is the single source for runtime config (do not maintain `backend/.env`).
+- Any config key added to `.env.example` must be added to root `.env` in the same change, with a sensible default or empty placeholder.
 - Do not `source .env` in a shell: DSNs like `tcp(127.0.0.1:3307)` are not POSIX shell syntax.
 - Secrets (API keys) are env-managed; do not persist them in MySQL or log them.
 - Downstream request logging records parameters; prompts are redacted by default. Only set `LOG_PROMPT_FULL=true` for local debugging.

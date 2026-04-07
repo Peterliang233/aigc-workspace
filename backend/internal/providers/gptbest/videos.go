@@ -65,7 +65,7 @@ func (p *Provider) startVideoOnce(
 	body map[string]any,
 	u string,
 ) (string, bool, error) {
-	logging.DownstreamRequest("provider_gptbest_video_start", p.ProviderName(), http.MethodPost, u, map[string]any{
+	logging.DownstreamRequestRaw("provider_gptbest_video_start", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"model":           body["model"],
 		"duration":        body["duration"],
 		"aspect_ratio":    body["aspect_ratio"],
@@ -81,7 +81,7 @@ func (p *Provider) startVideoOnce(
 			}
 			return "base64"
 		}(),
-	})
+	}, "application/json", raw)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(raw)), nil }
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
@@ -90,18 +90,18 @@ func (p *Provider) startVideoOnce(
 	start := time.Now()
 	resp, err := p.doWithRetry(hreq, 2)
 	if err != nil {
-		logging.DownstreamResponse("provider_gptbest_video_start_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_gptbest_video_start_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return "", false, err
 	}
 	defer resp.Body.Close()
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 6<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponse("provider_gptbest_video_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
+		logging.DownstreamResponseRaw("provider_gptbest_video_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		retryNext := resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusMethodNotAllowed
 		return "", retryNext, fmt.Errorf("%s video start API error: status=%d body=%s", p.ProviderName(), resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponse("provider_gptbest_video_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil)
+	logging.DownstreamResponseRaw("provider_gptbest_video_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 
 	jobID := pickJSONStr(b, "task_id", "id", "job_id", "request_id")
 	if jobID == "" {
@@ -137,23 +137,23 @@ func (p *Provider) GetVideoJob(ctx context.Context, jobID string) (string, strin
 }
 
 func (p *Provider) getVideoOnce(ctx context.Context, u string) (string, string, string, bool, error) {
-	logging.DownstreamRequestDebug("provider_gptbest_video_status", p.ProviderName(), http.MethodGet, u, nil)
+	logging.DownstreamRequestDebugRaw("provider_gptbest_video_status", p.ProviderName(), http.MethodGet, u, nil, "", nil)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponseDebug("provider_gptbest_video_status_response", p.ProviderName(), http.MethodGet, u, 0, time.Since(start), err)
+		logging.DownstreamResponseDebugRaw("provider_gptbest_video_status_response", p.ProviderName(), http.MethodGet, u, 0, time.Since(start), err, "", nil)
 		return "", "", "", false, err
 	}
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 6<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponseDebug("provider_gptbest_video_status_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
+		logging.DownstreamResponseDebugRaw("provider_gptbest_video_status_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		retryNext := resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusMethodNotAllowed
 		return "", "", "", retryNext, fmt.Errorf("%s video status API error: status=%d body=%s", p.ProviderName(), resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponseDebug("provider_gptbest_video_status_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), nil)
+	logging.DownstreamResponseDebugRaw("provider_gptbest_video_status_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 	status, jobErr := parseVideoStatusAndError(b)
 	videoURL := pickVideoURL(b)
 	return status, strings.TrimSpace(videoURL), strings.TrimSpace(jobErr), false, nil

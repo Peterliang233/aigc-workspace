@@ -75,7 +75,7 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 	raw, _ := json.Marshal(body)
 
 	u := p.baseURL + "/v1/video/submit"
-	logging.DownstreamRequest("provider_siliconflow_video_submit", p.ProviderName(), http.MethodPost, u, map[string]any{
+	logging.DownstreamRequestRaw("provider_siliconflow_video_submit", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"model":           model,
 		"image_size":      imageSize,
 		"seed_set":        req.Seed != nil,
@@ -90,7 +90,7 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 			}
 			return "base64"
 		}(),
-	})
+	}, "application/json", raw)
 
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
@@ -99,17 +99,17 @@ func (p *VideoProvider) StartVideoJob(ctx context.Context, req types.VideoJobCre
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponse("provider_siliconflow_video_submit_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_siliconflow_video_submit_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return "", err
 	}
 	defer resp.Body.Close()
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponse("provider_siliconflow_video_submit_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
+		logging.DownstreamResponseRaw("provider_siliconflow_video_submit_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		return "", fmt.Errorf("siliconflow video submit API error: status=%d body=%s", resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponse("provider_siliconflow_video_submit_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil)
+	logging.DownstreamResponseRaw("provider_siliconflow_video_submit_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 
 	var out sfVideoSubmitResponse
 	if err := json.Unmarshal(b, &out); err != nil {
@@ -132,9 +132,9 @@ func (p *VideoProvider) GetVideoJob(ctx context.Context, jobID string) (string, 
 
 	raw, _ := json.Marshal(sfVideoStatusRequest{RequestID: jobID})
 	u := p.baseURL + "/v1/video/status"
-	logging.DownstreamRequestDebug("provider_siliconflow_video_status", p.ProviderName(), http.MethodPost, u, map[string]any{
+	logging.DownstreamRequestDebugRaw("provider_siliconflow_video_status", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"requestId": jobID,
-	})
+	}, "application/json", raw)
 
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
@@ -143,17 +143,17 @@ func (p *VideoProvider) GetVideoJob(ctx context.Context, jobID string) (string, 
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponseDebug("provider_siliconflow_video_status_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
+		logging.DownstreamResponseDebugRaw("provider_siliconflow_video_status_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return "", "", "", err
 	}
 	defer resp.Body.Close()
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 6<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponseDebug("provider_siliconflow_video_status_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
+		logging.DownstreamResponseDebugRaw("provider_siliconflow_video_status_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		return "", "", "", fmt.Errorf("siliconflow video status API error: status=%d body=%s", resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponseDebug("provider_siliconflow_video_status_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil)
+	logging.DownstreamResponseDebugRaw("provider_siliconflow_video_status_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 
 	var out sfVideoStatusResponse
 	if err := json.Unmarshal(b, &out); err != nil {

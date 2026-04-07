@@ -36,26 +36,26 @@ func (p *Provider) StartVideoJob(ctx context.Context, req types.VideoJobCreateRe
 	}
 	payload := buildVideoPayload(model, req)
 	raw, _ := json.Marshal(payload)
-	logging.DownstreamRequest("provider_wuyin_video_start", p.ProviderName(), http.MethodPost, startURL, map[string]any{
+	logging.DownstreamRequestRaw("provider_wuyin_video_start", p.ProviderName(), http.MethodPost, startURL, map[string]any{
 		"model":  model,
 		"prompt": logging.DownstreamPrompt(prompt),
-	})
+	}, "application/json", raw)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, startURL, bytes.NewReader(raw))
 	hreq.Header.Set("Content-Type", "application/json")
 	hreq.Header.Set("Authorization", p.apiKey)
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponse("provider_wuyin_video_start_response", p.ProviderName(), http.MethodPost, startURL, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_wuyin_video_start_response", p.ProviderName(), http.MethodPost, startURL, 0, time.Since(start), err, "", nil)
 		return "", err
 	}
 	defer resp.Body.Close()
 	b, _ := ioReadAllLimit(resp.Body, 4<<20)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponse("provider_wuyin_video_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), errors.New("bad status"), string(b))
+		logging.DownstreamResponseRaw("provider_wuyin_video_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		return "", fmt.Errorf("wuyinkeji video start error: status=%d body=%s", resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponse("provider_wuyin_video_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil, string(b))
+	logging.DownstreamResponseRaw("provider_wuyin_video_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 	var out startResp
 	if err := json.Unmarshal(b, &out); err != nil {
 		return "", err
@@ -72,18 +72,18 @@ func (p *Provider) GetVideoJob(ctx context.Context, jobID string) (string, strin
 		return "", "", "", errors.New("job_id is required")
 	}
 	u := fmt.Sprintf("%s/api/async/detail?key=%s&id=%s", p.baseURL, p.apiKey, jobID)
-	logging.DownstreamRequestDebug("provider_wuyin_video_detail", p.ProviderName(), http.MethodGet, u, map[string]any{"job_id": jobID})
+	logging.DownstreamRequestDebugRaw("provider_wuyin_video_detail", p.ProviderName(), http.MethodGet, u, map[string]any{"job_id": jobID}, "", nil)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	hreq.Header.Set("Authorization", p.apiKey)
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponseDebug("provider_wuyin_video_detail_response", p.ProviderName(), http.MethodGet, u, 0, time.Since(start), err)
+		logging.DownstreamResponseDebugRaw("provider_wuyin_video_detail_response", p.ProviderName(), http.MethodGet, u, 0, time.Since(start), err, "", nil)
 		return "", "", "", err
 	}
 	defer resp.Body.Close()
 	b, _ := ioReadAllLimit(resp.Body, 10<<20)
-	logging.DownstreamResponseDebug("provider_wuyin_video_detail_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), nil, string(b))
+	logging.DownstreamResponseDebugRaw("provider_wuyin_video_detail_response", p.ProviderName(), http.MethodGet, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", "", "", fmt.Errorf("wuyinkeji video detail error: status=%d body=%s", resp.StatusCode, string(b))
 	}

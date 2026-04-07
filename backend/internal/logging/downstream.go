@@ -3,7 +3,6 @@ package logging
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -49,72 +48,20 @@ func DownstreamPrompt(prompt string) any {
 // DownstreamRequest logs an outbound request to a vendor/provider.
 // URL is always redacted (drops query/fragment).
 func DownstreamRequest(event, provider, method, rawURL string, params any) {
-	if strings.TrimSpace(event) == "" {
-		event = "downstream_request"
-	}
-	slog.Default().Info(event,
-		"provider", strings.TrimSpace(provider),
-		"method", strings.TrimSpace(method),
-		"url", RedactURL(rawURL),
-		"params", params,
-	)
+	DownstreamRequestRaw(event, provider, method, rawURL, params, "", nil)
 }
 
 func DownstreamRequestDebug(event, provider, method, rawURL string, params any) {
-	if strings.TrimSpace(event) == "" {
-		event = "downstream_request"
-	}
-	slog.Default().Debug(event,
-		"provider", strings.TrimSpace(provider),
-		"method", strings.TrimSpace(method),
-		"url", RedactURL(rawURL),
-		"params", params,
-	)
+	DownstreamRequestDebugRaw(event, provider, method, rawURL, params, "", nil)
 }
 
 // DownstreamResponse logs an outbound response.
 func DownstreamResponse(event, provider, method, rawURL string, status int, dur time.Duration, err error, body ...string) {
-	if strings.TrimSpace(event) == "" {
-		event = "downstream_response"
-	}
-	fields := []any{
-		"provider", strings.TrimSpace(provider),
-		"method", strings.TrimSpace(method),
-		"url", RedactURL(rawURL),
-		"status", status,
-		"dur_ms", dur.Milliseconds(),
-	}
-	if text := downstreamBody(body...); text != "" {
-		fields = append(fields, "body", text)
-	}
-	if err != nil {
-		fields = append(fields, "err", err.Error())
-		slog.Default().Warn(event, fields...)
-		return
-	}
-	slog.Default().Info(event, fields...)
+	DownstreamResponseRaw(event, provider, method, rawURL, status, dur, err, "", firstBodyBytes(body...))
 }
 
 func DownstreamResponseDebug(event, provider, method, rawURL string, status int, dur time.Duration, err error, body ...string) {
-	if strings.TrimSpace(event) == "" {
-		event = "downstream_response"
-	}
-	fields := []any{
-		"provider", strings.TrimSpace(provider),
-		"method", strings.TrimSpace(method),
-		"url", RedactURL(rawURL),
-		"status", status,
-		"dur_ms", dur.Milliseconds(),
-	}
-	if text := downstreamBody(body...); text != "" {
-		fields = append(fields, "body", text)
-	}
-	if err != nil {
-		fields = append(fields, "err", err.Error())
-		slog.Default().Debug(event, fields...)
-		return
-	}
-	slog.Default().Debug(event, fields...)
+	DownstreamResponseDebugRaw(event, provider, method, rawURL, status, dur, err, "", firstBodyBytes(body...))
 }
 
 func envBool(key string) bool {
@@ -162,4 +109,11 @@ func downstreamBody(body ...string) string {
 		return out + "..."
 	}
 	return out
+}
+
+func firstBodyBytes(body ...string) []byte {
+	if len(body) == 0 || strings.TrimSpace(body[0]) == "" {
+		return nil
+	}
+	return []byte(body[0])
 }

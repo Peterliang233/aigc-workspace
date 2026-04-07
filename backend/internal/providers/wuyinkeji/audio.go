@@ -40,27 +40,27 @@ func (p *Provider) GenerateAudio(ctx context.Context, req types.AudioGenerateReq
 	}
 	raw, _ := json.Marshal(body)
 	u := p.baseURL + "/api/voice/composite"
-	logging.DownstreamRequest("provider_wuyin_audio_start", p.ProviderName(), http.MethodPost, u, map[string]any{
+	logging.DownstreamRequestRaw("provider_wuyin_audio_start", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"voice_id": voice,
 		"speed":    req.Speed,
 		"text":     logging.DownstreamPrompt(input),
-	})
+	}, "application/json", raw)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Content-Type", "application/json;charset=utf-8")
 	hreq.Header.Set("Authorization", p.apiKey)
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponse("provider_wuyin_audio_start_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_wuyin_audio_start_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return types.AudioGenerateResponse{}, err
 	}
 	defer resp.Body.Close()
 	b, _ := ioReadAllLimit(resp.Body, 4<<20)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponse("provider_wuyin_audio_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"), string(b))
+		logging.DownstreamResponseRaw("provider_wuyin_audio_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		return types.AudioGenerateResponse{}, fmt.Errorf("wuyinkeji audio error: status=%d body=%s", resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponse("provider_wuyin_audio_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, string(b))
+	logging.DownstreamResponseRaw("provider_wuyin_audio_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 	var out audioResp
 	if err := json.Unmarshal(b, &out); err != nil {
 		return types.AudioGenerateResponse{}, err

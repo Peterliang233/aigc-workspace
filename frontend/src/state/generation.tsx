@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { AudioGenerateRequest, ImageGenerateRequest, VideoJobCreateRequest, VideoJobGetResponse } from "../api";
 import { api } from "../api";
+import { recoverRunningImages } from "./imageRecovery";
+import { makeId, persistState, safeParseState } from "./generationState";
 
 type ImageTask = {
   id: string;
@@ -41,29 +43,7 @@ type Ctx = {
   removeVideoJob: (jobID: string) => void;
 };
 
-const LS_KEY = "aigc_inflight_v1";
 const MAX_KEEP = 20;
-
-function safeParseState(): GenState {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return { images: [], videos: [], audios: [] };
-    const obj = JSON.parse(raw);
-    const images = Array.isArray(obj?.images) ? obj.images : [];
-    const videos = Array.isArray(obj?.videos) ? obj.videos : [];
-    const audios = Array.isArray(obj?.audios) ? obj.audios : [];
-    return { images, videos, audios };
-  } catch {
-    return { images: [], videos: [], audios: [] };
-  }
-}
-
-function makeId() {
-  // Keep it simple and deterministic enough for UI keys.
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? (crypto as any).randomUUID()
-    : `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-}
 
 const GenerationContext = createContext<Ctx | null>(null);
 
@@ -75,11 +55,7 @@ export function GenerationProvider(props: { children: React.ReactNode }) {
   }, [state]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify(state));
-    } catch {
-      // ignore quota/permission issues
-    }
+    persistState(state);
   }, [state]);
 
   // Poll video jobs globally so tab switches do not stop polling.
@@ -105,6 +81,27 @@ export function GenerationProvider(props: { children: React.ReactNode }) {
     }
 
     t = window.setTimeout(tick, 900);
+    return () => {
+      stopped = true;
+      if (t) window.clearTimeout(t);
+    };
+  }, []);
+
+  useEffect(() => {
+    let stopped = false;
+    let t: number | null = null;
+
+    async function tick() {
+      const snapshot = stateRef.current.images;
+      const next = await recoverRunningImages(snapshot);
+      if (!stopped && next !== snapshot) {
+        setState((prev) => (prev.images === snapshot ? { ...prev, images: next } : prev));
+      }
+      if (stopped) return;
+      t = window.setTimeout(tick, 4000);
+    }
+
+    t = window.setTimeout(tick, 1200);
     return () => {
       stopped = true;
       if (t) window.clearTimeout(t);

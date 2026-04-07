@@ -57,29 +57,29 @@ func (p *PromptPlanner) Plan(ctx context.Context, model string, req PromptPlanRe
 		},
 	})
 	url := p.baseURL + "/v1/chat/completions"
-	logging.DownstreamRequest("planner_request", "bltcy_planner", http.MethodPost, url, map[string]any{
+	logging.DownstreamRequestRaw("planner_request", "bltcy_planner", http.MethodPost, url, map[string]any{
 		"model":            model,
 		"segment_count":    len(req.SegmentDurations),
 		"segment_lengths":  req.SegmentDurations,
 		"total_duration_s": req.TotalSeconds,
 		"prompt":           logging.DownstreamPrompt(req.Prompt),
-	})
+	}, "application/json", body)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
 	hreq.Header.Set("Content-Type", "application/json")
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponse("planner_response", "bltcy_planner", http.MethodPost, url, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("planner_response", "bltcy_planner", http.MethodPost, url, 0, time.Since(start), err, "", nil)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(io.LimitReader(resp.Body, 2<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponse("planner_response", "bltcy_planner", http.MethodPost, url, resp.StatusCode, time.Since(start), fmt.Errorf("bad status"))
+		logging.DownstreamResponseRaw("planner_response", "bltcy_planner", http.MethodPost, url, resp.StatusCode, time.Since(start), fmt.Errorf("bad status"), resp.Header.Get("Content-Type"), raw)
 		return nil, fmt.Errorf("planner API error: status=%d body=%s", resp.StatusCode, string(raw))
 	}
-	logging.DownstreamResponse("planner_response", "bltcy_planner", http.MethodPost, url, resp.StatusCode, time.Since(start), nil)
+	logging.DownstreamResponseRaw("planner_response", "bltcy_planner", http.MethodPost, url, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), raw)
 	var payload struct {
 		Choices []struct {
 			Message struct {

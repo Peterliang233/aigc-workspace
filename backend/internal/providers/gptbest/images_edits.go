@@ -35,14 +35,14 @@ func (p *Provider) generateByEdits(
 		return types.ImageGenerateResponse{}, err
 	}
 	u := imagesEditsURL(p.baseURL)
-	logging.DownstreamRequest("provider_gptbest_request", p.ProviderName(), http.MethodPost, u, map[string]any{
+	logging.DownstreamRequestRaw("provider_gptbest_request", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"model":           model,
 		"image_count":     len(refs),
 		"size":            strings.TrimSpace(req.Size),
 		"aspect_ratio":    strings.TrimSpace(req.AspectRatio),
 		"negative_prompt": logging.DownstreamPrompt(req.NegativePrompt),
 		"prompt":          logging.DownstreamPrompt(prompt),
-	})
+	}, ctype, payload)
 
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(payload))
 	hreq.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(payload)), nil }
@@ -52,17 +52,17 @@ func (p *Provider) generateByEdits(
 	start := time.Now()
 	resp, err := p.doWithRetry(hreq, 2)
 	if err != nil {
-		logging.DownstreamResponse("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return types.ImageGenerateResponse{}, err
 	}
 	defer resp.Body.Close()
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 12<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponse("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
+		logging.DownstreamResponseRaw("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		return types.ImageGenerateResponse{}, fmt.Errorf("%s API error: status=%d body=%s", p.ProviderName(), resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponse("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil)
+	logging.DownstreamResponseRaw("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 
 	urls, err := p.parseImageAPIResponse(b)
 	if err != nil {

@@ -36,22 +36,22 @@ func (p *Provider) startSora2Job(ctx context.Context, req types.VideoJobCreateRe
 	}
 	raw, _ := json.Marshal(payload)
 	u := fmt.Sprintf("%s/api/async/video_sora2?key=%s", p.baseURL, p.apiKey)
-	logging.DownstreamRequest("provider_wuyin_sora2_start", p.ProviderName(), http.MethodPost, u, map[string]any{
+	logging.DownstreamRequestRaw("provider_wuyin_sora2_start", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"prompt": logging.DownstreamPrompt(req.Prompt),
 		"params": payload,
-	})
+	}, "application/json", raw)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Authorization", p.apiKey)
 	hreq.Header.Set("Content-Type", "application/json")
 	start := time.Now()
 	resp, err := p.httpClient.Do(hreq)
 	if err != nil {
-		logging.DownstreamResponse("provider_wuyin_sora2_start_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_wuyin_sora2_start_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return "", err
 	}
 	defer resp.Body.Close()
 	body, _ := ioReadAllLimit(resp.Body, 4<<20)
-	logging.DownstreamResponse("provider_wuyin_sora2_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, string(body))
+	logging.DownstreamResponseRaw("provider_wuyin_sora2_start_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), body)
 	jobID, msg, err := parseSora2Start(body)
 	if err != nil {
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {

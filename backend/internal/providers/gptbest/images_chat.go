@@ -97,11 +97,11 @@ func (p *Provider) generateByChat(ctx context.Context, model, prompt string, ref
 	raw, _ := json.Marshal(body)
 	u := chatCompletionsURL(p.baseURL)
 
-	logging.DownstreamRequest("provider_gptbest_request", p.ProviderName(), http.MethodPost, u, map[string]any{
+	logging.DownstreamRequestRaw("provider_gptbest_request", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"model":       model,
 		"image_count": len(refs),
 		"prompt":      logging.DownstreamPrompt(prompt),
-	})
+	}, "application/json", raw)
 
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.Header.Set("Authorization", "Bearer "+p.apiKey)
@@ -110,7 +110,7 @@ func (p *Provider) generateByChat(ctx context.Context, model, prompt string, ref
 	start := time.Now()
 	resp, err := p.doWithRetry(hreq, 3)
 	if err != nil {
-		logging.DownstreamResponse("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		if isTLSHandshakeTimeout(err) {
 			return types.ImageGenerateResponse{}, errors.New("连接 BLTCY 失败：TLS 握手超时，请检查网络或稍后重试")
 		}
@@ -120,10 +120,10 @@ func (p *Provider) generateByChat(ctx context.Context, model, prompt string, ref
 
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 12<<20))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		logging.DownstreamResponse("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
+		logging.DownstreamResponseRaw("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		return types.ImageGenerateResponse{}, fmt.Errorf("%s API error: status=%d body=%s", p.ProviderName(), resp.StatusCode, string(b))
 	}
-	logging.DownstreamResponse("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil)
+	logging.DownstreamResponseRaw("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 
 	var out chatResp
 	if err := json.Unmarshal(b, &out); err != nil {

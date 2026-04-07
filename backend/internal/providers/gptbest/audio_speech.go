@@ -52,13 +52,13 @@ func (p *Provider) GenerateAudio(ctx context.Context, req types.AudioGenerateReq
 	}
 	raw, _ := json.Marshal(body)
 	u := p.baseURL + "/v1/audio/speech"
-	logging.DownstreamRequest("provider_gptbest_audio_speech", p.ProviderName(), http.MethodPost, u, map[string]any{
+	logging.DownstreamRequestRaw("provider_gptbest_audio_speech", p.ProviderName(), http.MethodPost, u, map[string]any{
 		"model":           model,
 		"voice":           voice,
 		"response_format": format,
 		"speed":           req.Speed,
 		"input":           logging.DownstreamPrompt(input),
-	})
+	}, "application/json", raw)
 
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(raw))
 	hreq.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(raw)), nil }
@@ -68,22 +68,21 @@ func (p *Provider) GenerateAudio(ctx context.Context, req types.AudioGenerateReq
 	start := time.Now()
 	resp, err := p.doWithRetry(hreq, 3)
 	if err != nil {
-		logging.DownstreamResponse("provider_gptbest_audio_speech_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err)
+		logging.DownstreamResponseRaw("provider_gptbest_audio_speech_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return types.AudioGenerateResponse{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		b, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-		logging.DownstreamResponse("provider_gptbest_audio_speech_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"))
+		logging.DownstreamResponseRaw("provider_gptbest_audio_speech_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), errors.New("bad status"), resp.Header.Get("Content-Type"), b)
 		return types.AudioGenerateResponse{}, errors.New(strings.TrimSpace(string(b)))
 	}
-	logging.DownstreamResponse("provider_gptbest_audio_speech_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil)
-
 	b, err := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
 	if err != nil {
 		return types.AudioGenerateResponse{}, err
 	}
+	logging.DownstreamResponseRaw("provider_gptbest_audio_speech_response", p.ProviderName(), http.MethodPost, u, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
 	ct := strings.TrimSpace(resp.Header.Get("Content-Type"))
 	if ct == "" || strings.HasPrefix(ct, "application/json") || strings.HasPrefix(ct, "application/octet-stream") {
 		ct = contentTypeByAudioFormat(format)
