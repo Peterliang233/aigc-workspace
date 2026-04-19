@@ -44,7 +44,14 @@ func (h *Handler) videosJobsID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, videoURL, jobErr, err := vp.GetVideoJob(ctx, id)
+	status := ""
+	videoURL := ""
+	jobErr := ""
+	err := retryDownstreamCall(ctx, "video_get", func(callCtx context.Context) error {
+		var getErr error
+		status, videoURL, jobErr, getErr = vp.GetVideoJob(callCtx, id)
+		return getErr
+	})
 	if err != nil {
 		slog.Default().Warn("videos_get_failed", "job_id", id, "err", err.Error())
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})

@@ -89,21 +89,18 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		slog.Default().Warn("provider_wuyin_start_bad_status", "status", resp.StatusCode)
 		return types.ImageGenerateResponse{}, fmt.Errorf("wuyinkeji start error: status=%d body=%s", resp.StatusCode, string(b))
 	}
-	var out startResp
 	b, _ := ioReadAllLimit(resp.Body, 10<<20)
 	logging.DownstreamResponseRaw("provider_wuyin_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
-	if err := json.Unmarshal(b, &out); err != nil {
+	jobID, err := parseStartJobID(b)
+	if err != nil {
+		slog.Default().Warn("provider_wuyin_start_invalid_response", "err", err.Error())
 		return types.ImageGenerateResponse{}, err
 	}
-	if out.Data.ID == "" {
-		slog.Default().Warn("provider_wuyin_start_missing_id")
-		return types.ImageGenerateResponse{}, fmt.Errorf("wuyinkeji start missing id: %s", string(b))
-	}
 
-	slog.Default().Info("provider_wuyin_job_started", "job_id", out.Data.ID, "model", model)
-	urls, err := p.pollResult(ctx, out.Data.ID)
+	slog.Default().Info("provider_wuyin_job_started", "job_id", jobID, "model", model)
+	urls, err := p.pollResult(ctx, jobID)
 	if err != nil {
-		slog.Default().Warn("provider_wuyin_poll_failed", "job_id", out.Data.ID, "err", err.Error())
+		slog.Default().Warn("provider_wuyin_poll_failed", "job_id", jobID, "err", err.Error())
 		return types.ImageGenerateResponse{}, err
 	}
 	if len(urls) == 0 {

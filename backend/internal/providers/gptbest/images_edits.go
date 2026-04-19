@@ -50,7 +50,7 @@ func (p *Provider) generateByEdits(
 	hreq.Header.Set("Content-Type", ctype)
 
 	start := time.Now()
-	resp, err := p.doWithRetry(hreq, 2)
+	resp, err := p.doWithRetry(hreq, 1)
 	if err != nil {
 		logging.DownstreamResponseRaw("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return types.ImageGenerateResponse{}, err

@@ -35,7 +35,7 @@ func mapAspect(ar string) string {
 	}
 }
 
-var modelSegRe = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+var modelSegRe = regexp.MustCompile(`^[A-Za-z0-9._-]+$`)
 
 func normalizeModelSegment(s string) (string, error) {
 	s = strings.TrimSpace(s)

@@ -55,7 +55,7 @@ func (h *Handler) runAnimationJob(jobID string) {
 	localVideos := make([]string, 0, len(plan))
 	for idx, dur := range plan {
 		segmentPrompt := segments[idx].Prompt
-		videoURL, nextLead, err := h.runAnimationSegment(context.Background(), jobID, idx, dur, segmentPrompt, leadImage, tmpDir, vp, job)
+		videoURL, nextLead, err := h.runAnimationSegmentWithRetry(context.Background(), jobID, idx, dur, segmentPrompt, leadImage, tmpDir, vp, job)
 		if err != nil {
 			h.failAnimationJob(jobID, err)
 			return
@@ -86,7 +86,7 @@ func (h *Handler) runAnimationJob(jobID string) {
 	})
 }
 
-func (h *Handler) runAnimationSegment(
+func (h *Handler) runAnimationSegmentOnce(
 	ctx context.Context,
 	jobID string,
 	index int,
@@ -102,6 +102,10 @@ func (h *Handler) runAnimationSegment(
 		j.CurrentSegment = index + 1
 		j.Segments[index].Status = "running"
 		j.Segments[index].Prompt = segmentPrompt
+		j.Segments[index].SourceJobID = ""
+		j.Segments[index].VideoURL = ""
+		j.Segments[index].LastFramePath = ""
+		j.Segments[index].Error = ""
 	})
 	vreq := types.VideoJobCreateRequest{
 		Provider:        job.Provider,
@@ -113,7 +117,12 @@ func (h *Handler) runAnimationSegment(
 		Seed:            job.Seed,
 	}
 	h.applyVideoModelDefaults(job.Provider, job.Model, &vreq)
-	sourceJobID, err := vp.StartVideoJob(ctx, vreq)
+	var sourceJobID string
+	err := retryDownstreamCall(ctx, "animation_video_start", func(callCtx context.Context) error {
+		var startErr error
+		sourceJobID, startErr = vp.StartVideoJob(callCtx, vreq)
+		return startErr
+	})
 	if err != nil {
 		return "", "", err
 	}
@@ -142,6 +151,7 @@ func (h *Handler) runAnimationSegment(
 		j.Segments[index].Status = "succeeded"
 		j.Segments[index].VideoURL = remoteURL
 		j.Segments[index].LastFramePath = framePath
+		j.Segments[index].Error = ""
 	})
 	return localVideoPath, nextLead, nil
 }
@@ -152,7 +162,14 @@ func (h *Handler) pollAnimationVideo(ctx context.Context, jobID string, index in
 	ticker := time.NewTicker(4 * time.Second)
 	defer ticker.Stop()
 	for {
-		status, videoURL, jobErr, err := vp.GetVideoJob(timeoutCtx, sourceJobID)
+		status := ""
+		videoURL := ""
+		jobErr := ""
+		err := retryDownstreamCall(timeoutCtx, "animation_video_get", func(callCtx context.Context) error {
+			var getErr error
+			status, videoURL, jobErr, getErr = vp.GetVideoJob(callCtx, sourceJobID)
+			return getErr
+		})
 		if err != nil {
 			return "", err
 		}

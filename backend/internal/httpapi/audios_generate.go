@@ -44,7 +44,12 @@ func (h *Handler) audiosGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := prov.GenerateAudio(ctx, req)
+	var resp types.AudioGenerateResponse
+	err := retryDownstreamCall(ctx, "audio_generate", func(callCtx context.Context) error {
+		var genErr error
+		resp, genErr = prov.GenerateAudio(callCtx, req)
+		return genErr
+	})
 	if err != nil {
 		slog.Default().Warn("audios_generate_failed", "provider", providerID, "err", err.Error())
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})

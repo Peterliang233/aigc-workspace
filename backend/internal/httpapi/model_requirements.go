@@ -22,3 +22,21 @@ func (h *Handler) modelRequiresInitImage(providerID, model string) bool {
 	u := strings.ToUpper(model)
 	return strings.Contains(u, "I2V") || strings.Contains(u, "IMG2VID") || strings.Contains(u, "IMAGE2VIDEO")
 }
+
+func (h *Handler) modelSupportsInitImage(providerID, model string) bool {
+	providerID = strings.ToLower(strings.TrimSpace(providerID))
+	model = strings.TrimSpace(model)
+	if providerID != "" && model != "" && h.models != nil {
+		if ms := h.models.Model(providerID, "video", model); ms != nil && ms.Form != nil {
+			if ms.Form.RequiresImage {
+				return true
+			}
+			for _, f := range ms.Form.Fields {
+				if strings.EqualFold(strings.TrimSpace(f.Key), "image") {
+					return true
+				}
+			}
+		}
+	}
+	return h.modelRequiresInitImage(providerID, model)
+}

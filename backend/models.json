@@ -129,6 +129,70 @@
                 }
               ]
             }
+          },
+          {
+            "id": "image_nanoBanana2",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "aspect_ratio",
+                  "label": "Aspect Ratio",
+                  "type": "select",
+                  "default": "1:1",
+                  "options": [
+                    { "label": "1:1", "value": "1:1" },
+                    { "label": "16:9", "value": "16:9" },
+                    { "label": "9:16", "value": "9:16" },
+                    { "label": "4:3", "value": "4:3" },
+                    { "label": "3:4", "value": "3:4" }
+                  ]
+                },
+                {
+                  "key": "size",
+                  "label": "Size",
+                  "type": "select",
+                  "default": "1024x1024",
+                  "options": [
+                    { "label": "1024x1024", "value": "1024x1024" },
+                    { "label": "768x1024", "value": "768x1024" },
+                    { "label": "1024x768", "value": "1024x768" }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": "image_nanoBanana",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "aspect_ratio",
+                  "label": "Aspect Ratio",
+                  "type": "select",
+                  "default": "1:1",
+                  "options": [
+                    { "label": "1:1", "value": "1:1" },
+                    { "label": "16:9", "value": "16:9" },
+                    { "label": "9:16", "value": "9:16" },
+                    { "label": "4:3", "value": "4:3" },
+                    { "label": "3:4", "value": "3:4" }
+                  ]
+                },
+                {
+                  "key": "size",
+                  "label": "Size",
+                  "type": "select",
+                  "default": "1024x1024",
+                  "options": [
+                    { "label": "1024x1024", "value": "1024x1024" },
+                    { "label": "768x1024", "value": "768x1024" },
+                    { "label": "1024x768", "value": "1024x768" }
+                  ]
+                }
+              ]
+            }
           }
         ]
       },
@@ -521,24 +585,12 @@
             }
           },
           {
-            "id": "sora-2",
-            "label": "Sora 2",
+            "id": "veo3.1",
+            "label": "veo3.1",
             "form": {
               "fields": [
                 { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
                 { "key": "image", "label": "参考图片（可选，传入则走图生视频）", "type": "image" },
-                {
-                  "key": "duration_seconds",
-                  "label": "Duration (sec)",
-                  "type": "select",
-                  "default": 10,
-                  "options": [
-                    { "label": "5", "value": "5" },
-                    { "label": "10", "value": "10" },
-                    { "label": "15", "value": "15" },
-                    { "label": "20", "value": "20" }
-                  ]
-                },
                 {
                   "key": "aspect_ratio",
                   "label": "Aspect Ratio",
@@ -550,41 +602,10 @@
                     { "label": "1:1", "value": "1:1" }
                   ]
                 },
-                {
-                  "key": "hd",
-                  "label": "HD",
-                  "type": "select",
-                  "default": false,
-                  "options": [
-                    { "label": "false", "value": "false" },
-                    { "label": "true", "value": "true" }
-                  ]
-                },
-                {
-                  "key": "watermark",
-                  "label": "Watermark",
-                  "type": "select",
-                  "default": true,
-                  "options": [
-                    { "label": "true", "value": "true" },
-                    { "label": "false", "value": "false" }
-                  ]
-                },
-                {
-                  "key": "private",
-                  "label": "Private",
-                  "type": "select",
-                  "default": true,
-                  "options": [
-                    { "label": "true", "value": "true" },
-                    { "label": "false", "value": "false" }
-                  ]
-                },
-                { "key": "notify_hook", "label": "Notify Hook", "type": "text", "placeholder": "可选 Webhook 回调地址" }
+                { "key": "seed", "label": "Seed", "type": "number", "placeholder": "例如 42" }
               ]
             }
           },
-          { "id": "veo3.1-fast", "label": "veo3.1-fast" },
           { "id": "vidu-q1", "label": "Vidu Q1" }
         ]
       },

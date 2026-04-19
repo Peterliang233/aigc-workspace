@@ -108,7 +108,7 @@ func (p *Provider) generateByChat(ctx context.Context, model, prompt string, ref
 	hreq.Header.Set("Content-Type", "application/json")
 
 	start := time.Now()
-	resp, err := p.doWithRetry(hreq, 3)
+	resp, err := p.doWithRetry(hreq, 1)
 	if err != nil {
 		logging.DownstreamResponseRaw("provider_gptbest_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		if isTLSHandshakeTimeout(err) {

@@ -19,7 +19,7 @@ func (p *Provider) StartVideoJob(ctx context.Context, req types.VideoJobCreateRe
 	if p.apiKey == "" || p.baseURL == "" {
 		return "", errors.New("平台未配置 Base URL 或 API Key")
 	}
-	model := strings.TrimSpace(req.Model)
+	model := normalizeVideoModel(req.Model)
 	if model == "" {
 		return "", errors.New("model is required")
 	}
@@ -88,7 +88,7 @@ func (p *Provider) startVideoOnce(
 	hreq.Header.Set("Content-Type", "application/json")
 
 	start := time.Now()
-	resp, err := p.doWithRetry(hreq, 2)
+	resp, err := p.doWithRetry(hreq, 1)
 	if err != nil {
 		logging.DownstreamResponseRaw("provider_gptbest_video_start_response", p.ProviderName(), http.MethodPost, u, 0, time.Since(start), err, "", nil)
 		return "", false, err
@@ -164,6 +164,20 @@ func pickDuration(v int) int {
 		return v
 	}
 	return 5
+}
+
+func normalizeVideoModel(model string) string {
+	model = strings.TrimSpace(model)
+	if model == "" {
+		return ""
+	}
+	if strings.HasPrefix(model, "video_veo") {
+		model = strings.TrimPrefix(model, "video_")
+	}
+	if strings.HasPrefix(model, "veo") && strings.Contains(model, "_") {
+		model = strings.ReplaceAll(model, "_", "-")
+	}
+	return model
 }
 
 func pickVideoDuration(model string, v int) any {

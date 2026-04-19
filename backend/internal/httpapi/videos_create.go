@@ -60,7 +60,12 @@ func (h *Handler) videosJobs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.Default().Info("videos_create", "provider", providerID, "provider_impl", vp.ProviderName(), "model", model)
-	jobID, err := vp.StartVideoJob(ctx, req)
+	var jobID string
+	err := retryDownstreamCall(ctx, "video_start", func(callCtx context.Context) error {
+		var startErr error
+		jobID, startErr = vp.StartVideoJob(callCtx, req)
+		return startErr
+	})
 	if err != nil {
 		slog.Default().Warn("videos_create_failed", "provider", providerID, "err", err.Error())
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})

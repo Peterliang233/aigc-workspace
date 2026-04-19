@@ -38,8 +38,8 @@ func (h *Handler) animationsJobs(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "缺少 model"})
 		return
 	}
-	if !h.modelRequiresInitImage(providerID, req.Model) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "动画工坊仅支持支持图生视频的模型"})
+	if !h.modelSupportsInitImage(providerID, req.Model) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "动画工坊仅支持图生视频模型（需支持 image 输入）"})
 		return
 	}
 	if strings.TrimSpace(req.Prompt) == "" {

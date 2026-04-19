@@ -62,7 +62,12 @@ func (h *Handler) imagesGenerate(w http.ResponseWriter, r *http.Request) {
 		"size", strings.TrimSpace(req.Size),
 		"n", req.N,
 	)
-	resp, err := prov.GenerateImage(ctx, req)
+	var resp types.ImageGenerateResponse
+	err := retryDownstreamCall(ctx, "image_generate", func(callCtx context.Context) error {
+		var genErr error
+		resp, genErr = prov.GenerateImage(callCtx, req)
+		return genErr
+	})
 	if err != nil {
 		slog.Default().Warn("images_generate_failed", "provider", providerID, "err", err.Error())
 		msg := err.Error()

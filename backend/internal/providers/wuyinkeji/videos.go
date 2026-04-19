@@ -56,14 +56,7 @@ func (p *Provider) StartVideoJob(ctx context.Context, req types.VideoJobCreateRe
 		return "", fmt.Errorf("wuyinkeji video start error: status=%d body=%s", resp.StatusCode, string(b))
 	}
 	logging.DownstreamResponseRaw("provider_wuyin_video_start_response", p.ProviderName(), http.MethodPost, startURL, resp.StatusCode, time.Since(start), nil, resp.Header.Get("Content-Type"), b)
-	var out startResp
-	if err := json.Unmarshal(b, &out); err != nil {
-		return "", err
-	}
-	if out.Data.ID == "" {
-		return "", fmt.Errorf("wuyinkeji video start missing id: %s", string(b))
-	}
-	return out.Data.ID, nil
+	return parseStartJobID(b)
 }
 
 func (p *Provider) GetVideoJob(ctx context.Context, jobID string) (string, string, string, error) {
@@ -119,7 +112,7 @@ func buildVideoPayload(model string, req types.VideoJobCreateRequest) map[string
 	if strings.Contains(model, "grok") && req.DurationSeconds > 0 {
 		payload["duration"] = strconv.Itoa(req.DurationSeconds)
 	}
-	appendVideoRefs(payload, req)
+	appendVideoRefs(model, payload, req)
 	for k, v := range req.Extra {
 		k = strings.TrimSpace(k)
 		if k != "" && !types.IsCoreVideoField(k) && v != nil {
@@ -129,12 +122,16 @@ func buildVideoPayload(model string, req types.VideoJobCreateRequest) map[string
 	return payload
 }
 
-func appendVideoRefs(payload map[string]any, req types.VideoJobCreateRequest) {
+func appendVideoRefs(model string, payload map[string]any, req types.VideoJobCreateRequest) {
 	if s := strings.TrimSpace(req.Image); s != "" && isHTTPURL(s) {
 		payload["firstFrameUrl"] = s
 	}
 	if s := extraString(req.Extra, "reference_url"); isHTTPURL(s) {
-		payload["image_urls"] = []string{s}
+		if strings.Contains(strings.ToLower(strings.TrimSpace(model)), "veo3.1") {
+			payload["urls"] = []string{s}
+		} else {
+			payload["image_urls"] = []string{s}
+		}
 	}
 	if s := extraString(req.Extra, "last_frame_url"); isHTTPURL(s) {
 		payload["lastFrameUrl"] = s
