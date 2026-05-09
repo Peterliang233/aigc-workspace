@@ -7,12 +7,6 @@
   },
   "providers": [
     {
-      "id": "mock",
-      "label": "Mock(联调)",
-      "image": { "default_model": "", "models": [] },
-      "video": { "default_model": "", "models": [] }
-    },
-    {
       "id": "siliconflow",
       "label": "SiliconFlow",
       "image": {
@@ -96,37 +90,37 @@
       "id": "wuyinkeji",
       "label": "无印科技(速创API)",
       "image": {
-        "default_model": "image_nanoBanana_pro",
+        "default_model": "gpt-image-2",
         "models": [
           {
-            "id": "image_nanoBanana_pro",
+            "id": "gpt-image-2",
+            "label": "GPT Image 2",
             "form": {
               "fields": [
                 { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
                 {
-                  "key": "aspect_ratio",
+                  "key": "size",
                   "label": "Aspect Ratio",
                   "type": "select",
-                  "default": "1:1",
+                  "default": "auto",
                   "options": [
+                    { "label": "auto", "value": "auto" },
                     { "label": "1:1", "value": "1:1" },
+                    { "label": "3:2", "value": "3:2" },
+                    { "label": "2:3", "value": "2:3" },
                     { "label": "16:9", "value": "16:9" },
                     { "label": "9:16", "value": "9:16" },
                     { "label": "4:3", "value": "4:3" },
-                    { "label": "3:4", "value": "3:4" }
+                    { "label": "3:4", "value": "3:4" },
+                    { "label": "21:9", "value": "21:9" },
+                    { "label": "9:21", "value": "9:21" },
+                    { "label": "1:3", "value": "1:3" },
+                    { "label": "3:1", "value": "3:1" },
+                    { "label": "2:1", "value": "2:1" },
+                    { "label": "1:2", "value": "1:2" }
                   ]
                 },
-                {
-                  "key": "size",
-                  "label": "Size",
-                  "type": "select",
-                  "default": "1024x1024",
-                  "options": [
-                    { "label": "1024x1024", "value": "1024x1024" },
-                    { "label": "768x1024", "value": "768x1024" },
-                    { "label": "1024x768", "value": "1024x768" }
-                  ]
-                }
+                { "key": "image", "label": "参考图片URL", "type": "image" }
               ]
             }
           },
@@ -325,159 +319,14 @@
       }
     },
     {
-      "id": "openai_compatible",
-      "label": "OpenAI Compatible",
-      "image": {
-        "default_model": "gpt-image-1",
-        "models": [
-          {
-            "id": "gpt-image-1",
-            "form": {
-              "fields": [
-                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
-                { "key": "size", "label": "Size", "type": "select", "default": "1024x1024", "options": [
-                  { "label": "1024x1024", "value": "1024x1024" },
-                  { "label": "512x512", "value": "512x512" },
-                  { "label": "256x256", "value": "256x256" }
-                ] }
-              ]
-            }
-          }
-        ]
-      },
-      "video": {
-        "default_model": "",
-        "models": []
-      }
-    },
-    {
-      "id": "jeniya",
-      "label": "简易API",
-      "image": {
-        "default_model": "gpt-image-1",
-        "models": [
-          {
-            "id": "gpt-image-1",
-            "label": "GPT Image 1",
-            "form": {
-              "fields": [
-                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
-                {
-                  "key": "size",
-                  "label": "Size",
-                  "type": "select",
-                  "default": "1024x1024",
-                  "options": [
-                    { "label": "1024x1024", "value": "1024x1024" },
-                    { "label": "1536x1024", "value": "1536x1024" },
-                    { "label": "1024x1536", "value": "1024x1536" }
-                  ]
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "video": {
-        "default_model": "veo_3_1",
-        "models": [
-          {
-            "id": "veo_3_1",
-            "label": "Veo 3.1",
-            "form": {
-              "fields": [
-                { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },
-                { "key": "image", "label": "参考图片", "type": "image" },
-                {
-                  "key": "duration_seconds",
-                  "label": "Duration (sec)",
-                  "type": "select",
-                  "default": 5,
-                  "options": [
-                    { "label": "5", "value": "5" },
-                    { "label": "8", "value": "8" },
-                    { "label": "10", "value": "10" }
-                  ]
-                },
-                {
-                  "key": "aspect_ratio",
-                  "label": "Aspect Ratio",
-                  "type": "select",
-                  "default": "16:9",
-                  "options": [
-                    { "label": "16:9", "value": "16:9" },
-                    { "label": "9:16", "value": "9:16" },
-                    { "label": "1:1", "value": "1:1" }
-                  ]
-                },
-                {
-                  "key": "size",
-                  "label": "Size",
-                  "type": "select",
-                  "default": "1280x720",
-                  "options": [
-                    { "label": "1280x720", "value": "1280x720" },
-                    { "label": "720x1280", "value": "720x1280" },
-                    { "label": "1024x1024", "value": "1024x1024" }
-                  ]
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "audio": {
-        "default_model": "gpt-4o-mini-tts",
-        "models": [
-          {
-            "id": "gpt-4o-mini-tts",
-            "label": "GPT 4o Mini TTS",
-            "form": {
-              "fields": [
-                { "key": "input", "label": "文本内容", "type": "textarea", "required": true, "rows": 6 },
-                {
-                  "key": "voice",
-                  "label": "音色",
-                  "type": "select",
-                  "required": true,
-                  "default": "alloy",
-                  "options": [
-                    { "label": "alloy", "value": "alloy" },
-                    { "label": "echo", "value": "echo" },
-                    { "label": "fable", "value": "fable" },
-                    { "label": "onyx", "value": "onyx" },
-                    { "label": "nova", "value": "nova" },
-                    { "label": "shimmer", "value": "shimmer" }
-                  ]
-                },
-                {
-                  "key": "response_format",
-                  "label": "输出格式",
-                  "type": "select",
-                  "default": "mp3",
-                  "options": [
-                    { "label": "mp3", "value": "mp3" },
-                    { "label": "opus", "value": "opus" },
-                    { "label": "aac", "value": "aac" },
-                    { "label": "flac", "value": "flac" }
-                  ]
-                },
-                { "key": "speed", "label": "语速", "type": "number", "default": 1, "placeholder": "0.25 - 4.0" }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
       "id": "bltcy",
       "label": "BLTCY(柏拉图)",
       "image": {
-        "default_model": "gpt-4o-image",
+        "default_model": "gpt-image-2",
         "models": [
           {
-            "id": "gpt-4o-image",
-            "label": "GPT 4o Image",
+            "id": "gpt-image-2",
+            "label": "GPT Image 2",
             "form": {
               "fields": [
                 { "key": "prompt", "label": "Prompt", "type": "textarea", "required": true, "rows": 6 },

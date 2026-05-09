@@ -14,8 +14,6 @@ type ImageProviderConfig struct {
 }
 
 type Config struct {
-	VideoStartEP   string
-	VideoStatusEP  string
 	MediaWorkerURL string
 	Port           string
 	AllowedOrigins []string
@@ -57,36 +55,17 @@ func LoadFromEnv() Config {
 	sharedBase := strings.TrimSpace(os.Getenv("AIGC_BASE_URL"))
 	sharedKey := strings.TrimSpace(os.Getenv("AIGC_API_KEY"))
 
-	openaiBase := firstNonEmpty(strings.TrimSpace(os.Getenv("OPENAI_COMPAT_BASE_URL")), sharedBase)
-	openaiKey := firstNonEmpty(strings.TrimSpace(os.Getenv("OPENAI_COMPAT_API_KEY")), sharedKey)
-
 	sfBase := firstNonEmpty(strings.TrimSpace(os.Getenv("SILICONFLOW_BASE_URL")), sharedBase)
 	sfKey := firstNonEmpty(strings.TrimSpace(os.Getenv("SILICONFLOW_API_KEY")), sharedKey)
 
 	wyBase := strings.TrimSpace(os.Getenv("WUYIN_BASE_URL"))
 	wyKey := strings.TrimSpace(os.Getenv("WUYIN_API_KEY"))
-	jeniyaBase := firstNonEmpty(strings.TrimSpace(os.Getenv("JENIYA_BASE_URL")), "https://jeniya.cn")
-	jeniyaKey := strings.TrimSpace(os.Getenv("JENIYA_API_KEY"))
 
-	bltcyBase := firstNonEmpty(
-		strings.TrimSpace(os.Getenv("BLTCY_BASE_URL")),
-		strings.TrimSpace(os.Getenv("GPT_BEST_BASE_URL")),
-	)
+	bltcyBase := strings.TrimSpace(os.Getenv("BLTCY_BASE_URL"))
 	bltcyBase = firstNonEmpty(bltcyBase, "https://api.bltcy.ai")
-	bltcyKey := firstNonEmpty(
-		strings.TrimSpace(os.Getenv("BLTCY_API_KEY")),
-		strings.TrimSpace(os.Getenv("GPT_BEST_API_KEY")),
-	)
+	bltcyKey := strings.TrimSpace(os.Getenv("BLTCY_API_KEY"))
 
 	imageProviders := map[string]ImageProviderConfig{
-		"mock": {
-			BaseURL: "",
-			APIKey:  "",
-		},
-		"openai_compatible": {
-			BaseURL: openaiBase,
-			APIKey:  openaiKey,
-		},
 		"siliconflow": {
 			BaseURL: sfBase,
 			APIKey:  sfKey,
@@ -95,24 +74,13 @@ func LoadFromEnv() Config {
 			BaseURL: wyBase,
 			APIKey:  wyKey,
 		},
-		"jeniya": {
-			BaseURL: jeniyaBase,
-			APIKey:  jeniyaKey,
-		},
 		"bltcy": {
-			BaseURL: bltcyBase,
-			APIKey:  bltcyKey,
-		},
-		// Backward-compatible alias for previous provider id.
-		"gpt_best": {
 			BaseURL: bltcyBase,
 			APIKey:  bltcyKey,
 		},
 	}
 
 	return Config{
-		VideoStartEP:   strings.TrimSpace(os.Getenv("AIGC_VIDEO_START_ENDPOINT")),
-		VideoStatusEP:  strings.TrimSpace(os.Getenv("AIGC_VIDEO_STATUS_ENDPOINT")),
 		MediaWorkerURL: pickMediaWorkerURL(),
 		Port:           port,
 		AllowedOrigins: allowed,

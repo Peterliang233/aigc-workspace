@@ -48,7 +48,7 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 			sort.Strings(keys)
 			model = keys[0]
 		} else {
-			model = "image_nanoBanana2"
+			model = "gpt-image-2"
 		}
 	}
 
@@ -57,10 +57,9 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		return types.ImageGenerateResponse{}, err
 	}
 
-	payload := map[string]any{
-		"prompt":      prompt,
-		"size":        mapSize(req.Size),
-		"aspectRatio": mapAspect(req.AspectRatio),
+	payload, err := buildImagePayload(model, req)
+	if err != nil {
+		return types.ImageGenerateResponse{}, err
 	}
 	raw, _ := json.Marshal(payload)
 
@@ -68,6 +67,7 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		"model":  model,
 		"prompt": logging.DownstreamPrompt(prompt),
 		"size":   payload["size"],
+		"urls":   payload["urls"],
 		"aspect": payload["aspectRatio"],
 	}, "application/json", raw)
 	hreq, _ := http.NewRequestWithContext(ctx, http.MethodPost, startURL, bytes.NewReader(raw))
@@ -145,6 +145,9 @@ func (p *Provider) buildStartURL(model string) (string, error) {
 
 	if len(p.models) > 0 && !contains(p.models, model) {
 		return "", fmt.Errorf("unknown model %q", model)
+	}
+	if isGPTImage2Model(model) {
+		return fmt.Sprintf("%s%s?key=%s", p.baseURL, imageGPTEndpoint, p.apiKey), nil
 	}
 	seg, err := normalizeModelSegment(model)
 	if err != nil {

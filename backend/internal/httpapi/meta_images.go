@@ -53,17 +53,8 @@ func (h *Handler) metaImages(w http.ResponseWriter, r *http.Request) {
 			if id == "" {
 				continue
 			}
-			configured := true
-			if id != "mock" {
-				pc := cfg.ImageProviders[id]
-				if strings.TrimSpace(pc.APIKey) == "" {
-					configured = false
-				}
-				// Some providers also require a base URL.
-				if id == "openai_compatible" && strings.TrimSpace(pc.BaseURL) == "" {
-					configured = false
-				}
-			}
+			pc := cfg.ImageProviders[id]
+			configured := strings.TrimSpace(pc.APIKey) != ""
 			var models []model
 			for _, m := range p.Image.Models {
 				mid := strings.TrimSpace(m.ID)
@@ -98,9 +89,6 @@ func (h *Handler) metaImages(w http.ResponseWriter, r *http.Request) {
 			}
 			list = append(list, prov{ID: id, Label: p.Label, Configured: configured, Models: models})
 		}
-	} else {
-		// Minimal fallback so UI still renders.
-		list = append(list, prov{ID: "mock", Label: "Mock(联调)", Configured: true, Models: nil})
 	}
 
 	def := ""
@@ -108,7 +96,7 @@ func (h *Handler) metaImages(w http.ResponseWriter, r *http.Request) {
 		def = strings.ToLower(strings.TrimSpace(h.models.DefaultProvider("image")))
 	}
 	if def == "" {
-		def = "mock"
+		def = "siliconflow"
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"default_provider": def,

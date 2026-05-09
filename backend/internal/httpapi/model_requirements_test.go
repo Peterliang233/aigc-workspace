@@ -7,39 +7,39 @@ import (
 )
 
 func TestModelRequiresInitImage(t *testing.T) {
-	h := &Handler{models: mockVideoModelConfig()}
-	if !h.modelRequiresInitImage("mock", "req-image") {
+	h := &Handler{models: sampleVideoModelConfig()}
+	if !h.modelRequiresInitImage("sample", "req-image") {
 		t.Fatalf("req-image should require init image")
 	}
-	if h.modelRequiresInitImage("mock", "opt-image") {
+	if h.modelRequiresInitImage("sample", "opt-image") {
 		t.Fatalf("opt-image should not require init image")
 	}
-	if h.modelRequiresInitImage("mock", "text-only") {
+	if h.modelRequiresInitImage("sample", "text-only") {
 		t.Fatalf("text-only should not require init image")
 	}
 }
 
 func TestModelSupportsInitImage(t *testing.T) {
-	h := &Handler{models: mockVideoModelConfig()}
-	if !h.modelSupportsInitImage("mock", "req-image") {
+	h := &Handler{models: sampleVideoModelConfig()}
+	if !h.modelSupportsInitImage("sample", "req-image") {
 		t.Fatalf("req-image should support init image")
 	}
-	if !h.modelSupportsInitImage("mock", "opt-image") {
+	if !h.modelSupportsInitImage("sample", "opt-image") {
 		t.Fatalf("opt-image should support init image")
 	}
-	if h.modelSupportsInitImage("mock", "text-only") {
+	if h.modelSupportsInitImage("sample", "text-only") {
 		t.Fatalf("text-only should not support init image")
 	}
-	if !h.modelSupportsInitImage("mock", "wan2.2-i2v-plus") {
+	if !h.modelSupportsInitImage("sample", "wan2.2-i2v-plus") {
 		t.Fatalf("i2v heuristic model should support init image")
 	}
 }
 
-func mockVideoModelConfig() *modelcfg.Config {
+func sampleVideoModelConfig() *modelcfg.Config {
 	return &modelcfg.Config{
 		Providers: []modelcfg.Provider{
 			{
-				ID: "mock",
+				ID: "sample",
 				Video: &modelcfg.CapabilitySpec{
 					Models: []modelcfg.ModelSpec{
 						{

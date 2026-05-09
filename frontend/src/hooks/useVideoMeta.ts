@@ -28,9 +28,6 @@ export function useVideoMeta() {
         setProviders(list);
 
         let preferred = provider || res.default_provider || "siliconflow";
-        if (preferred === "gpt_best" && list.some((p) => p.id === "bltcy")) {
-          preferred = "bltcy";
-        }
         const hasPreferred = list.some((p) => p.id === preferred && p.configured);
         const fallback = list.find((p) => p.configured)?.id || preferred;
         const nextProvider = hasPreferred ? preferred : fallback;

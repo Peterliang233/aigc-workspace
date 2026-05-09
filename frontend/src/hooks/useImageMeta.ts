@@ -27,12 +27,9 @@ export function useImageMeta() {
         const list = (res.providers || []).slice().sort((a, b) => a.label.localeCompare(b.label));
         setProviders(list);
 
-        let preferred = provider || res.default_provider || "mock";
-        if (preferred === "gpt_best" && list.some((p) => p.id === "bltcy")) {
-          preferred = "bltcy";
-        }
+        let preferred = provider || res.default_provider || "siliconflow";
         const hasPreferred = list.some((p) => p.id === preferred);
-        const fallback = list.find((p) => p.configured)?.id || list[0]?.id || "mock";
+        const fallback = list.find((p) => p.configured)?.id || list[0]?.id || "siliconflow";
         const nextProvider = hasPreferred ? preferred : fallback;
         setProvider(nextProvider);
 
@@ -41,8 +38,8 @@ export function useImageMeta() {
         if (!model) setModel(mids[0] || "__custom__");
       } catch {
         if (mounted) {
-          setProviders([{ id: "mock", label: "Mock(联调)", configured: true, models: [] }]);
-          if (!provider) setProvider("mock");
+          setProviders([{ id: "siliconflow", label: "SiliconFlow", configured: false, models: [] }]);
+          if (!provider) setProvider("siliconflow");
           if (!model) setModel("__custom__");
         }
       } finally {

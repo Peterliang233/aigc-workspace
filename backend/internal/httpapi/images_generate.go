@@ -37,7 +37,7 @@ func (h *Handler) imagesGenerate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if providerID == "" {
-		providerID = "mock"
+		providerID = "siliconflow"
 	}
 	prov, ok := h.getImageProvider(providerID)
 	if !ok || prov == nil {
@@ -88,7 +88,7 @@ func (h *Handler) imagesGenerate(w http.ResponseWriter, r *http.Request) {
 			var a *assets.Asset
 			var err error
 
-			// Some providers (mock/siliconflow) return local URLs under /static/generated.
+			// Some providers return local URLs under /static/generated.
 			// Upload those files into MinIO so history works consistently.
 			if strings.HasPrefix(src, "/static/generated/") {
 				p := filepath.Join(h.staticRoot, "generated", filepath.Base(src))

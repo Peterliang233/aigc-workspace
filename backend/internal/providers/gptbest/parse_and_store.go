@@ -91,6 +91,12 @@ func (p *Provider) storeBase64Image(raw, ext string) (string, error) {
 	if raw == "" {
 		return "", errors.New("empty image data")
 	}
+	if strings.HasPrefix(strings.ToLower(raw), "data:image/") {
+		return p.storeDataURL(raw)
+	}
+	if strings.HasPrefix(strings.ToLower(raw), "http://") || strings.HasPrefix(strings.ToLower(raw), "https://") {
+		return raw, nil
+	}
 	b, err := base64.StdEncoding.DecodeString(raw)
 	if err != nil {
 		return "", err

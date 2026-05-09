@@ -2,7 +2,7 @@ import type { ModelFormField } from "../../api";
 
 export function fallbackVideoFields(providerID: string, requiresImage: boolean): ModelFormField[] {
   const prompt: ModelFormField = { key: "prompt", label: "Prompt", type: "textarea", required: true, rows: 6 };
-  if (providerID === "openai_compatible" || providerID === "bltcy" || providerID === "gpt_best") {
+  if (providerID === "bltcy") {
     return [
       prompt,
       ...(requiresImage ? ([{ key: "image", label: "参考图片", type: "image", required: true }] as ModelFormField[]) : []),

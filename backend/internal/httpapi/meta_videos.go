@@ -56,20 +56,8 @@ func (h *Handler) metaVideos(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			configured := true
-			if id != "mock" {
-				pc := cfg.ImageProviders[id]
-				if strings.TrimSpace(pc.APIKey) == "" {
-					configured = false
-				}
-				if id == "openai_compatible" && strings.TrimSpace(pc.BaseURL) == "" {
-					configured = false
-				}
-			}
-			// openai_compatible videos need extra env endpoints.
-			if id == "openai_compatible" && (cfg.VideoStartEP == "" || cfg.VideoStatusEP == "") {
-				configured = false
-			}
+			pc := cfg.ImageProviders[id]
+			configured := strings.TrimSpace(pc.APIKey) != ""
 
 			var ms []model
 			for _, m := range p.Video.Models {
@@ -110,8 +98,6 @@ func (h *Handler) metaVideos(w http.ResponseWriter, r *http.Request) {
 			}
 			list = append(list, prov{ID: id, Label: p.Label, Configured: configured, Models: ms})
 		}
-	} else {
-		list = append(list, prov{ID: "siliconflow", Label: "SiliconFlow", Configured: false, Models: nil})
 	}
 
 	sort.Slice(list, func(i, j int) bool { return list[i].ID < list[j].ID })

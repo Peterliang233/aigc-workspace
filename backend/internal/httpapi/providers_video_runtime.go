@@ -12,12 +12,6 @@ func (h *Handler) defaultVideoProviderID() string {
 	if pc, ok := cfg.ImageProviders["siliconflow"]; ok && strings.TrimSpace(pc.APIKey) != "" {
 		return "siliconflow"
 	}
-	if cfg.VideoStartEP != "" && cfg.VideoStatusEP != "" {
-		pc := cfg.ImageProviders["openai_compatible"]
-		if strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
-			return "openai_compatible"
-		}
-	}
 	return ""
 }
 

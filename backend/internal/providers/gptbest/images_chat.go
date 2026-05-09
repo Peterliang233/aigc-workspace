@@ -76,7 +76,7 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		model = p.imageModel
 	}
 	if model == "" {
-		model = "gpt-4o-image"
+		model = "gpt-image-2"
 	}
 	refs := mergeImageRefs(req.Image, req.ReferenceURLs)
 
@@ -88,6 +88,9 @@ func (p *Provider) GenerateImage(ctx context.Context, req types.ImageGenerateReq
 		if isEditOnlyModel(model) {
 			return types.ImageGenerateResponse{}, err
 		}
+	}
+	if prefersImagesAPIModel(model) {
+		return p.generateByImageAPI(ctx, model, prompt, req)
 	}
 	return p.generateByChat(ctx, model, prompt, refs)
 }
