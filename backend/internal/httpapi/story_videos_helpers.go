@@ -84,6 +84,7 @@ func (h *Handler) storyVideoResponse(project *storyvideo.Project, shots []storyv
 		ImageModel:      project.ImageModel,
 		AudioProvider:   project.AudioProvider,
 		AudioModel:      project.AudioModel,
+		AudioVoice:      project.AudioVoice,
 		AudioURL:        storyVideoAssetURL(project.AudioAssetID),
 		VideoURL:        storyVideoAssetURL(project.VideoAssetID),
 		Error:           storyVideoErr(project.Error),

@@ -39,7 +39,7 @@ export function Sidebar(props: {
 
       <div className="side__brand">
         <div className="brand__title">
-          <span className="brand__titleFull">AIGC Studio</span>
+          <span className="brand__titleFull">AIGC WorkSpace</span>
           <span className="brand__titleMini">AIGC</span>
         </div>
       </div>

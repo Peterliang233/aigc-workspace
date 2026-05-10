@@ -22,6 +22,7 @@ type Project struct {
 	ImageModel        string    `gorm:"column:image_model;size:255"`
 	AudioProvider     string    `gorm:"column:audio_provider;size:64"`
 	AudioModel        string    `gorm:"column:audio_model;size:255"`
+	AudioVoice        string    `gorm:"column:audio_voice;size:128"`
 	AudioAssetID      *uint64   `gorm:"column:audio_asset_id"`
 	VideoAssetID      *uint64   `gorm:"column:video_asset_id"`
 	Error             *string   `gorm:"column:error;type:text"`

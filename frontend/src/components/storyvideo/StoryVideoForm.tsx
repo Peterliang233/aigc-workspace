@@ -16,6 +16,7 @@ type CachedForm = {
   audioProv?: string;
   imageModel?: string;
   audioModel?: string;
+  audioVoice?: string;
 };
 
 function models(meta: ProviderMetaResponse | null, provider: string) {
@@ -26,6 +27,10 @@ function defaultPlannerModel(provider: string) {
   if (provider === "siliconflow") return "Qwen/Qwen3-32B";
   if (provider === "wuyinkeji") return "gpt-4.1";
   return "gpt-5.4";
+}
+
+function fieldOptions(meta: ProviderMetaResponse | null, provider: string, model: string, key: string) {
+  return models(meta, provider).find((item) => item.id === model)?.form?.fields?.find((field) => field.key === key)?.options || [];
 }
 
 function readCache() {
@@ -57,6 +62,8 @@ export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; 
   const audioModels = useMemo(() => models(props.audioMeta, audioProv), [props.audioMeta, audioProv]);
   const [imageModel, setImageModel] = useState(cached.imageModel || "");
   const [audioModel, setAudioModel] = useState(cached.audioModel || "");
+  const audioVoiceOptions = useMemo(() => fieldOptions(props.audioMeta, audioProv, audioModel, "voice"), [props.audioMeta, audioProv, audioModel]);
+  const [audioVoice, setAudioVoice] = useState(cached.audioVoice || "");
 
   useEffect(() => {
     if (!props.textMeta?.providers?.some((item) => item.id === plannerProv)) setPlannerProv(plannerProvider);
@@ -84,11 +91,15 @@ export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; 
   }, [audioModel, audioModels]);
 
   useEffect(() => {
+    if (audioVoiceOptions.length > 0 && !audioVoiceOptions.some((item) => item.value === audioVoice)) setAudioVoice(audioVoiceOptions[0].value);
+  }, [audioVoice, audioVoiceOptions]);
+
+  useEffect(() => {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       keywords, theme, tone, duration, aspectRatio,
-      plannerProv, plannerModel, imageProv, audioProv, imageModel, audioModel
+      plannerProv, plannerModel, imageProv, audioProv, imageModel, audioModel, audioVoice
     }));
-  }, [keywords, theme, tone, duration, aspectRatio, plannerProv, plannerModel, imageProv, audioProv, imageModel, audioModel]);
+  }, [keywords, theme, tone, duration, aspectRatio, plannerProv, plannerModel, imageProv, audioProv, imageModel, audioModel, audioVoice]);
 
   async function onSubmit() {
     await createDraft({
@@ -102,7 +113,8 @@ export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; 
       image_provider: imageProv,
       image_model: imageModel || imageModels[0]?.id,
       audio_provider: audioProv,
-      audio_model: audioModel || audioModels[0]?.id
+      audio_model: audioModel || audioModels[0]?.id,
+      audio_voice: audioVoice || audioVoiceOptions[0]?.value
     });
   }
 
@@ -129,9 +141,10 @@ export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; 
           <label className="label">图片平台<select className="input" value={imageProv} onChange={(e) => setImageProv(e.target.value)}>{props.imageMeta?.providers?.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
           <label className="label">图片模型<select className="input" value={imageModel} onChange={(e) => setImageModel(e.target.value)}>{imageModels.map((item) => <option key={item.id} value={item.id}>{item.label ? `${item.label} (${item.id})` : item.id}</option>)}</select></label>
         </div>
-        <div className="row2">
+        <div className={audioVoiceOptions.length > 0 ? "storyvideoAudioRow" : "row2"}>
           <label className="label">音频平台<select className="input" value={audioProv} onChange={(e) => setAudioProv(e.target.value)}>{props.audioMeta?.providers?.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
           <label className="label">音频模型<select className="input" value={audioModel} onChange={(e) => setAudioModel(e.target.value)}>{audioModels.map((item) => <option key={item.id} value={item.id}>{item.label ? `${item.label} (${item.id})` : item.id}</option>)}</select></label>
+          {audioVoiceOptions.length > 0 ? <label className="label">音色<select className="input" value={audioVoice} onChange={(e) => setAudioVoice(e.target.value)}>{audioVoiceOptions.map((item) => <option key={item.value} value={item.value}>{item.label ? `${item.label} (${item.value})` : item.value}</option>)}</select></label> : null}
         </div>
         <button className="btn" disabled={props.busy} onClick={onSubmit}>{props.busy ? "处理中..." : "生成草稿"}</button>
       </div>

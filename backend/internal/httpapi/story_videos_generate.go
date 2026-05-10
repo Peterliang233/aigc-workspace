@@ -69,7 +69,7 @@ func (h *Handler) runStoryVideoAudioSync(ctx context.Context, projectID string) 
 	if !ok || prov == nil {
 		return h.storyVideoFailProject(ctx, projectID, "audio", fmt.Errorf("音频 provider 不可用"))
 	}
-	req := types.AudioGenerateRequest{Provider: providerID, Model: model, Input: project.NarrationText}
+	req := types.AudioGenerateRequest{Provider: providerID, Model: model, Input: project.NarrationText, Voice: project.AudioVoice}
 	h.applyAudioModelDefaults(providerID, model, &req)
 	if miss := h.missingAudioRequiredFields(providerID, model, req); len(miss) > 0 {
 		return h.storyVideoFailProject(ctx, projectID, "audio", fmt.Errorf("缺少音频参数: %s", strings.Join(miss, ", ")))

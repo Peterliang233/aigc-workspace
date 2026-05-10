@@ -32,6 +32,13 @@
   gap: 12px;
 }
 
+.storyvideoAudioRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
 @media (max-width: 1100px) {
   .storyvideo__create {
     grid-template-columns: 1fr;
@@ -42,5 +49,9 @@
   .storyvideoForm,
   .storyvideoForm .form {
     overflow: visible;
+  }
+
+  .storyvideoAudioRow {
+    grid-template-columns: 1fr;
   }
 }

@@ -30,6 +30,7 @@ func (h *Handler) storyVideoCreateDraft(ctx context.Context, req types.StoryVide
 		ImageModel:        req.ImageModel,
 		AudioProvider:     req.AudioProvider,
 		AudioModel:        req.AudioModel,
+		AudioVoice:        req.AudioVoice,
 	}
 	shots := make([]storyvideo.Shot, 0, len(draft.Shots))
 	for i, shot := range draft.Shots {
@@ -88,6 +89,7 @@ func (h *Handler) storyVideoReplaceDraft(ctx context.Context, projectID string, 
 	project.ImageModel = firstNonEmpty(req.ImageModel, project.ImageModel)
 	project.AudioProvider = firstNonEmpty(req.AudioProvider, project.AudioProvider)
 	project.AudioModel = firstNonEmpty(req.AudioModel, project.AudioModel)
+	project.AudioVoice = firstNonEmpty(req.AudioVoice, project.AudioVoice)
 	shots := make([]storyvideo.Shot, 0, len(req.Shots))
 	for i, shot := range req.Shots {
 		shots = append(shots, storyvideo.Shot{

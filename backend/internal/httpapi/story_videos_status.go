@@ -56,6 +56,9 @@ func (h *Handler) storyVideoPrepareAudioRetry(ctx context.Context, projectID str
 	if strings.TrimSpace(req.AudioModel) != "" {
 		attrs["audio_model"] = strings.TrimSpace(req.AudioModel)
 	}
+	if strings.TrimSpace(req.AudioVoice) != "" {
+		attrs["audio_voice"] = strings.TrimSpace(req.AudioVoice)
+	}
 	_ = h.storyVideoAddEvent(ctx, projectID, "audio", "retry_requested", "已请求重新生成音频", nil)
 	return h.storyVideos.UpdateProject(ctx, projectID, attrs)
 }

@@ -14,6 +14,7 @@ type StoryVideoDraftRequest struct {
 	ImageModel      string   `json:"image_model,omitempty"`
 	AudioProvider   string   `json:"audio_provider,omitempty"`
 	AudioModel      string   `json:"audio_model,omitempty"`
+	AudioVoice      string   `json:"audio_voice,omitempty"`
 }
 
 type StoryVideoDraftShotInput struct {
@@ -43,6 +44,7 @@ type StoryVideoDraftUpdateRequest struct {
 	ImageModel      string                     `json:"image_model,omitempty"`
 	AudioProvider   string                     `json:"audio_provider,omitempty"`
 	AudioModel      string                     `json:"audio_model,omitempty"`
+	AudioVoice      string                     `json:"audio_voice,omitempty"`
 	Shots           []StoryVideoDraftShotInput `json:"shots"`
 }
 
@@ -80,6 +82,7 @@ type StoryVideoProject struct {
 	ImageModel      string           `json:"image_model,omitempty"`
 	AudioProvider   string           `json:"audio_provider,omitempty"`
 	AudioModel      string           `json:"audio_model,omitempty"`
+	AudioVoice      string           `json:"audio_voice,omitempty"`
 	AudioURL        string           `json:"audio_url,omitempty"`
 	VideoURL        string           `json:"video_url,omitempty"`
 	Error           string           `json:"error,omitempty"`
@@ -101,6 +104,7 @@ type StoryVideoRegenerateAudioRequest struct {
 	NarrationText string `json:"narration_text,omitempty"`
 	AudioProvider string `json:"audio_provider,omitempty"`
 	AudioModel    string `json:"audio_model,omitempty"`
+	AudioVoice    string `json:"audio_voice,omitempty"`
 }
 
 type StoryVideoRegenerateShotRequest struct {

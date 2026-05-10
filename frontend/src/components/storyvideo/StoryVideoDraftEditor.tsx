@@ -25,6 +25,7 @@ export function StoryVideoDraftEditor(props: { project: StoryVideoProject | null
       image_model: props.project.image_model,
       audio_provider: props.project.audio_provider,
       audio_model: props.project.audio_model,
+      audio_voice: props.project.audio_voice,
       shots: (props.project.shots || []).map((shot) => ({ id: shot.id, title: shot.title, story_beat: shot.story_beat, narration_line: shot.narration_line, image_prompt: shot.image_prompt, duration_ms: shot.duration_ms }))
     });
   }, [props.project]);

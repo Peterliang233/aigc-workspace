@@ -16,7 +16,11 @@ export function useApplyFieldDefaults(
         if (!k) continue;
         const cur = next[k] ?? "";
         const def = (f as any).default;
-        if (!cur && def !== undefined && def !== null) {
+        const opts = Array.isArray(f.options) ? f.options.map((item) => String(item.value)) : [];
+        if (opts.length > 0 && (!cur || !opts.includes(cur))) {
+          next[k] = def !== undefined && def !== null && opts.includes(String(def)) ? String(def) : opts[0];
+          changed = true;
+        } else if (!cur && def !== undefined && def !== null) {
           next[k] = String(def);
           changed = true;
         }

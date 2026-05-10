@@ -12,6 +12,7 @@ export type StoryVideoDraftRequest = {
   image_model?: string;
   audio_provider?: string;
   audio_model?: string;
+  audio_voice?: string;
 };
 
 export type StoryVideoShot = {
@@ -48,6 +49,7 @@ export type StoryVideoProject = {
   image_model?: string;
   audio_provider?: string;
   audio_model?: string;
+  audio_voice?: string;
   audio_url?: string;
   video_url?: string;
   error?: string;
@@ -104,7 +106,7 @@ export const storyVideoApi = {
     httpJSON<StoryVideoProject>(`/api/story-videos/projects/${encodeURIComponent(projectId)}`, { method: "GET" }),
   events: (projectId: string) =>
     httpJSON<{ items: StoryVideoEvent[] }>(`/api/story-videos/projects/${encodeURIComponent(projectId)}/events`, { method: "GET" }),
-  regenerateAudio: (projectId: string, payload?: { narration_text?: string; audio_provider?: string; audio_model?: string }) =>
+  regenerateAudio: (projectId: string, payload?: { narration_text?: string; audio_provider?: string; audio_model?: string; audio_voice?: string }) =>
     httpJSON<StoryVideoProject>(`/api/story-videos/projects/${encodeURIComponent(projectId)}/regenerate-audio`, { method: "POST", body: JSON.stringify(payload || {}) }),
   regenerateShot: (projectId: string, shotId: string, payload?: { image_prompt?: string; image_provider?: string; image_model?: string }) =>
     httpJSON<StoryVideoProject>(`/api/story-videos/projects/${encodeURIComponent(projectId)}/shots/${encodeURIComponent(shotId)}/regenerate-image`, { method: "POST", body: JSON.stringify(payload || {}) }),
