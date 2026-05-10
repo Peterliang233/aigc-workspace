@@ -29,5 +29,7 @@ func Load(path string) (*Config, error) {
 	}
 	cfg.Defaults.ImageProvider = strings.ToLower(strings.TrimSpace(cfg.Defaults.ImageProvider))
 	cfg.Defaults.VideoProvider = strings.ToLower(strings.TrimSpace(cfg.Defaults.VideoProvider))
+	cfg.Defaults.AudioProvider = strings.ToLower(strings.TrimSpace(cfg.Defaults.AudioProvider))
+	cfg.Defaults.TextProvider = strings.ToLower(strings.TrimSpace(cfg.Defaults.TextProvider))
 	return &cfg, nil
 }

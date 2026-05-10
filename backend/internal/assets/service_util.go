@@ -9,11 +9,11 @@ import (
 
 func marshalParams(params any) string {
 	if params == nil {
-		return ""
+		return "{}"
 	}
 	b, err := json.Marshal(params)
 	if err != nil {
-		return ""
+		return "{}"
 	}
 	return string(b)
 }
@@ -29,4 +29,3 @@ func promptMeta(prompt string) (sha256Hex string, preview string) {
 	}
 	return sha256Hex, preview
 }
-

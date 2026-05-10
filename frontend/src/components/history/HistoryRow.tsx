@@ -2,13 +2,15 @@ import React from "react";
 import { Icon } from "../../layout/Icon";
 
 export type HistoryItem = {
-  id: number;
-  capability: "image" | "video" | "audio";
+  id: string;
+  capability: "image" | "video" | "audio" | "story";
   provider: string;
   model?: string;
   prompt_preview?: string;
   bytes: number;
   created_at: string;
+  title?: string;
+  deletable?: boolean;
 };
 
 function fmtBytes(n: number) {
@@ -47,7 +49,7 @@ export function HistoryRow(props: {
       title="Select"
     >
       <div className="hrow__top">
-        <div className="mono">#{item.id}</div>
+        <div className="mono">{item.capability === "story" ? item.id : `#${item.id}`}</div>
         <div className="pill">{item.capability}</div>
       </div>
       <div className="hrow__mid">
@@ -59,21 +61,24 @@ export function HistoryRow(props: {
         <div className="muted">{fmtBytes(item.bytes)}</div>
       </div>
       <div className="hrow__bot">
+        {item.title ? <div className="hrow__prompt">{item.title}</div> : null}
         <div className="hrow__prompt">{item.prompt_preview || ""}</div>
         <div className="hrow__time mono">{item.created_at}</div>
       </div>
-      <button
-        className="hrow__del"
-        title="永久删除"
-        aria-label={`删除 #${item.id}`}
-        disabled={!!busy || !!deleting}
-        onClick={(e) => {
-          e.stopPropagation();
-          void onDelete();
-        }}
-      >
-        {deleting ? "..." : <Icon name="trash" />}
-      </button>
+      {item.deletable === false ? null : (
+        <button
+          className="hrow__del"
+          title="永久删除"
+          aria-label={`删除 ${item.id}`}
+          disabled={!!busy || !!deleting}
+          onClick={(e) => {
+            e.stopPropagation();
+            void onDelete();
+          }}
+        >
+          {deleting ? "..." : <Icon name="trash" />}
+        </button>
+      )}
     </div>
   );
 }

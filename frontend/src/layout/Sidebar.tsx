@@ -1,6 +1,6 @@
 import React from "react";
-import { AnimationMark } from "./AnimationMark";
 import { Icon } from "./Icon";
+import { StoryVideoMark } from "./StoryVideoMark";
 import type { Tab } from "./tabs";
 
 export function Sidebar(props: {
@@ -12,6 +12,7 @@ export function Sidebar(props: {
   onCloseDrawer: () => void;
 }) {
   const { tab, sideCollapsed, sideOpen, onSelect, onToggleCollapsed, onCloseDrawer } = props;
+  const storyActive = tab === "animation-create" || tab === "animation-records";
   return (
     <aside
       className={[
@@ -45,6 +46,16 @@ export function Sidebar(props: {
 
       <nav className="side__nav">
         <button
+          className={tab === "text" ? "navitem navitem--active" : "navitem"}
+          onClick={() => onSelect("text")}
+          title="文本生成"
+        >
+          <span className="navitem__icon">
+            <Icon name="text" />
+          </span>
+          <span className="navitem__label">文本生成</span>
+        </button>
+        <button
           className={tab === "image" ? "navitem navitem--active" : "navitem"}
           onClick={() => onSelect("image")}
           title="图片生成"
@@ -74,16 +85,24 @@ export function Sidebar(props: {
           </span>
           <span className="navitem__label">音频生成</span>
         </button>
-        <button
-          className={tab === "animation" ? "navitem navitem--active" : "navitem"}
-          onClick={() => onSelect("animation")}
-          title="动画工坊"
-        >
-          <span className="navitem__icon">
-            <AnimationMark />
-          </span>
-          <span className="navitem__label">动画工坊</span>
-        </button>
+        <div className={storyActive ? "navgroup navgroup--active" : "navgroup"}>
+          <button className={storyActive ? "navitem navitem--active" : "navitem"} onClick={() => onSelect("animation-create")} title="故事视频工坊">
+            <span className="navitem__icon">
+              <StoryVideoMark />
+            </span>
+            <span className="navitem__label">故事视频工坊</span>
+          </button>
+          <div className="navgroup__sub">
+            <button className={tab === "animation-create" ? "navsub navsub--active" : "navsub"} onClick={() => onSelect("animation-create")}>
+              <span className="navsub__dot" />
+              <span className="navsub__label">新建项目</span>
+            </button>
+            <button className={tab === "animation-records" ? "navsub navsub--active" : "navsub"} onClick={() => onSelect("animation-records")}>
+              <span className="navsub__dot" />
+              <span className="navsub__label">项目记录</span>
+            </button>
+          </div>
+        </div>
         <button
           className={tab === "toolbox" ? "navitem navitem--active" : "navitem"}
           onClick={() => onSelect("toolbox")}

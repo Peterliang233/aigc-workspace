@@ -1,4 +1,15 @@
 @media (max-width: 720px) {
+  .page,
+  .shell,
+  .main {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .main {
+    overflow: auto;
+  }
+
   .shell {
     padding: 0;
   }

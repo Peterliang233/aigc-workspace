@@ -1,50 +1,36 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import { ResultActions } from "./common/ResultActions";
+import { type HistoryItem, loadHistoryItems } from "./history/historyItems";
+import { StoryHistoryPreview } from "./history/StoryHistoryPreview";
 import { HistoryRow } from "./history/HistoryRow";
 import { HistoryToolbar } from "./history/HistoryToolbar";
-type Item = {
-  id: number;
-  capability: "image" | "video" | "audio";
-  provider: string;
-  model?: string;
-  status: string;
-  error?: string;
-  prompt_preview?: string;
-  content_type: string;
-  bytes: number;
-  url: string;
-  created_at: string;
-};
+
 export function HistoryStudio() {
-  const [capability, setCapability] = useState<"all" | "image" | "video" | "audio">("all");
+  const [capability, setCapability] = useState<"all" | "image" | "video" | "audio" | "story">("all");
   const [q, setQ] = useState("");
   const [qInput, setQInput] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<HistoryItem[]>([]);
   const [busy, setBusy] = useState(false);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = useMemo(() => items.find((x) => x.id === selectedId) || null, [items, selectedId]);
   const pages = Math.max(1, Math.ceil(total / Math.max(1, pageSize)));
   async function load(targetPage = page) {
     setBusy(true);
     setError(null);
     try {
-      const res = await api.getHistory({
-        capability: capability === "all" ? undefined : capability,
-        q: q || undefined,
-        page: targetPage,
-        page_size: pageSize
-      });
-      const list = res.items || [];
+      const merged = await loadHistoryItems(capability, q);
+      const start = (targetPage - 1) * pageSize;
+      const list = merged.slice(start, start + pageSize);
       setItems(list);
-      setTotal(Number(res.total || 0));
-      setPage(Number(res.page || targetPage));
-      const first = (res.items || [])[0];
+      setTotal(merged.length);
+      setPage(targetPage);
+      const first = list[0];
       if (!first) {
         setSelectedId(null);
       } else if (!list.some((x) => x.id === selectedId)) {
@@ -62,13 +48,14 @@ export function HistoryStudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [capability, q, pageSize]);
 
-  async function onDeleteItem(it: Item) {
+  async function onDeleteItem(it: HistoryItem) {
+    if (it.deletable === false) return;
     const ok = window.confirm(`确定永久删除记录 #${it.id} 吗？删除后不可恢复。`);
     if (!ok) return;
     setDeletingId(it.id);
     setError(null);
     try {
-      await api.deleteHistory(it.id);
+      await api.deleteHistory(Number(it.id));
       const nextPage = page > 1 && items.length <= 1 ? page - 1 : page;
       await load(nextPage);
     } catch (e: any) {
@@ -123,7 +110,7 @@ export function HistoryStudio() {
           {items.length === 0 && !busy && (
             <div className="placeholder">
               <div className="placeholder__title">暂无记录</div>
-              <div className="placeholder__sub">生成图片、视频或音频后，会自动保存到 MinIO 并出现在这里。</div>
+              <div className="placeholder__sub">生成图片、视频、音频或故事后，会自动汇总到这里。</div>
             </div>
           )}
         </div>
@@ -146,7 +133,9 @@ export function HistoryStudio() {
               <div className="panel__row"><div className="k">Model</div><div className="v">{selected.model || "-"}</div></div>
               <div className="panel__row"><div className="k">Status</div><div className="v">{selected.status || "-"}</div></div>
             </div>
-            {selected.capability === "video" ? (
+            {selected.capability === "story" && selected.story ? (
+              <StoryHistoryPreview project={selected.story} />
+            ) : selected.capability === "video" ? (
               <div className="panel__media">
                 <video className="video" controls src={selected.url} />
               </div>
@@ -163,7 +152,7 @@ export function HistoryStudio() {
         ) : (
           <div className="placeholder">
             <div className="placeholder__title">选择一条记录预览</div>
-            <div className="placeholder__sub">左侧列表选择图片、视频或音频。</div>
+            <div className="placeholder__sub">左侧列表选择图片、视频、音频或故事。</div>
           </div>
         )}
 

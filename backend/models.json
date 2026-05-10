@@ -3,7 +3,8 @@
   "defaults": {
     "image_provider": "siliconflow",
     "video_provider": "siliconflow",
-    "audio_provider": "bltcy"
+    "audio_provider": "bltcy",
+    "text_provider": "bltcy"
   },
   "providers": [
     {
@@ -83,6 +84,24 @@
               ]
             }
           }
+        ]
+      },
+      "text": {
+        "default_model": "Qwen/Qwen3-32B",
+        "models": [
+          {
+            "id": "Qwen/Qwen3-32B",
+            "label": "Qwen3 32B",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "文本需求", "type": "textarea", "required": true, "rows": 8 },
+                { "key": "system_prompt", "label": "系统提示词", "type": "textarea", "rows": 4, "default": "你是一个专业的中文写作助手，请直接输出高质量正文。" },
+                { "key": "temperature", "label": "温度", "type": "number", "default": 0.7, "placeholder": "0 - 2" },
+                { "key": "max_tokens", "label": "最大输出", "type": "number", "default": 1200, "placeholder": "例如 1200" }
+              ]
+            }
+          },
+          { "id": "deepseek-ai/DeepSeek-V3", "label": "DeepSeek V3" }
         ]
       }
     },
@@ -316,6 +335,24 @@
             }
           }
         ]
+      },
+      "text": {
+        "default_model": "gpt-4.1",
+        "models": [
+          {
+            "id": "gpt-4.1",
+            "label": "GPT 4.1",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "文本需求", "type": "textarea", "required": true, "rows": 8 },
+                { "key": "system_prompt", "label": "系统提示词", "type": "textarea", "rows": 4, "default": "你是一个专业的中文写作助手，请直接输出高质量正文。" },
+                { "key": "temperature", "label": "温度", "type": "number", "default": 0.7, "placeholder": "0 - 2" },
+                { "key": "max_tokens", "label": "最大输出", "type": "number", "default": 1200, "placeholder": "例如 1200" }
+              ]
+            }
+          },
+          { "id": "deepseek-v3", "label": "DeepSeek V3" }
+        ]
       }
     },
     {
@@ -499,6 +536,24 @@
             }
           },
           { "id": "tts-1-hd", "label": "TTS 1 HD" }
+        ]
+      },
+      "text": {
+        "default_model": "gpt-5.4",
+        "models": [
+          {
+            "id": "gpt-5.4",
+            "label": "GPT 5.4",
+            "form": {
+              "fields": [
+                { "key": "prompt", "label": "文本需求", "type": "textarea", "required": true, "rows": 8 },
+                { "key": "system_prompt", "label": "系统提示词", "type": "textarea", "rows": 4, "default": "你是一个专业的中文写作助手，请直接输出高质量正文。" },
+                { "key": "temperature", "label": "温度", "type": "number", "default": 0.7, "placeholder": "0 - 2" },
+                { "key": "max_tokens", "label": "最大输出", "type": "number", "default": 1200, "placeholder": "例如 1200" }
+              ]
+            }
+          },
+          { "id": "deepseek-v3", "label": "DeepSeek V3" }
         ]
       }
     }

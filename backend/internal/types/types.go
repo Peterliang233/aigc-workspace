@@ -71,3 +71,18 @@ type AudioGenerateResponse struct {
 	Model       string `json:"model,omitempty"`
 	ContentType string `json:"content_type,omitempty"`
 }
+
+type TextGenerateRequest struct {
+	Provider     string   `json:"provider,omitempty"`
+	Model        string   `json:"model,omitempty"`
+	Prompt       string   `json:"prompt"`
+	SystemPrompt string   `json:"system_prompt,omitempty"`
+	Temperature  *float64 `json:"temperature,omitempty"`
+	MaxTokens    *int     `json:"max_tokens,omitempty"`
+}
+
+type TextGenerateResponse struct {
+	Text     string `json:"text"`
+	Provider string `json:"provider"`
+	Model    string `json:"model,omitempty"`
+}

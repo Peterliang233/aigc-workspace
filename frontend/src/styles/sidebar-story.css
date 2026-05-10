@@ -1,0 +1,51 @@
+.navgroup {
+  display: grid;
+  gap: 8px;
+}
+
+.navgroup__sub {
+  display: grid;
+  gap: 6px;
+  padding-left: 14px;
+}
+
+.navsub {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 10px 0 16px;
+  min-height: 32px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.navsub:hover,
+.navsub--active {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.navsub__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(196, 181, 253, 0.42);
+}
+
+.navsub--active .navsub__dot {
+  background: linear-gradient(180deg, var(--acc3), var(--acc));
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
+}
+
+.navsub__label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.side--collapsed .navgroup__sub {
+  display: none;
+}

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { AudioStudio } from "./components/AudioStudio";
-import { AnimationStudio } from "./components/AnimationStudio";
 import { ImageStudio } from "./components/ImageStudio";
+import { TextStudio } from "./components/TextStudio";
+import { StoryVideoStudio } from "./components/StoryVideoStudio";
 import { VideoStudio } from "./components/VideoStudio";
 import { HistoryStudio } from "./components/HistoryStudio";
 import { ToolboxStudio } from "./components/ToolboxStudio";
@@ -40,14 +41,19 @@ export function App() {
         <main className="main">
           <MobileBar tab={tab} onOpenMenu={() => setSideOpen(true)} />
 
-          {tab === "image" ? (
+          {tab === "text" ? (
+            <TextStudio />
+          ) : tab === "image" ? (
             <ImageStudio />
           ) : tab === "video" ? (
             <VideoStudio />
           ) : tab === "audio" ? (
             <AudioStudio />
-          ) : tab === "animation" ? (
-            <AnimationStudio />
+          ) : tab === "animation-create" || tab === "animation-records" ? (
+            <StoryVideoStudio
+              mode={tab === "animation-records" ? "records" : "create"}
+              onModeChange={(mode) => onSelect(mode === "records" ? "animation-records" : "animation-create")}
+            />
           ) : tab === "toolbox" ? (
             <ToolboxStudio />
           ) : (

@@ -1,8 +1,8 @@
 import React from "react";
 
 export function HistoryToolbar(props: {
-  capability: "all" | "image" | "video" | "audio";
-  setCapability: (v: "all" | "image" | "video" | "audio") => void;
+  capability: "all" | "image" | "video" | "audio" | "story";
+  setCapability: (v: "all" | "image" | "video" | "audio" | "story") => void;
   qInput: string;
   setQInput: (v: string) => void;
   onSearch: () => void;
@@ -34,6 +34,9 @@ export function HistoryToolbar(props: {
           <button className={p.capability === "audio" ? "chip" : "chip chip--ghost"} onClick={() => p.setCapability("audio")} disabled={p.busy}>
             <span className="chip__text">音频</span>
           </button>
+          <button className={p.capability === "story" ? "chip" : "chip chip--ghost"} onClick={() => p.setCapability("story")} disabled={p.busy}>
+            <span className="chip__text">故事</span>
+          </button>
           <button className="btn btn--ghost" onClick={p.onRefresh} disabled={p.busy} title="Refresh">
             {p.busy ? "Loading..." : "Refresh"}
           </button>
@@ -57,9 +60,9 @@ export function HistoryToolbar(props: {
         <label className="label">
           每页
           <select className="input" value={String(p.pageSize)} onChange={(e) => p.setPageSize(Number(e.target.value) || 5)} disabled={p.busy}>
-            <option value="10">5</option>
-            <option value="20">10</option>
-            <option value="50">20</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
           </select>
         </label>
       </div>

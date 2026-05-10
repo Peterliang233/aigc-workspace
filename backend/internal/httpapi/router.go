@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"aigc-backend/internal/animation"
 	"aigc-backend/internal/assets"
 	"aigc-backend/internal/config"
 	"aigc-backend/internal/modelcfg"
 	"aigc-backend/internal/store"
+	"aigc-backend/internal/storyvideo"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,9 +36,7 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 		models:         models,
 		assets:         assetsSvc,
 		jobs:           store.NewJobStore(),
-		animationJobs:  store.NewAnimationStore(),
-		mediaWorker:    animation.NewMediaClient(cfg.MediaWorkerURL),
-		animationPlan:  animation.NewPromptPlanner(cfg.ImageProviders["bltcy"].BaseURL, cfg.ImageProviders["bltcy"].APIKey, "gpt-5.4"),
+		storyMedia:     storyvideo.NewMediaClient(cfg.MediaWorkerURL),
 		staticRoot:     staticRoot,
 		imageProviders: map[string]imageProvider{},
 		provKeys:       map[string]string{},
@@ -45,6 +44,13 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 		videoProvKeys:  map[string]string{},
 		audioProviders: map[string]audioProvider{},
 		audioProvKeys:  map[string]string{},
+	}
+	if strings.TrimSpace(cfg.MySQLDSN) != "" {
+		if sv, err := storyvideo.NewStore(cfg.MySQLDSN); err != nil {
+			slog.Default().Warn("story_video_store_init_failed", "err", err.Error())
+		} else {
+			h.storyVideos = sv
+		}
 	}
 	h.provMu.Lock()
 	h.rebuildProvidersLocked()
@@ -61,14 +67,23 @@ func NewHandler(cfg config.Config, models *modelcfg.Config, assetsSvc *assets.Se
 	r.GET("/api/meta/images", gin.WrapF(h.metaImages))
 	r.GET("/api/meta/videos", gin.WrapF(h.metaVideos))
 	r.GET("/api/meta/audios", gin.WrapF(h.metaAudios))
+	r.GET("/api/meta/texts", gin.WrapF(h.metaTexts))
 
 	r.POST("/api/images/generate", gin.WrapF(h.imagesGenerate))
 	r.POST("/api/audios/generate", gin.WrapF(h.audiosGenerate))
+	r.POST("/api/texts/generate", gin.WrapF(h.textsGenerate))
 
 	r.POST("/api/videos/jobs", gin.WrapF(h.videosJobs))
 	r.GET("/api/videos/jobs/*id", gin.WrapF(h.videosJobsID))
-	r.POST("/api/animations/jobs", gin.WrapF(h.animationsJobs))
-	r.GET("/api/animations/jobs/*id", gin.WrapF(h.animationsJobsID))
+	r.POST("/api/story-videos/projects/draft", gin.WrapF(h.storyVideoDraft))
+	r.PUT("/api/story-videos/projects/:projectID/draft", gin.WrapF(h.storyVideoDraftID))
+	r.POST("/api/story-videos/projects/:projectID/confirm", gin.WrapF(h.storyVideoConfirm))
+	r.GET("/api/story-videos/projects", gin.WrapF(h.storyVideoProjects))
+	r.GET("/api/story-videos/projects/:projectID", gin.WrapF(h.storyVideoProjectID))
+	r.GET("/api/story-videos/projects/:projectID/events", gin.WrapF(h.storyVideoEvents))
+	r.POST("/api/story-videos/projects/:projectID/compose", gin.WrapF(h.storyVideoCompose))
+	r.POST("/api/story-videos/projects/:projectID/regenerate-audio", gin.WrapF(h.storyVideoRegenerateAudio))
+	r.POST("/api/story-videos/projects/:projectID/shots/:shotID/regenerate-image", gin.WrapF(h.storyVideoRegenerateShotImage))
 
 	r.GET("/api/history", gin.WrapF(h.historyList))
 	r.GET("/api/history/*id", gin.WrapF(h.historyGet))

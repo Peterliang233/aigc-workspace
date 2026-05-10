@@ -1,0 +1,82 @@
+html {
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  font-kerning: normal;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+h1,
+h2,
+h3,
+.brand__title,
+.card__title,
+.mobilebar__title,
+.storyvideo__title {
+  font-family: var(--font-display);
+  font-weight: 760;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
+.btn,
+.chip,
+.navitem,
+.navsub,
+.sideToggle,
+.mobilebar__btn,
+.actionBtn {
+  font-family: var(--font-sans);
+  font-weight: 650;
+}
+
+.input,
+.textarea,
+select {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.textarea {
+  line-height: 1.55;
+}
+
+.label,
+.badge,
+.k,
+.placeholder__sub,
+.filepick__meta,
+.navsub__label {
+  letter-spacing: 0;
+}
+
+.panel__row,
+.badge,
+.filepick__meta,
+.eventLine {
+  font-variant-numeric: tabular-nums;
+}
+
+code,
+pre,
+.eventLine {
+  font-family: var(--font-mono);
+}

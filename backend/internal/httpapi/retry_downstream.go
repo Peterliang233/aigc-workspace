@@ -71,6 +71,9 @@ func shouldRetryDownstreamErr(op string, err error) bool {
 		return false
 	}
 	msg := strings.ToLower(strings.TrimSpace(err.Error()))
+	if strings.TrimSpace(strings.ToLower(op)) == "story_video_planner" && strings.Contains(msg, "invalid planner draft") {
+		return true
+	}
 	if strings.Contains(msg, "context canceled") || strings.Contains(msg, "context deadline exceeded") {
 		return false
 	}

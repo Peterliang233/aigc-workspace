@@ -1,0 +1,37 @@
+.storyvideo__create {
+  grid-template-columns: minmax(340px, 520px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.storyvideoForm,
+.storyvideo__create > .storyvideoWorkspace {
+  min-width: 0;
+  min-height: 0;
+}
+
+.storyvideoForm {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.storyvideoForm .form {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+@media (max-width: 1100px) {
+  .storyvideo__create {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    overflow: auto;
+  }
+
+  .storyvideoForm,
+  .storyvideoForm .form {
+    overflow: visible;
+  }
+}

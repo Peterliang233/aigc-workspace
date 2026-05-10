@@ -19,4 +19,9 @@
   --ring: rgba(139, 92, 246, 0.18);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.46);
   --shadow-soft: 0 16px 36px rgba(0, 0, 0, 0.28);
+  --font-sans: Inter, "HarmonyOS Sans SC", MiSans, "Alibaba PuHuiTi", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI",
+    "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+  --font-display: "Inter Tight", "SF Pro Display", Inter, "HarmonyOS Sans SC", MiSans, var(--font-sans);
+  --font-mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 }

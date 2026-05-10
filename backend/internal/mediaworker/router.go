@@ -7,6 +7,7 @@ func NewHandler() http.Handler {
 	mux.HandleFunc("/healthz", healthz)
 	mux.HandleFunc("/extract-last-frame", extractLastFrame)
 	mux.HandleFunc("/concat-videos", concatVideos)
+	mux.HandleFunc("/compose-slideshow", composeSlideshow)
 	return mux
 }
 

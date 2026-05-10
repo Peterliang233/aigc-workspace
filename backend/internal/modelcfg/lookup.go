@@ -29,6 +29,9 @@ func (c *Config) DefaultProvider(capability string) string {
 	if capability == "audio" {
 		return c.Defaults.AudioProvider
 	}
+	if capability == "text" {
+		return c.Defaults.TextProvider
+	}
 	return c.Defaults.ImageProvider
 }
 
@@ -43,6 +46,9 @@ func (c *Config) DefaultModel(providerID, capability string) string {
 	}
 	if capability == "audio" && p.Audio != nil {
 		return strings.TrimSpace(p.Audio.DefaultModel)
+	}
+	if capability == "text" && p.Text != nil {
+		return strings.TrimSpace(p.Text.DefaultModel)
 	}
 	if capability == "image" && p.Image != nil {
 		return strings.TrimSpace(p.Image.DefaultModel)
@@ -65,6 +71,8 @@ func (c *Config) Model(providerID, capability, modelID string) *ModelSpec {
 		spec = p.Video
 	case "audio":
 		spec = p.Audio
+	case "text":
+		spec = p.Text
 	default:
 		spec = p.Image
 	}

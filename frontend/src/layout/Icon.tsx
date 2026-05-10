@@ -1,6 +1,7 @@
 import React from "react";
 
 export type IconName =
+  | "text"
   | "image"
   | "video"
   | "audio"
@@ -149,6 +150,14 @@ export function Icon({ name }: { name: IconName }) {
           strokeLinejoin="round"
         />
         <path d="M7.6 8.2h.01" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (name === "text") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M4.5 5.5h11M7.5 9h5M6 14.5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M4.8 3.8h10.4c.66 0 1.2.54 1.2 1.2v10c0 .66-.54 1.2-1.2 1.2H4.8c-.66 0-1.2-.54-1.2-1.2V5c0-.66.54-1.2 1.2-1.2Z" stroke="currentColor" strokeWidth="1.4" />
       </svg>
     );
   }
