@@ -2,7 +2,7 @@ package mediaworker
 
 import "strings"
 
-const narrationEndHoldMS = 3000
+const narrationEndHoldMS = 1500
 
 func alignSlideshowDurations(durations []int, audioPath string) ([]int, int, int, error) {
 	if strings.TrimSpace(audioPath) == "" {

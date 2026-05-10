@@ -56,6 +56,7 @@ type StoryVideoShot struct {
 	NarrationLine string `json:"narration_line"`
 	ImagePrompt   string `json:"image_prompt"`
 	ImageURL      string `json:"image_url,omitempty"`
+	AudioURL      string `json:"audio_url,omitempty"`
 	DurationMS    int    `json:"duration_ms"`
 	Status        string `json:"status"`
 	AttemptCount  int    `json:"attempt_count"`

@@ -41,6 +41,7 @@ type Shot struct {
 	NarrationLine string    `gorm:"column:narration_line;type:text"`
 	ImagePrompt   string    `gorm:"column:image_prompt;type:text"`
 	ImageAssetID  *uint64   `gorm:"column:image_asset_id"`
+	AudioAssetID  *uint64   `gorm:"column:audio_asset_id"`
 	DurationMS    int       `gorm:"column:duration_ms"`
 	Status        string    `gorm:"column:status;size:32;index"`
 	AttemptCount  int       `gorm:"column:attempt_count"`

@@ -102,7 +102,7 @@ func (h *Handler) runStoryVideoPipeline(projectID string) {
 			_ = h.storyVideoAddEvent(ctx, projectID, "images", "failed", err.Error(), map[string]any{"shot_id": shot.ID})
 		}
 	}
-	_ = h.storyVideoAddEvent(ctx, projectID, "audio", "started", "开始生成解说音频", nil)
+	_ = h.storyVideoAddEvent(ctx, projectID, "audio", "started", "开始逐分镜生成解说音频，并在生成后拼接为一条完整音频", nil)
 	_ = h.storyVideos.UpdateProject(ctx, projectID, map[string]any{"status": "audio_generating"})
 	_ = h.runStoryVideoAudioSync(ctx, projectID)
 	h.storyVideoRefreshProject(ctx, projectID)

@@ -33,6 +33,7 @@ func (h *Handler) runStoryVideoAudioSync(ctx context.Context, projectID string) 
 	if strings.TrimSpace(narrationText) == "" {
 		return h.storyVideoFailProject(ctx, projectID, "audio", fmt.Errorf("解说词不能为空"))
 	}
+	_ = h.storyVideoAddEvent(ctx, projectID, "audio", "segments_planned", fmt.Sprintf("已拆分 %d 段分镜解说，开始逐段生成音频", len(segments)), map[string]any{"segments": len(segments)})
 	return h.storyVideoGenerateAudioSegments(ctx, project, segments, narrationText)
 }
 
@@ -52,11 +53,13 @@ func (h *Handler) storyVideoGenerateAudioSegments(ctx context.Context, project *
 		return h.storyVideoFailProject(ctx, project.ID, "audio", err)
 	}
 	defer os.RemoveAll(tmpDir)
+	_ = h.storyVideoClearShotAudioAssets(ctx, segments)
 	paths, err := h.storyVideoGenerateSegmentFiles(ctx, prov, providerID, model, project.AudioVoice, segments, tmpDir)
 	if err != nil {
 		return h.storyVideoFailProject(ctx, project.ID, "audio", err)
 	}
 	mergedPath := filepath.Join(tmpDir, "narration.m4a")
+	_ = h.storyVideoAddEvent(ctx, project.ID, "audio", "segments_generated", "分镜音频片段已生成，开始拼接完整解说音频", map[string]any{"segments": len(paths)})
 	durations, err := h.storyMedia.ConcatAudios(ctx, paths, mergedPath)
 	if err != nil {
 		return h.storyVideoFailProject(ctx, project.ID, "audio", err)
@@ -93,6 +96,9 @@ func (h *Handler) storyVideoGenerateSegmentFiles(ctx context.Context, prov audio
 		}
 		path, err := h.storyVideoMaterializeAudio(ctx, tmpDir, i+1, resp)
 		if err != nil {
+			return nil, err
+		}
+		if err := h.storyVideoStoreShotAudio(ctx, segment, path, providerID, model, req); err != nil {
 			return nil, err
 		}
 		paths = append(paths, path)

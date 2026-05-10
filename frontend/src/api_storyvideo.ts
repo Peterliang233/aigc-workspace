@@ -23,6 +23,7 @@ export type StoryVideoShot = {
   narration_line: string;
   image_prompt: string;
   image_url?: string;
+  audio_url?: string;
   duration_ms: number;
   status: string;
   attempt_count: number;

@@ -101,6 +101,7 @@ func (h *Handler) storyVideoResponse(project *storyvideo.Project, shots []storyv
 			NarrationLine: shot.NarrationLine,
 			ImagePrompt:   shot.ImagePrompt,
 			ImageURL:      storyVideoAssetURL(shot.ImageAssetID),
+			AudioURL:      storyVideoAssetURL(shot.AudioAssetID),
 			DurationMS:    shot.DurationMS,
 			Status:        shot.Status,
 			AttemptCount:  shot.AttemptCount,

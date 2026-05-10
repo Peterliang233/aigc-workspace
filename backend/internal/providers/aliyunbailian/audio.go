@@ -43,10 +43,7 @@ func (p *Provider) GenerateAudio(ctx context.Context, req types.AudioGenerateReq
 	if voice == "" {
 		voice = "Cherry"
 	}
-	languageType := strings.TrimSpace(req.LanguageType)
-	if languageType == "" {
-		languageType = "Auto"
-	}
+	languageType := "Chinese"
 
 	payloadInput := map[string]any{
 		"text":          input,

@@ -139,18 +139,6 @@
                     { "label": "Momo - 童声", "value": "Momo" },
                     { "label": "Vivian - 女声", "value": "Vivian" }
                   ]
-                },
-                {
-                  "key": "language_type",
-                  "label": "语言",
-                  "type": "select",
-                  "default": "Auto",
-                  "options": [
-                    { "label": "自动识别", "value": "Auto" },
-                    { "label": "中文", "value": "Chinese" },
-                    { "label": "英文", "value": "English" },
-                    { "label": "中英混合", "value": "Mix" }
-                  ]
                 }
               ]
             }
@@ -172,18 +160,6 @@
                     { "label": "Serena - 知性女声", "value": "Serena" },
                     { "label": "Ethan - 稳重男声", "value": "Ethan" },
                     { "label": "Chelsie - 活力女声", "value": "Chelsie" }
-                  ]
-                },
-                {
-                  "key": "language_type",
-                  "label": "语言",
-                  "type": "select",
-                  "default": "Auto",
-                  "options": [
-                    { "label": "自动识别", "value": "Auto" },
-                    { "label": "中文", "value": "Chinese" },
-                    { "label": "英文", "value": "English" },
-                    { "label": "中英混合", "value": "Mix" }
                   ]
                 }
               ]
@@ -216,18 +192,6 @@
                     { "label": "Neil - 沉稳男声", "value": "Neil" },
                     { "label": "Momo - 童声", "value": "Momo" },
                     { "label": "Vivian - 女声", "value": "Vivian" }
-                  ]
-                },
-                {
-                  "key": "language_type",
-                  "label": "语言",
-                  "type": "select",
-                  "default": "Auto",
-                  "options": [
-                    { "label": "自动识别", "value": "Auto" },
-                    { "label": "中文", "value": "Chinese" },
-                    { "label": "英文", "value": "English" },
-                    { "label": "中英混合", "value": "Mix" }
                   ]
                 }
               ]
