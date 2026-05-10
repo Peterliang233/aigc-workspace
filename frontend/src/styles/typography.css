@@ -29,13 +29,16 @@ h2,
 h3,
 .brand__title,
 .card__title,
-.mobilebar__title,
-.storyvideo__title {
+.mobilebar__title {
   font-family: var(--font-display);
   font-weight: 760;
   line-height: 1.12;
   letter-spacing: -0.025em;
 }
+
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-lg); }
+h3 { font-size: var(--text-md); }
 
 .btn,
 .chip,
@@ -79,4 +82,9 @@ code,
 pre,
 .eventLine {
   font-family: var(--font-mono);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
 }

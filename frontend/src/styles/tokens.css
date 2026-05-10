@@ -24,4 +24,13 @@
     "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
   --font-display: "Inter Tight", "SF Pro Display", Inter, "HarmonyOS Sans SC", MiSans, var(--font-sans);
   --font-mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --placeholder: rgba(205, 213, 240, 0.38);
 }

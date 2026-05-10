@@ -1,51 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AIGC Studio">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Logo">
   <defs>
     <linearGradient id="bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#171d32"/>
-      <stop offset="0.55" stop-color="#101728"/>
-      <stop offset="1" stop-color="#0a0f1c"/>
+      <stop offset="0" stop-color="#12182b"/>
+      <stop offset="1" stop-color="#080c18"/>
     </linearGradient>
-    <linearGradient id="edge" x1="10" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+    <linearGradient id="edge" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.6"/>
+      <stop offset="0.5" stop-color="#67e8f9" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#ec4899" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="facetL" x1="18" y1="20" x2="30" y2="50" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#8b5cf6"/>
-      <stop offset="0.52" stop-color="#67e8f9"/>
-      <stop offset="1" stop-color="#ec4899"/>
+      <stop offset="1" stop-color="#6d28d9"/>
     </linearGradient>
-    <radialGradient id="glow" cx="18" cy="14" r="38" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#67e8f9" stop-opacity="0.22"/>
-      <stop offset="0.4" stop-color="#8b5cf6" stop-opacity="0.14"/>
-      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#04070f" flood-opacity="0.42"/>
+    <linearGradient id="facetR" x1="34" y1="20" x2="46" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#06b6d4"/>
+      <stop offset="1" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="facetC" x1="26" y1="14" x2="38" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f0abfc"/>
+      <stop offset="0.5" stop-color="#c084fc"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="28" y1="12" x2="36" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#67e8f9"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="innerGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#c084fc" flood-opacity="0.35"/>
     </filter>
   </defs>
 
-  <rect x="4" y="4" width="56" height="56" rx="18" fill="#050811"/>
-  <rect x="5.5" y="5.5" width="53" height="53" rx="16.5" fill="url(#bg)"/>
-  <rect x="5.5" y="5.5" width="53" height="53" rx="16.5" fill="url(#glow)"/>
-  <rect x="5.5" y="5.5" width="53" height="53" rx="16.5" fill="none" stroke="url(#edge)" stroke-opacity="0.52" stroke-width="1.5"/>
+  <!-- Background rounded square -->
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#bg)"/>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="none" stroke="url(#edge)" stroke-width="1.2"/>
 
-  <g filter="url(#softShadow)">
-    <path
-      fill="url(#edge)"
-      fill-rule="evenodd"
-      d="M32 14.5 47.2 49.5H39.8l-3.1-7.5h-9.4l-3.1 7.5h-7.4L32 14.5Zm0 12.9-2.9 7.7h5.8L32 27.4Z"
-    />
-    <path
-      d="M43.4 18.6h6.2"
-      stroke="#F5F7FF"
-      stroke-opacity="0.9"
-      stroke-width="2.2"
-      stroke-linecap="round"
-    />
-    <path
-      d="M46.5 15.5v6.2"
-      stroke="#F5F7FF"
-      stroke-opacity="0.9"
-      stroke-width="2.2"
-      stroke-linecap="round"
-    />
+  <!-- Crystal prism shape -->
+  <g filter="url(#innerGlow)">
+    <!-- Left facet -->
+    <path d="M32 14 L19 34 L28 50 L32 42 Z" fill="url(#facetL)" opacity="0.92"/>
+    <!-- Right facet -->
+    <path d="M32 14 L45 34 L36 50 L32 42 Z" fill="url(#facetR)" opacity="0.92"/>
+    <!-- Center highlight facet -->
+    <path d="M32 14 L26 30 L32 42 L38 30 Z" fill="url(#facetC)" opacity="0.78"/>
   </g>
 
-  <rect x="9" y="9" width="46" height="46" rx="13" fill="none" stroke="#F5F7FF" stroke-opacity="0.05"/>
+  <!-- Top spark/flare -->
+  <g filter="url(#glow)">
+    <circle cx="32" cy="14" r="2.5" fill="url(#spark)" opacity="0.9"/>
+    <path d="M32 9 L32 12" stroke="white" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+    <path d="M29 11.5 L30.5 13" stroke="white" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+    <path d="M35 11.5 L33.5 13" stroke="white" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+  </g>
+
+  <!-- Subtle refraction lines -->
+  <path d="M26 34 L22 44" stroke="#67e8f9" stroke-width="0.6" stroke-linecap="round" opacity="0.4"/>
+  <path d="M38 34 L42 44" stroke="#ec4899" stroke-width="0.6" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Bottom glow reflection -->
+  <ellipse cx="32" cy="52" rx="8" ry="2" fill="#c084fc" opacity="0.15"/>
 </svg>

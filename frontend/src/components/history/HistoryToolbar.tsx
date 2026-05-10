@@ -67,7 +67,7 @@ export function HistoryToolbar(props: {
         </label>
       </div>
 
-      <div className="chips" style={{ marginBottom: 10 }}>
+      <div className="chips" style={{ marginBottom: 12 }}>
         <button className="btn btn--ghost" onClick={p.onSearch} disabled={p.busy}>
           查询
         </button>

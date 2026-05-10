@@ -4,6 +4,7 @@ import (
 	"aigc-backend/internal/types"
 	"context"
 	"net/http"
+	"strings"
 )
 
 func (h *Handler) storyVideoConfirm(w http.ResponseWriter, r *http.Request) {
@@ -19,6 +20,10 @@ func (h *Handler) storyVideoConfirm(w http.ResponseWriter, r *http.Request) {
 	project, shots, err := h.storyVideos.GetProject(r.Context(), projectID)
 	if err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	if strings.TrimSpace(project.Status) != "draft_ready" {
+		writeJSON(w, http.StatusOK, h.storyVideoResponse(project, shots))
 		return
 	}
 	_ = h.storyVideos.UpdateProject(r.Context(), projectID, map[string]any{"status": "draft_confirmed", "error": nil, "video_asset_id": nil})

@@ -60,6 +60,9 @@ func (h *Handler) storyVideoReplaceDraft(ctx context.Context, projectID string, 
 	if err != nil {
 		return types.StoryVideoProject{}, err
 	}
+	if strings.TrimSpace(project.Status) != "draft_ready" {
+		return types.StoryVideoProject{}, fmt.Errorf("草稿已确认，不能继续保存草稿")
+	}
 	req.Keywords = storyVideoCleanList(req.Keywords)
 	if len(req.Keywords) == 0 || len(req.Shots) == 0 {
 		return types.StoryVideoProject{}, fmt.Errorf("关键词和分镜不能为空")

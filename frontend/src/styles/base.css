@@ -19,8 +19,7 @@ body {
     linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 42%, var(--bg2) 100%);
   background-size: 120% 120%, 120% 120%, 120% 120%, 100% 100%;
   animation: page-gradient-flow 18s ease-in-out infinite;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
-    "Segoe UI Emoji";
+
   color-scheme: dark;
   overflow-x: hidden;
   position: relative;

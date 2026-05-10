@@ -99,7 +99,7 @@
 
 .mobilebar__title {
   font-weight: 780;
-  letter-spacing: 0.3px;
+  letter-spacing: -0.02em;
   background: linear-gradient(90deg, #f5f7ff 0%, #c4b5fd 45%, #67e8f9 100%);
   -webkit-background-clip: text;
   background-clip: text;

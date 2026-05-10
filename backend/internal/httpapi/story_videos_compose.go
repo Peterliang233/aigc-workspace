@@ -36,6 +36,10 @@ func (h *Handler) storyVideoCompose(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
+	if project.VideoAssetID != nil {
+		writeJSON(w, http.StatusOK, h.storyVideoResponse(project, shots))
+		return
+	}
 	if project.AudioAssetID == nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "请先生成解说音频"})
 		return

@@ -42,7 +42,7 @@
 }
 
 .navsub__label {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 

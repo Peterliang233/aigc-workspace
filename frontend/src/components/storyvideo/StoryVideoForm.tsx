@@ -37,10 +37,10 @@ function readCache() {
   }
 }
 
-export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; audioMeta: ProviderMetaResponse | null; busy: boolean; error: string }) {
+export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; audioMeta: ProviderMetaResponse | null; textMeta: ProviderMetaResponse | null; busy: boolean; error: string }) {
   const { createDraft } = useStoryVideo();
   const cached = useMemo(() => readCache(), []);
-  const plannerProvider = props.imageMeta?.providers?.find((item) => item.id === "bltcy")?.id || props.imageMeta?.providers?.[0]?.id || "bltcy";
+  const plannerProvider = props.textMeta?.default_provider || props.textMeta?.providers?.find((item) => item.id === "bltcy")?.id || props.textMeta?.providers?.[0]?.id || "bltcy";
   const imageProvider = props.imageMeta?.default_provider || props.imageMeta?.providers?.[0]?.id || "siliconflow";
   const audioProvider = props.audioMeta?.default_provider || props.audioMeta?.providers?.[0]?.id || "bltcy";
   const [keywords, setKeywords] = useState(cached.keywords || "赛博城市, 失忆侦探, 清晨追凶");
@@ -52,18 +52,20 @@ export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; 
   const [plannerModel, setPlannerModel] = useState(cached.plannerModel || defaultPlannerModel(plannerProvider));
   const [imageProv, setImageProv] = useState(cached.imageProv || imageProvider);
   const [audioProv, setAudioProv] = useState(cached.audioProv || audioProvider);
+  const plannerModels = useMemo(() => models(props.textMeta, plannerProv), [props.textMeta, plannerProv]);
   const imageModels = useMemo(() => models(props.imageMeta, imageProv), [props.imageMeta, imageProv]);
   const audioModels = useMemo(() => models(props.audioMeta, audioProv), [props.audioMeta, audioProv]);
   const [imageModel, setImageModel] = useState(cached.imageModel || "");
   const [audioModel, setAudioModel] = useState(cached.audioModel || "");
 
   useEffect(() => {
-    if (!props.imageMeta?.providers?.some((item) => item.id === plannerProv)) setPlannerProv(plannerProvider);
-  }, [plannerProv, plannerProvider, props.imageMeta]);
+    if (!props.textMeta?.providers?.some((item) => item.id === plannerProv)) setPlannerProv(plannerProvider);
+  }, [plannerProv, plannerProvider, props.textMeta]);
 
   useEffect(() => {
-    if (!plannerModel.trim()) setPlannerModel(defaultPlannerModel(plannerProv));
-  }, [plannerModel, plannerProv]);
+    if (plannerModels.length > 0 && !plannerModels.some((item) => item.id === plannerModel)) setPlannerModel(plannerModels[0].id);
+    if (plannerModels.length === 0 && !plannerModel.trim()) setPlannerModel(defaultPlannerModel(plannerProv));
+  }, [plannerModel, plannerModels, plannerProv]);
 
   useEffect(() => {
     if (!props.imageMeta?.providers?.some((item) => item.id === imageProv)) setImageProv(imageProvider);
@@ -96,7 +98,7 @@ export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; 
       duration_seconds: duration,
       aspect_ratio: aspectRatio,
       planner_provider: plannerProv,
-      planner_model: plannerModel.trim(),
+      planner_model: plannerModel || plannerModels[0]?.id || defaultPlannerModel(plannerProv),
       image_provider: imageProv,
       image_model: imageModel || imageModels[0]?.id,
       audio_provider: audioProv,
@@ -120,8 +122,8 @@ export function StoryVideoForm(props: { imageMeta: ProviderMetaResponse | null; 
         <label className="label">风格<textarea className="textarea" rows={3} value={tone} onChange={(e) => setTone(e.target.value)} /></label>
         <label className="label">画幅<select className="input" value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)}><option>16:9</option><option>9:16</option><option>1:1</option><option>4:3</option><option>3:4</option></select></label>
         <div className="row2">
-          <label className="label">台本平台<select className="input" value={plannerProv} onChange={(e) => setPlannerProv(e.target.value)}>{props.imageMeta?.providers?.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
-          <label className="label">台本模型<input className="input" value={plannerModel} onChange={(e) => setPlannerModel(e.target.value)} placeholder="例如 gpt-5.4 / gpt-4.1" /></label>
+          <label className="label">台本平台<select className="input" value={plannerProv} onChange={(e) => setPlannerProv(e.target.value)}>{props.textMeta?.providers?.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+          <label className="label">台本模型<select className="input" value={plannerModel} onChange={(e) => setPlannerModel(e.target.value)}>{plannerModels.length > 0 ? plannerModels.map((item) => <option key={item.id} value={item.id}>{item.label ? `${item.label} (${item.id})` : item.id}</option>) : <option value={plannerModel || defaultPlannerModel(plannerProv)}>{plannerModel || defaultPlannerModel(plannerProv)}</option>}</select></label>
         </div>
         <div className="row2">
           <label className="label">图片平台<select className="input" value={imageProv} onChange={(e) => setImageProv(e.target.value)}>{props.imageMeta?.providers?.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>

@@ -16,7 +16,10 @@
   overflow: hidden;
 }
 
-.storyvideo__hero,
+.storyvideo > .chips {
+  padding: 10px 0 2px;
+}
+
 .storyvideoSummary__head,
 .storyvideoRail__head {
   display: flex;
@@ -25,12 +28,6 @@
   align-items: center;
 }
 
-.storyvideo__title {
-  margin: 0 0 6px;
-  font-size: 28px;
-}
-
-.storyvideo__subtitle,
 .storyvideoSummary__meta {
   color: var(--muted);
 }
@@ -166,7 +163,6 @@
 }
 
 @media (max-width: 1100px) {
-  .storyvideo__hero,
   .storyvideoSummary__head,
   .storyvideoRail__head {
     align-items: flex-start;

@@ -29,6 +29,7 @@ export function StoryVideoDraftEditor(props: { project: StoryVideoProject | null
     });
   }, [props.project]);
   if (!props.project || !draft) return null;
+  const canEditDraft = props.project.status === "draft_ready";
   return (
     <section className="card">
       <div className="card__head">
@@ -36,24 +37,27 @@ export function StoryVideoDraftEditor(props: { project: StoryVideoProject | null
         <span className="badge">{props.project.status}</span>
       </div>
       <div className="form">
-        <label className="label">标题<input className="input" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
-        <label className="label">摘要<textarea className="textarea" rows={3} value={draft.summary} onChange={(e) => setDraft({ ...draft, summary: e.target.value })} /></label>
-        <label className="label">故事台本<textarea className="textarea" rows={5} value={draft.script_text} onChange={(e) => setDraft({ ...draft, script_text: e.target.value })} /></label>
-        <label className="label">解说词<textarea className="textarea" rows={5} value={draft.narration_text} onChange={(e) => setDraft({ ...draft, narration_text: e.target.value })} /></label>
-        <div className="storyvideo__shots">
-          {draft.shots.map((shot, index) => (
-            <div key={shot.id || index} className="panel">
-              <div className="panel__row"><strong>分镜 {index + 1}</strong><span className="k">{shot.duration_ms}ms</span></div>
-              <input className="input" value={shot.title} onChange={(e) => setDraft({ ...draft, shots: draft.shots.map((item, idx) => idx === index ? { ...item, title: e.target.value } : item) })} />
-              <textarea className="textarea" rows={2} value={shot.narration_line} onChange={(e) => setDraft({ ...draft, shots: draft.shots.map((item, idx) => idx === index ? { ...item, narration_line: e.target.value } : item) })} />
-              <textarea className="textarea" rows={3} value={shot.image_prompt} onChange={(e) => setDraft({ ...draft, shots: draft.shots.map((item, idx) => idx === index ? { ...item, image_prompt: e.target.value } : item) })} />
-            </div>
-          ))}
-        </div>
-        <div className="storyvideo__actions">
+        {!canEditDraft ? <div className="panel"><div className="k">草稿已确认</div><div>素材生成流程已接管，草稿不会再重复提交。</div></div> : null}
+        <fieldset className="storyvideoDraft__fields" disabled={!canEditDraft}>
+          <label className="label">标题<input className="input" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
+          <label className="label">摘要<textarea className="textarea" rows={3} value={draft.summary} onChange={(e) => setDraft({ ...draft, summary: e.target.value })} /></label>
+          <label className="label">故事台本<textarea className="textarea" rows={5} value={draft.script_text} onChange={(e) => setDraft({ ...draft, script_text: e.target.value })} /></label>
+          <label className="label">解说词<textarea className="textarea" rows={5} value={draft.narration_text} onChange={(e) => setDraft({ ...draft, narration_text: e.target.value })} /></label>
+          <div className="storyvideo__shots">
+            {draft.shots.map((shot, index) => (
+              <div key={shot.id || index} className="panel">
+                <div className="panel__row"><strong>分镜 {index + 1}</strong><span className="k">{shot.duration_ms}ms</span></div>
+                <input className="input" value={shot.title} onChange={(e) => setDraft({ ...draft, shots: draft.shots.map((item, idx) => idx === index ? { ...item, title: e.target.value } : item) })} />
+                <textarea className="textarea" rows={2} value={shot.narration_line} onChange={(e) => setDraft({ ...draft, shots: draft.shots.map((item, idx) => idx === index ? { ...item, narration_line: e.target.value } : item) })} />
+                <textarea className="textarea" rows={3} value={shot.image_prompt} onChange={(e) => setDraft({ ...draft, shots: draft.shots.map((item, idx) => idx === index ? { ...item, image_prompt: e.target.value } : item) })} />
+              </div>
+            ))}
+          </div>
+        </fieldset>
+        {canEditDraft ? <div className="storyvideo__actions">
           <button className="btn btn--ghost" disabled={props.busy} onClick={() => void saveDraft(draft)}>保存草稿</button>
           <button className="btn" disabled={props.busy} onClick={() => void confirmProject()}>确认并生成素材</button>
-        </div>
+        </div> : null}
       </div>
     </section>
   );

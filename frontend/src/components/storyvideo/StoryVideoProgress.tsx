@@ -5,6 +5,7 @@ import { useStoryVideo } from "../../state/storyvideo";
 export function StoryVideoProgress(props: { project: StoryVideoProject | null; busy: boolean; error: string }) {
   const { regenerateAudio, regenerateShot, composeProject } = useStoryVideo();
   if (!props.project) return null;
+  const hasVideo = !!props.project.video_url || props.project.status === "succeeded";
   return (
     <section className="card">
       <div className="card__head">
@@ -30,7 +31,7 @@ export function StoryVideoProgress(props: { project: StoryVideoProject | null; b
         ))}
       </div>
       <div className="panel">
-        <div className="panel__row"><span className="k">最终视频</span><button className="btn" disabled={props.busy} onClick={() => void composeProject()}>合成视频</button></div>
+        <div className="panel__row"><span className="k">最终视频</span>{!hasVideo ? <button className="btn" disabled={props.busy} onClick={() => void composeProject()}>合成视频</button> : null}</div>
         {props.project.video_url ? <video className="storyvideo__video" controls src={props.project.video_url} /> : <div className="k">等待音频和全部分镜完成后合成。</div>}
       </div>
     </section>

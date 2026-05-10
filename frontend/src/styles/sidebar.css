@@ -1,5 +1,5 @@
 .brand__title {
-  letter-spacing: 0.2px;
+  letter-spacing: -0.02em;
   font-weight: 780;
   font-size: 24px;
   display: flex;
@@ -89,8 +89,8 @@
 
 .brand__titleMini {
   display: none;
-  font-size: 16px;
-  letter-spacing: 0.6px;
+  font-size: var(--text-md);
+  letter-spacing: -0.02em;
   opacity: 0.95;
 }
 

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { api, type ProviderMetaResponse } from "../api";
 import { storyVideoApi, type StoryVideoDraftRequest, type StoryVideoDraftUpdateRequest, type StoryVideoEvent, type StoryVideoProject } from "../api_storyvideo";
+import { textApi } from "../api_text";
 
 type Ctx = {
   projects: StoryVideoProject[];
@@ -8,6 +9,7 @@ type Ctx = {
   events: StoryVideoEvent[];
   imageMeta: ProviderMetaResponse | null;
   audioMeta: ProviderMetaResponse | null;
+  textMeta: ProviderMetaResponse | null;
   busy: boolean;
   error: string;
   selectProject: (id: string) => Promise<void>;
@@ -27,6 +29,7 @@ export function StoryVideoProvider(props: { children: React.ReactNode }) {
   const [events, setEvents] = useState<StoryVideoEvent[]>([]);
   const [imageMeta, setImageMeta] = useState<ProviderMetaResponse | null>(null);
   const [audioMeta, setAudioMeta] = useState<ProviderMetaResponse | null>(null);
+  const [textMeta, setTextMeta] = useState<ProviderMetaResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,9 +47,10 @@ export function StoryVideoProvider(props: { children: React.ReactNode }) {
   useEffect(() => {
     void (async () => {
       try {
-        const [images, audios] = await Promise.all([api.getImageMeta(), api.getAudioMeta()]);
+        const [images, audios, texts] = await Promise.all([api.getImageMeta(), api.getAudioMeta(), textApi.getMeta()]);
         setImageMeta(images);
         setAudioMeta(audios);
+        setTextMeta(texts);
         await refreshProjects();
       } catch (e: any) {
         setError(e?.message || String(e));
@@ -78,6 +82,7 @@ export function StoryVideoProvider(props: { children: React.ReactNode }) {
     events,
     imageMeta,
     audioMeta,
+    textMeta,
     busy,
     error,
     selectProject: async (id: string) => withBusy(async () => loadProject(id)),
@@ -111,7 +116,7 @@ export function StoryVideoProvider(props: { children: React.ReactNode }) {
       if (!project) return;
       setProject(await storyVideoApi.compose(project.id));
     })
-  }), [projects, project, events, imageMeta, audioMeta, busy, error]);
+  }), [projects, project, events, imageMeta, audioMeta, textMeta, busy, error]);
 
   return <StoryVideoContext.Provider value={value}>{props.children}</StoryVideoContext.Provider>;
 }
