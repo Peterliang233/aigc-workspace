@@ -61,6 +61,13 @@ func LoadFromEnv() Config {
 	wyBase := strings.TrimSpace(os.Getenv("WUYIN_BASE_URL"))
 	wyKey := strings.TrimSpace(os.Getenv("WUYIN_API_KEY"))
 
+	aliyunBase := strings.TrimSpace(os.Getenv("ALIYUN_BAILIAN_BASE_URL"))
+	aliyunBase = firstNonEmpty(aliyunBase, "https://dashscope.aliyuncs.com/api/v1")
+	aliyunKey := firstNonEmpty(
+		strings.TrimSpace(os.Getenv("ALIYUN_BAILIAN_API_KEY")),
+		strings.TrimSpace(os.Getenv("DASHSCOPE_API_KEY")),
+	)
+
 	bltcyBase := strings.TrimSpace(os.Getenv("BLTCY_BASE_URL"))
 	bltcyBase = firstNonEmpty(bltcyBase, "https://api.bltcy.ai")
 	bltcyKey := strings.TrimSpace(os.Getenv("BLTCY_API_KEY"))
@@ -73,6 +80,10 @@ func LoadFromEnv() Config {
 		"wuyinkeji": {
 			BaseURL: wyBase,
 			APIKey:  wyKey,
+		},
+		"aliyunbailian": {
+			BaseURL: aliyunBase,
+			APIKey:  aliyunKey,
 		},
 		"bltcy": {
 			BaseURL: bltcyBase,

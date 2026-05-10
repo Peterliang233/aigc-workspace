@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, ProviderModelMeta } from "../api";
 
-type ProviderMeta = { id: string; label: string; configured: boolean; models: ProviderModelMeta[] };
+type ProviderMeta = { id: string; label: string; category?: string; configured: boolean; models: ProviderModelMeta[] };
 
-export function useAudioMeta() {
+export function useAudioMeta(category?: string) {
   const [metaLoading, setMetaLoading] = useState(false);
   const [providers, setProviders] = useState<ProviderMeta[]>([]);
   const [provider, setProvider] = useState<string>(() => localStorage.getItem("aigc_audio_provider") || "");
@@ -22,7 +22,10 @@ export function useAudioMeta() {
       try {
         const res = await api.getAudioMeta();
         if (!mounted) return;
-        const list = (res.providers || []).slice().sort((a, b) => a.label.localeCompare(b.label));
+        const list = (res.providers || [])
+          .filter((item) => !category || (item.category || "文本转语音") === category)
+          .slice()
+          .sort((a, b) => a.label.localeCompare(b.label));
         setProviders(list);
         const nextProvider = list.find((p) => p.id === (provider || res.default_provider) && p.configured)?.id || list.find((p) => p.configured)?.id || list[0]?.id || "bltcy";
         setProvider(nextProvider);
@@ -36,11 +39,11 @@ export function useAudioMeta() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [category]);
 
   useEffect(() => {
     if (provider) localStorage.setItem("aigc_audio_provider", provider);
-  }, [provider]);
+  }, [provider, category]);
   useEffect(() => {
     if (model) localStorage.setItem("aigc_audio_model", model);
   }, [model]);

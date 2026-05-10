@@ -6,8 +6,8 @@ import { ModelFields } from "./form/ModelFields";
 import { ResultActions } from "./common/ResultActions";
 import { useApplyFieldDefaults } from "./form/useApplyFieldDefaults";
 
-export function AudioStudio() {
-  const { metaLoading, providers, provider, setProvider, model, setModel, customModel, setCustomModel, models, modelList, selectedModelMeta, useCustom } = useAudioMeta();
+export function AudioStudio(props: { category?: string; title?: string }) {
+  const { metaLoading, providers, provider, setProvider, model, setModel, customModel, setCustomModel, models, modelList, selectedModelMeta, useCustom } = useAudioMeta(props.category);
   const { state, startAudio } = useGeneration();
   const latest = useMemo(() => state.audios[0] || null, [state.audios]);
   const busy = state.audios.some((t) => t.status === "running");
@@ -36,6 +36,8 @@ export function AudioStudio() {
       model: pickedModel || undefined,
       input: String(values["input"] || ""),
       voice: String(values["voice"] || "").trim() || undefined,
+      instructions: String(values["instructions"] || "").trim() || undefined,
+      language_type: String(values["language_type"] || "").trim() || undefined,
       response_format: String(values["response_format"] || "").trim() || undefined,
       speed: Number.isFinite(speedNum as any) ? (speedNum as number) : undefined
     });
@@ -45,7 +47,7 @@ export function AudioStudio() {
     <div className="workspace">
       <section className="card">
         <div className="card__head">
-          <h2 className="card__title">音频生成</h2>
+          <h2 className="card__title">{props.title || "音频生成"}</h2>
         </div>
         <div className="form">
           <div className="row2">

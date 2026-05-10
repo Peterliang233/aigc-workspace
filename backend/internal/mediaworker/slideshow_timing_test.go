@@ -26,6 +26,18 @@ func TestStretchDurationsNoChange(t *testing.T) {
 	assertDurations(t, got, want, 5000)
 }
 
+func TestAlignDurationsToNarrationAudioAddsHoldToLastShot(t *testing.T) {
+	got := alignDurationsToNarrationAudio([]int{2000, 3000}, 7000)
+	want := []int{2800, 4200 + narrationEndHoldMS}
+	assertDurations(t, got, want, 7000+narrationEndHoldMS)
+}
+
+func TestDurationSum(t *testing.T) {
+	if got := durationSum([]int{1000, 2500, 3500}); got != 7000 {
+		t.Fatalf("sum=%d want=7000", got)
+	}
+}
+
 func TestStretchDurationsMinFloor(t *testing.T) {
 	got := stretchDurations([]int{500, 500, 9000}, 2000)
 	// 500 would scale to 100, but floor is 1000

@@ -44,8 +44,8 @@ func composeSlideshow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	var audioMS int
-	durations, audioMS, err = alignSlideshowDurations(durations, audio)
+	var videoMS int
+	durations, _, videoMS, err = alignSlideshowDurations(durations, audio)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
@@ -69,7 +69,7 @@ func composeSlideshow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	output := filepath.Join(tmpDir, "output.mp4")
-	if err := muxSlideshow(merged, audio, output, audioMS); err != nil {
+	if err := muxSlideshow(merged, audio, output, videoMS); err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
@@ -129,14 +129,15 @@ func renderSlideshowClip(imagePath, outputPath string, width, height, durationMS
 	return runFFmpeg("-y", "-loop", "1", "-i", imagePath, "-t", seconds, "-vf", filter, "-r", "25", "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p", outputPath)
 }
 
-func muxSlideshow(videoPath, audioPath, outputPath string, audioDurationMS int) error {
+func muxSlideshow(videoPath, audioPath, outputPath string, outputDurationMS int) error {
 	if strings.TrimSpace(audioPath) == "" {
 		return runFFmpeg("-y", "-i", videoPath, "-c:v", "copy", outputPath)
 	}
-	duration := strconv.FormatFloat(float64(audioDurationMS)/1000+1.0, 'f', 2, 64)
+	duration := strconv.FormatFloat(float64(outputDurationMS)/1000, 'f', 2, 64)
 	return runFFmpeg("-y",
-		"-stream_loop", "-1", "-i", videoPath,
+		"-i", videoPath,
 		"-i", audioPath,
+		"-map", "0:v:0", "-map", "1:a:0",
 		"-t", duration,
 		"-c:v", "copy", "-c:a", "aac",
 		"-movflags", "+faststart", outputPath)

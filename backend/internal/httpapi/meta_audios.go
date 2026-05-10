@@ -37,6 +37,7 @@ func (h *Handler) metaAudios(w http.ResponseWriter, r *http.Request) {
 	type prov struct {
 		ID         string  `json:"id"`
 		Label      string  `json:"label"`
+		Category   string  `json:"category,omitempty"`
 		Configured bool    `json:"configured"`
 		Models     []model `json:"models"`
 	}
@@ -85,7 +86,7 @@ func (h *Handler) metaAudios(w http.ResponseWriter, r *http.Request) {
 				}
 				models = append(models, model{ID: mid, Label: strings.TrimSpace(m.Label), Form: outForm})
 			}
-			list = append(list, prov{ID: id, Label: p.Label, Configured: configured, Models: models})
+			list = append(list, prov{ID: id, Label: p.Label, Category: strings.TrimSpace(p.Audio.Category), Configured: configured, Models: models})
 		}
 	}
 	sort.Slice(list, func(i, j int) bool { return list[i].ID < list[j].ID })

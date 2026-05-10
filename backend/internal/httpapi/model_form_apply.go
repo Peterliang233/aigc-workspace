@@ -119,12 +119,27 @@ func (h *Handler) applyAudioModelDefaults(providerID, model string, req *types.A
 		return
 	}
 	for _, f := range ms.Form.Fields {
-		if strings.ToLower(strings.TrimSpace(f.Key)) != "voice" || f.Default == nil {
+		if f.Default == nil {
 			continue
 		}
-		if strings.TrimSpace(req.Voice) == "" {
-			if s, ok := asString(f.Default); ok {
-				req.Voice = s
+		switch strings.ToLower(strings.TrimSpace(f.Key)) {
+		case "instructions":
+			if strings.TrimSpace(req.Instructions) == "" {
+				if s, ok := asString(f.Default); ok {
+					req.Instructions = s
+				}
+			}
+		case "voice":
+			if strings.TrimSpace(req.Voice) == "" {
+				if s, ok := asString(f.Default); ok {
+					req.Voice = s
+				}
+			}
+		case "language_type":
+			if strings.TrimSpace(req.LanguageType) == "" {
+				if s, ok := asString(f.Default); ok {
+					req.LanguageType = s
+				}
 			}
 		}
 	}

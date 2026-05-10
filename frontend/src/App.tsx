@@ -47,8 +47,10 @@ export function App() {
             <ImageStudio />
           ) : tab === "video" ? (
             <VideoStudio />
-          ) : tab === "audio" ? (
-            <AudioStudio />
+          ) : tab === "audio-tts" ? (
+            <AudioStudio category="文本转语音" title="文本转语音" />
+          ) : tab === "audio-speech" ? (
+            <AudioStudio category="语音合成" title="语音合成" />
           ) : tab === "animation-create" || tab === "animation-records" ? (
             <StoryVideoStudio
               mode={tab === "animation-records" ? "records" : "create"}

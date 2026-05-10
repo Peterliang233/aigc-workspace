@@ -61,6 +61,8 @@ type AudioGenerateRequest struct {
 	Model          string   `json:"model,omitempty"`
 	Input          string   `json:"input"`
 	Voice          string   `json:"voice,omitempty"`
+	Instructions   string   `json:"instructions,omitempty"`
+	LanguageType   string   `json:"language_type,omitempty"`
 	ResponseFormat string   `json:"response_format,omitempty"`
 	Speed          *float64 `json:"speed,omitempty"`
 }

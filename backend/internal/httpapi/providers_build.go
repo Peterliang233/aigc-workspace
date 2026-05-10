@@ -3,6 +3,7 @@ package httpapi
 import (
 	"strings"
 
+	"aigc-backend/internal/providers/aliyunbailian"
 	"aigc-backend/internal/providers/gptbest"
 	"aigc-backend/internal/providers/siliconflow"
 	"aigc-backend/internal/providers/wuyinkeji"
@@ -73,6 +74,12 @@ func (h *Handler) rebuildProvidersLocked() {
 		key := "wya|" + pc.BaseURL + "|" + pc.APIKey
 		ensureA("wuyinkeji", key, func() audioProvider {
 			return wuyinkeji.New(pc.BaseURL, pc.APIKey, h.staticRoot, nil, nil)
+		})
+	}
+	if pc, ok := cfg.ImageProviders["aliyunbailian"]; ok && strings.TrimSpace(pc.BaseURL) != "" && strings.TrimSpace(pc.APIKey) != "" {
+		key := "aliyuna|" + pc.BaseURL + "|" + pc.APIKey
+		ensureA("aliyunbailian", key, func() audioProvider {
+			return aliyunbailian.New(pc.BaseURL, pc.APIKey)
 		})
 	}
 	// Video providers (multi-provider). IDs are stable and match frontend selection.

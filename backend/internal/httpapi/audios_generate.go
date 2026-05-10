@@ -67,6 +67,8 @@ func (h *Handler) audiosGenerate(w http.ResponseWriter, r *http.Request) {
 			Prompt:     req.Input,
 			Params: map[string]any{
 				"voice":           strings.TrimSpace(req.Voice),
+				"instructions":    strings.TrimSpace(req.Instructions),
+				"language_type":   strings.TrimSpace(req.LanguageType),
 				"response_format": strings.TrimSpace(req.ResponseFormat),
 				"speed":           req.Speed,
 			},
@@ -87,6 +89,8 @@ func (h *Handler) audiosGenerate(w http.ResponseWriter, r *http.Request) {
 			Prompt:     req.Input,
 			Params: map[string]any{
 				"voice":           strings.TrimSpace(req.Voice),
+				"instructions":    strings.TrimSpace(req.Instructions),
+				"language_type":   strings.TrimSpace(req.LanguageType),
 				"response_format": strings.TrimSpace(req.ResponseFormat),
 				"speed":           req.Speed,
 			},

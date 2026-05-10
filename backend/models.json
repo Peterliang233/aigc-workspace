@@ -106,6 +106,137 @@
       }
     },
     {
+      "id": "aliyunbailian",
+      "label": "阿里云百炼",
+      "audio": {
+        "category": "语音合成",
+        "default_model": "qwen3-tts-flash",
+        "models": [
+          {
+            "id": "qwen3-tts-flash",
+            "label": "Qwen3 TTS Flash",
+            "form": {
+              "fields": [
+                { "key": "input", "label": "文本内容", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "voice",
+                  "label": "音色",
+                  "type": "select",
+                  "required": true,
+                  "default": "Cherry",
+                  "options": [
+                    { "label": "Cherry - 温柔女声", "value": "Cherry" },
+                    { "label": "Serena - 知性女声", "value": "Serena" },
+                    { "label": "Ethan - 稳重男声", "value": "Ethan" },
+                    { "label": "Chelsie - 活力女声", "value": "Chelsie" },
+                    { "label": "Dylan - 北京话男声", "value": "Dylan" },
+                    { "label": "Jada - 吴语女声", "value": "Jada" },
+                    { "label": "Sunny - 四川话女声", "value": "Sunny" },
+                    { "label": "Mia - 甜美女声", "value": "Mia" },
+                    { "label": "Stella - 成熟女声", "value": "Stella" },
+                    { "label": "Kai - 清朗男声", "value": "Kai" },
+                    { "label": "Neil - 沉稳男声", "value": "Neil" },
+                    { "label": "Momo - 童声", "value": "Momo" },
+                    { "label": "Vivian - 女声", "value": "Vivian" }
+                  ]
+                },
+                {
+                  "key": "language_type",
+                  "label": "语言",
+                  "type": "select",
+                  "default": "Auto",
+                  "options": [
+                    { "label": "自动识别", "value": "Auto" },
+                    { "label": "中文", "value": "Chinese" },
+                    { "label": "英文", "value": "English" },
+                    { "label": "中英混合", "value": "Mix" }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": "qwen-tts-latest",
+            "label": "Qwen TTS Latest",
+            "form": {
+              "fields": [
+                { "key": "input", "label": "文本内容", "type": "textarea", "required": true, "rows": 6 },
+                {
+                  "key": "voice",
+                  "label": "音色",
+                  "type": "select",
+                  "required": true,
+                  "default": "Cherry",
+                  "options": [
+                    { "label": "Cherry - 温柔女声", "value": "Cherry" },
+                    { "label": "Serena - 知性女声", "value": "Serena" },
+                    { "label": "Ethan - 稳重男声", "value": "Ethan" },
+                    { "label": "Chelsie - 活力女声", "value": "Chelsie" }
+                  ]
+                },
+                {
+                  "key": "language_type",
+                  "label": "语言",
+                  "type": "select",
+                  "default": "Auto",
+                  "options": [
+                    { "label": "自动识别", "value": "Auto" },
+                    { "label": "中文", "value": "Chinese" },
+                    { "label": "英文", "value": "English" },
+                    { "label": "中英混合", "value": "Mix" }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": "qwen3-tts-instruct-flash-realtime",
+            "label": "Qwen3 TTS Instruct Flash Realtime",
+            "form": {
+              "fields": [
+                { "key": "input", "label": "文本内容", "type": "textarea", "required": true, "rows": 6 },
+                { "key": "instructions", "label": "语音指令", "type": "textarea", "rows": 3, "placeholder": "例如：用温柔、舒缓的语气朗读，结尾略微上扬。" },
+                {
+                  "key": "voice",
+                  "label": "音色",
+                  "type": "select",
+                  "required": true,
+                  "default": "Cherry",
+                  "options": [
+                    { "label": "Cherry - 温柔女声", "value": "Cherry" },
+                    { "label": "Serena - 知性女声", "value": "Serena" },
+                    { "label": "Ethan - 稳重男声", "value": "Ethan" },
+                    { "label": "Chelsie - 活力女声", "value": "Chelsie" },
+                    { "label": "Dylan - 北京话男声", "value": "Dylan" },
+                    { "label": "Jada - 吴语女声", "value": "Jada" },
+                    { "label": "Sunny - 四川话女声", "value": "Sunny" },
+                    { "label": "Mia - 甜美女声", "value": "Mia" },
+                    { "label": "Stella - 成熟女声", "value": "Stella" },
+                    { "label": "Kai - 清朗男声", "value": "Kai" },
+                    { "label": "Neil - 沉稳男声", "value": "Neil" },
+                    { "label": "Momo - 童声", "value": "Momo" },
+                    { "label": "Vivian - 女声", "value": "Vivian" }
+                  ]
+                },
+                {
+                  "key": "language_type",
+                  "label": "语言",
+                  "type": "select",
+                  "default": "Auto",
+                  "options": [
+                    { "label": "自动识别", "value": "Auto" },
+                    { "label": "中文", "value": "Chinese" },
+                    { "label": "英文", "value": "English" },
+                    { "label": "中英混合", "value": "Mix" }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
       "id": "wuyinkeji",
       "label": "无印科技(速创API)",
       "image": {
@@ -321,6 +452,7 @@
         ]
       },
       "audio": {
+        "category": "文本转语音",
         "default_model": "voice_composite",
         "models": [
           {
@@ -526,6 +658,7 @@
         ]
       },
       "audio": {
+        "category": "文本转语音",
         "default_model": "tts-1",
         "models": [
           {

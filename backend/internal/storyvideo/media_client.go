@@ -34,3 +34,7 @@ func (c *MediaClient) ComposeSlideshow(ctx context.Context, images []string, aud
 	}
 	return c.uploadCompose(ctx, "/compose-slideshow", images, audioPath, outputPath, fields)
 }
+
+func (c *MediaClient) ConcatAudios(ctx context.Context, audioPaths []string, outputPath string) ([]int, error) {
+	return c.uploadAudioConcat(ctx, audioPaths, outputPath)
+}

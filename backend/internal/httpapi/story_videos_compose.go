@@ -74,7 +74,7 @@ func (h *Handler) runStoryVideoCompose(projectID string) {
 		_ = h.storyVideoFailProject(ctx, projectID, "compose", err)
 		return
 	}
-	images, durations := make([]string, 0, len(shots)), make([]int, 0, len(shots))
+	images := make([]string, 0, len(shots))
 	for i, shot := range shots {
 		path, dlErr := h.storyVideoDownloadAsset(ctx, *shot.ImageAssetID, tmpDir, fmt.Sprintf("shot-%02d", i+1))
 		if dlErr != nil {
@@ -82,8 +82,8 @@ func (h *Handler) runStoryVideoCompose(projectID string) {
 			return
 		}
 		images = append(images, path)
-		durations = append(durations, shot.DurationMS)
 	}
+	durations := storyVideoOriginalDurations(shots)
 	outputPath := filepath.Join(tmpDir, "story-video.mp4")
 	if err := h.storyMedia.ComposeSlideshow(ctx, images, audioPath, durations, project.AspectRatio, outputPath); err != nil {
 		_ = h.storyVideoFailProject(ctx, projectID, "compose", err)

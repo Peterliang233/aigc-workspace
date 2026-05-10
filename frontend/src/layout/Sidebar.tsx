@@ -13,6 +13,7 @@ export function Sidebar(props: {
 }) {
   const { tab, sideCollapsed, sideOpen, onSelect, onToggleCollapsed, onCloseDrawer } = props;
   const storyActive = tab === "animation-create" || tab === "animation-records";
+  const audioActive = tab === "audio-tts" || tab === "audio-speech";
   return (
     <aside
       className={[
@@ -75,16 +76,24 @@ export function Sidebar(props: {
           </span>
           <span className="navitem__label">视频生成</span>
         </button>
-        <button
-          className={tab === "audio" ? "navitem navitem--active" : "navitem"}
-          onClick={() => onSelect("audio")}
-          title="音频生成"
-        >
-          <span className="navitem__icon">
-            <Icon name="audio" />
-          </span>
-          <span className="navitem__label">音频生成</span>
-        </button>
+        <div className={audioActive ? "navgroup navgroup--active" : "navgroup"}>
+          <button className={audioActive ? "navitem navitem--active" : "navitem"} onClick={() => onSelect("audio-tts")} title="音频生成">
+            <span className="navitem__icon">
+              <Icon name="audio" />
+            </span>
+            <span className="navitem__label">音频生成</span>
+          </button>
+          <div className="navgroup__sub">
+            <button className={tab === "audio-tts" ? "navsub navsub--active" : "navsub"} onClick={() => onSelect("audio-tts")}>
+              <span className="navsub__dot" />
+              <span className="navsub__label">文本转语音</span>
+            </button>
+            <button className={tab === "audio-speech" ? "navsub navsub--active" : "navsub"} onClick={() => onSelect("audio-speech")}>
+              <span className="navsub__dot" />
+              <span className="navsub__label">语音合成</span>
+            </button>
+          </div>
+        </div>
         <div className={storyActive ? "navgroup navgroup--active" : "navgroup"}>
           <button className={storyActive ? "navitem navitem--active" : "navitem"} onClick={() => onSelect("animation-create")} title="故事视频工坊">
             <span className="navitem__icon">

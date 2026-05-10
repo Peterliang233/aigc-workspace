@@ -29,6 +29,7 @@ type Provider struct {
 
 type CapabilitySpec struct {
 	DefaultModel string      `json:"default_model"`
+	Category     string      `json:"category,omitempty"`
 	Models       []ModelSpec `json:"models"`
 }
 

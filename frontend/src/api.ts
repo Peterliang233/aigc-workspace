@@ -46,6 +46,7 @@ export type ProviderMetaResponse = {
   providers: {
     id: string;
     label: string;
+    category?: string;
     configured: boolean;
     models: ProviderModelMeta[];
   }[];
@@ -93,6 +94,8 @@ export type AudioGenerateRequest = {
   model?: string;
   input: string;
   voice?: string;
+  instructions?: string;
+  language_type?: string;
   response_format?: string;
   speed?: number;
 };

@@ -138,6 +138,14 @@ func (h *Handler) missingAudioRequiredFields(providerID, model string, req types
 			if strings.TrimSpace(req.Voice) == "" {
 				miss = append(miss, "voice")
 			}
+		case "instructions":
+			if strings.TrimSpace(req.Instructions) == "" {
+				miss = append(miss, "instructions")
+			}
+		case "language_type":
+			if strings.TrimSpace(req.LanguageType) == "" {
+				miss = append(miss, "language_type")
+			}
 		}
 	}
 	return miss

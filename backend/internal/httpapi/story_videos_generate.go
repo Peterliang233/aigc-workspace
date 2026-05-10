@@ -54,47 +54,6 @@ func (h *Handler) storyVideoGenerateShot(ctx context.Context, project *storyvide
 	return nil
 }
 
-func (h *Handler) runStoryVideoAudioSync(ctx context.Context, projectID string) error {
-	project, _, err := h.storyVideos.GetProject(ctx, projectID)
-	if err != nil {
-		return err
-	}
-	providerID := firstNonEmpty(project.AudioProvider, h.defaultAudioProviderID())
-	defaultModel := ""
-	if h.models != nil {
-		defaultModel = h.models.DefaultModel(providerID, "audio")
-	}
-	model := firstNonEmpty(project.AudioModel, defaultModel)
-	prov, ok := h.getAudioProvider(providerID)
-	if !ok || prov == nil {
-		return h.storyVideoFailProject(ctx, projectID, "audio", fmt.Errorf("音频 provider 不可用"))
-	}
-	req := types.AudioGenerateRequest{Provider: providerID, Model: model, Input: project.NarrationText, Voice: project.AudioVoice}
-	h.applyAudioModelDefaults(providerID, model, &req)
-	if miss := h.missingAudioRequiredFields(providerID, model, req); len(miss) > 0 {
-		return h.storyVideoFailProject(ctx, projectID, "audio", fmt.Errorf("缺少音频参数: %s", strings.Join(miss, ", ")))
-	}
-	var resp types.AudioGenerateResponse
-	err = retryDownstreamCall(ctx, "story_video_audio_generate", func(callCtx context.Context) error {
-		var callErr error
-		resp, callErr = prov.GenerateAudio(callCtx, req)
-		return callErr
-	})
-	if err != nil || strings.TrimSpace(resp.AudioURL) == "" {
-		if err == nil {
-			err = fmt.Errorf("未返回音频地址")
-		}
-		return h.storyVideoFailProject(ctx, projectID, "audio", err)
-	}
-	asset, err := h.storyVideoStoreAudioAsset(ctx, providerID, model, project.NarrationText, req, resp)
-	if err != nil {
-		return h.storyVideoFailProject(ctx, projectID, "audio", err)
-	}
-	_ = h.storyVideos.UpdateProject(ctx, projectID, map[string]any{"audio_asset_id": asset.ID, "error": nil})
-	_ = h.storyVideoAddEvent(ctx, projectID, "audio", "succeeded", "解说音频生成成功", map[string]any{"asset_id": asset.ID})
-	return nil
-}
-
 func (h *Handler) storyVideoStoreImageAsset(ctx context.Context, providerID, model, prompt string, req types.ImageGenerateRequest, src string) (*assets.Asset, error) {
 	if h.assets == nil || !h.assets.Enabled() {
 		return nil, fmt.Errorf("素材存储未配置")
@@ -113,27 +72,6 @@ func (h *Handler) storyVideoStoreImageAsset(ctx context.Context, providerID, mod
 	return h.assets.StoreRemote(ctx, assets.StoreRemoteInput{
 		Capability: "image", Provider: providerID, Model: model, Prompt: prompt,
 		Params: map[string]any{"size": req.Size, "aspect_ratio": req.AspectRatio}, SourceURL: strings.TrimSpace(src),
-	})
-}
-
-func (h *Handler) storyVideoStoreAudioAsset(ctx context.Context, providerID, model, prompt string, req types.AudioGenerateRequest, resp types.AudioGenerateResponse) (*assets.Asset, error) {
-	if h.assets == nil || !h.assets.Enabled() {
-		return nil, fmt.Errorf("素材存储未配置")
-	}
-	if strings.HasPrefix(resp.AudioURL, "/static/generated/") {
-		path := filepath.Join(h.staticRoot, "generated", filepath.Base(resp.AudioURL))
-		a, err := h.assets.StoreLocalFile(ctx, assets.StoreLocalFileInput{
-			Capability: "audio", Provider: providerID, Model: model, Prompt: prompt,
-			Params: map[string]any{"voice": req.Voice, "response_format": req.ResponseFormat}, FilePath: path, ContentType: resp.ContentType,
-		})
-		if err == nil {
-			_ = os.Remove(path)
-		}
-		return a, err
-	}
-	return h.assets.StoreRemote(ctx, assets.StoreRemoteInput{
-		Capability: "audio", Provider: providerID, Model: model, Prompt: prompt,
-		Params: map[string]any{"voice": req.Voice, "response_format": req.ResponseFormat}, SourceURL: strings.TrimSpace(resp.AudioURL),
 	})
 }
 
